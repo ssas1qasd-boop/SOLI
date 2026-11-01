@@ -82,7 +82,7 @@ $('f').onsubmit = async ev => { ev.preventDefault(); const q = $('q').value.trim
       console.error(e1); ai.textContent = 'كارت الشاشة اتلخبط (' + (e1 && e1.message || e1) + ')، بعيد تشغيل النموذج وأجرب تاني…';
       try { await engine.unload(); } catch (_){}
       engine = await webllm.CreateMLCEngine(curId, {}, CHAT_OPTS);
-      await run([{role: 'system', content: SYS + codeTxt}, {role: 'user', content: msgs[msgs.length - 1].content}]); }
+      await run([{role: 'system', content: SHORT}, {role: 'user', content: msgs[msgs.length - 1].content}]); }
     const st = await engine.runtimeStatsText(); const s = document.createElement('div'); s.className = 'stat'; s.textContent = st + ` · ${((performance.now() - t0) / 1000).toFixed(1)}s`; ai.appendChild(s);
     hist.push({role: 'user', content: q}, {role: 'assistant', content: text.replace(/<think>[\s\S]*?<\/think>/g, '').trim()}); }
   catch (e){ ai.textContent = 'حصل خطأ: ' + (e && e.message || e); }
