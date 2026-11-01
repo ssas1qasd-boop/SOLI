@@ -18,15 +18,15 @@ form{display:flex;gap:6px}textarea{flex:1;min-width:0;border-radius:10px;border:
 code{direction:ltr;unicode-bidi:isolate}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}label{font-size:.9rem}
 </style></head><body><main>
-<h1>🤖 مخ البنش · تجربة نموذج بيفكر جوه الموبايل <small class="muted">· نسخة 6</small></h1>
+<h1>🤖 مخ البنش · تجربة نموذج بيفكر جوه الموبايل <small class="muted">· نسخة 7</small></h1>
 <p class="muted">النموذج بيتحمّل من Hugging Face مرة واحدة ويتحفظ في المتصفح، وبعدها بيشتغل من غير نت. الأسئلة هنا عن برنامج اليوم 7 «الطريقتين جنب بعض»، والنموذج بيقرا حقايق التشغيل الحقيقي قبل ما يجاوب.</p>
 <div class="card" id="setup">
  <div class="row"><label for="model">النموذج:</label><select id="model">
-  <option value="Qwen2.5-0.5B-Instruct-q4f32_1-MLC" selected>Qwen2.5 0.5B نسخة f32 (حوالي 0.5 جيجا، لو الكارت مش بيحب f16)</option>
-  <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Qwen2.5 1.5B (حوالي 0.9 جيجا، المناسب لموبايلك)</option>
-  <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Qwen2.5 0.5B (حوالي 0.4 جيجا، أسرع وأضعف)</option>
-  <option value="Qwen3-1.7B-q4f16_1-MLC">Qwen3 1.7B (حوالي 1 جيجا، أكتر من 900 ميجا)</option>
-  <option value="Qwen2.5-3B-Instruct-q4f16_1-MLC">Qwen2.5 3B (حوالي 1.8 جيجا، أكتر من 900 ميجا)</option>
+  <option value="Qwen2.5-1.5B-Instruct-q4f32_1-MLC" selected>Qwen2.5 1.5B نسخة f32 (حوالي 1 جيجا، أذكى، الخطوة الجاية)</option>
+  <option value="Qwen2.5-0.5B-Instruct-q4f32_1-MLC">Qwen2.5 0.5B نسخة f32 (اشتغل عندك ✓، ضعيف)</option>
+  <option value="Qwen3-1.7B-q4f32_1-MLC">Qwen3 1.7B نسخة f32 (بيعرف يفكر، حوالي 1.1 جيجا)</option>
+  <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Qwen2.5 1.5B نسخة f16 (وقع عندك ✕)</option>
+  <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Qwen2.5 0.5B نسخة f16 (وقع عندك ✕)</option>
  </select><button id="load">حمّل وشغّل</button><button id="ping" disabled>اختبار سريع</button></div>
  <p class="muted" id="gpu"></p><div id="bar"><i></i></div><p class="muted" id="prog">لسه ماتحمّلش.</p>
 </div>
