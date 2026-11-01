@@ -18,13 +18,13 @@ form{display:flex;gap:6px}textarea{flex:1;min-width:0;border-radius:10px;border:
 code{direction:ltr;unicode-bidi:isolate}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}label{font-size:.9rem}
 </style></head><body><main>
-<h1>🤖 مخ البنش · تجربة نموذج بيفكر جوه الموبايل</h1>
+<h1>🤖 مخ البنش · تجربة نموذج بيفكر جوه الموبايل <small class="muted">· نسخة 6</small></h1>
 <p class="muted">النموذج بيتحمّل من Hugging Face مرة واحدة ويتحفظ في المتصفح، وبعدها بيشتغل من غير نت. الأسئلة هنا عن برنامج اليوم 7 «الطريقتين جنب بعض»، والنموذج بيقرا حقايق التشغيل الحقيقي قبل ما يجاوب.</p>
 <div class="card" id="setup">
  <div class="row"><label for="model">النموذج:</label><select id="model">
-  <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC" selected>Qwen2.5 1.5B (حوالي 0.9 جيجا، المناسب لموبايلك)</option>
+  <option value="Qwen2.5-0.5B-Instruct-q4f32_1-MLC" selected>Qwen2.5 0.5B نسخة f32 (حوالي 0.5 جيجا، لو الكارت مش بيحب f16)</option>
+  <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Qwen2.5 1.5B (حوالي 0.9 جيجا، المناسب لموبايلك)</option>
   <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Qwen2.5 0.5B (حوالي 0.4 جيجا، أسرع وأضعف)</option>
-  <option value="Qwen2.5-0.5B-Instruct-q4f32_1-MLC">Qwen2.5 0.5B نسخة f32 (حوالي 0.5 جيجا، لو الكارت مش بيحب f16)</option>
   <option value="Qwen3-1.7B-q4f16_1-MLC">Qwen3 1.7B (حوالي 1 جيجا، أكتر من 900 ميجا)</option>
   <option value="Qwen2.5-3B-Instruct-q4f16_1-MLC">Qwen2.5 3B (حوالي 1.8 جيجا، أكتر من 900 ميجا)</option>
  </select><button id="load">حمّل وشغّل</button><button id="ping" disabled>اختبار سريع</button></div>
@@ -57,7 +57,7 @@ function pickKB(q){ const w = new Set(norm(q).split(/[^\p{L}\p{N}_]+/u).filter(x
 const SYS = 'انت «مخ البنش»: مساعد بيشرح برنامج C++/OpenGL اتشغّل فعلاً خطوة بخطوة. اتكلم بالعامية المصرية لطالب مبتدئ وبجمل قصيرة. اعتمد على الحقايق والكود اللي تحت بس، وماتألّفش أرقام. لو المعلومة مش موجودة قول «مش موجود في البنش». لما تذكر خطوة اكتب «خطوة N»، ولما تذكر سطر اكتب «سطر N». قبل أي رقم معناه عدد اكتب «عدد».\n\nحقايق التشغيل الحقيقي:\n' + FACTS;
 $('load').onclick = async () => { const id = $('model').value; $('load').disabled = true; $('model').disabled = true; const t0 = performance.now();
   try { engine = await webllm.CreateMLCEngine(id, {initProgressCallback: r => { $('bar').firstChild.style.width = Math.round((r.progress || 0) * 100) + '%'; $('prog').textContent = r.text; }}, CHAT_OPTS); curId = id;
-    $('prog').textContent = `جاهز ✓ (${((performance.now() - t0) / 1000).toFixed(0)} ثانية). اسأل تحت.`; $('q').disabled = false; $('send').disabled = false; $('ping').disabled = false; $('q').focus(); }
+    $('prog').textContent = `جاهز ✓ (${((performance.now() - t0) / 1000).toFixed(0)} ثانية). اسأل تحت.`; $('q').disabled = false; $('send').disabled = false; $('ping').disabled = false; $('ping').click(); }
   catch (e){ $('prog').textContent = 'فشل التحميل: ' + (e && e.message || e); $('load').disabled = false; $('model').disabled = false; } };
 $('ping').onclick = async () => { if (!engine || busy) return; busy = true; const t0 = performance.now();
   const ai = document.createElement('div'); ai.className = 'm ai'; ai.textContent = 'اختبار سريع: سؤال من سطر واحد…'; $('log').appendChild(ai);
