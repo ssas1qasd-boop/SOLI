@@ -18,7 +18,7 @@ form{display:flex;gap:6px}textarea{flex:1;min-width:0;border-radius:10px;border:
 code{direction:ltr;unicode-bidi:isolate}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}label{font-size:.9rem}
 </style></head><body><main>
-<h1>🤖 مخ البنش · تجربة نموذج بيفكر جوه الموبايل <small class="muted">· نسخة 7</small></h1>
+<h1>🤖 مخ البنش · تجربة نموذج بيفكر جوه الموبايل <small class="muted">· نسخة 8</small></h1>
 <p class="muted">النموذج بيتحمّل من Hugging Face مرة واحدة ويتحفظ في المتصفح، وبعدها بيشتغل من غير نت. الأسئلة هنا عن برنامج اليوم 7 «الطريقتين جنب بعض»، والنموذج بيقرا حقايق التشغيل الحقيقي قبل ما يجاوب.</p>
 <div class="card" id="setup">
  <div class="row"><label for="model">النموذج:</label><select id="model">
@@ -31,6 +31,7 @@ code{direction:ltr;unicode-bidi:isolate}
  <p class="muted" id="gpu"></p><div id="bar"><i></i></div><p class="muted" id="prog">لسه ماتحمّلش.</p>
 </div>
 <div id="log"></div>
+<div class="row"><label><input type="checkbox" id="longOn"> ابعتله الحقايق كلها (أطول، ممكن يوقّع كارت الشاشة)</label></div>
 <div class="row"><label><input type="checkbox" id="thinkOn"> خليه يفكر بصوت عالي قبل الإجابة (أبطأ، Qwen3 بس)</label></div>
 <form id="f"><textarea id="q" rows="2" placeholder="اسأل عن البرنامج… مثلاً: لو شلت glBindVertexArray(0) إيه اللي ممكن يبوظ؟" disabled></textarea><button id="send" disabled>اسأل</button></form>
 <p class="muted">بعد التجربة ابعت لـ Claude: اسم النموذج، والسرعة (الرقم اللي تحت كل إجابة)، ورأيك في جودة العربي.</p>
@@ -43,7 +44,7 @@ const KB = [{"q": ["ليه فيه 3 VAO؟", "ليه عملنا VAO تالت", "g
 const $ = id => document.getElementById(id);
 let engine = null, busy = false, curId = ''; const hist = [];
 // الموبايل: نقسم قراية السؤال لحتت صغيرة علشان كارت الشاشة مايقفش (ده سبب خطأ mapAsync)
-const CHAT_OPTS = {prefill_chunk_size: 64, context_window_size: 3072};
+const CHAT_OPTS = {prefill_chunk_size: 16, context_window_size: 2048};
 // نبعت بس سطور الكود اللي ليها علاقة بالسؤال بدل الكود كله
 function pickCode(q){ const ids = (q.match(/[A-Za-z_][A-Za-z0-9_]{2,}/g) || []).map(x => x.toLowerCase());
   const nums = new Set((q.match(/\d+/g) || []).map(Number)); const L = CODE.split('\n'); const keep = new Set();
@@ -71,7 +72,8 @@ $('f').onsubmit = async ev => { ev.preventDefault(); const q = $('q').value.trim
   const kb = pickKB(q); const extra = kb.length ? '\n\nشرح جاهز ممكن يفيد:\n' + kb.map(e => 'س: ' + e.q[0] + '\nج: ' + e.a).join('\n\n') : '';
   const isQ3 = /Qwen3/.test($('model').value); const think = isQ3 && $('thinkOn').checked;
   const code = pickCode(q); const codeTxt = code ? '\n\nسطور الكود اللي ليها علاقة (رقم السطر: السطر):\n' + code : '';
-  const msgs = [{role: 'system', content: SYS + codeTxt + extra}, ...hist.slice(-2), {role: 'user', content: q + (isQ3 && !think ? ' /no_think' : '')}];
+  const SHORT = 'انت مساعد بيشرح كود OpenGL لطالب مبتدئ بالعامية المصرية وبجمل قصيرة. الكود: VAO رقم 1 للمربع، VAO رقم 2 للمثلث، VAO رقم 3 مشترك بيتوصف من جديد قبل كل رسمة.' + (kb[0] ? '\nشرح جاهز: ' + kb[0].a : '');
+  const msgs = [{role: 'system', content: $('longOn').checked ? SYS + codeTxt + extra : SHORT}, ...hist.slice(-2), {role: 'user', content: q + (isQ3 && !think ? ' /no_think' : '')}];
   let text = ''; const t0 = performance.now();
   const run = async m => { text = ''; const chunks = await engine.chat.completions.create({messages: m, stream: true, temperature: .4, max_tokens: 400});
     for await (const c of chunks){ text += c.choices[0]?.delta?.content || ''; render(ai, text); } };
