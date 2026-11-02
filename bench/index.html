@@ -582,7 +582,9 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
 .agmsg.localb{border-color:#16a34a;background:color-mix(in srgb,var(--paper-deep) 88%,#16a34a 12%)}.agmsg.localb .agtag{color:#16a34a}
 .agpre{margin:6px 0;padding:6px 8px;border-radius:8px;background:var(--paper);border:1px solid var(--rule);overflow-x:auto;font-size:.8rem;white-space:pre;text-align:left}
 .agthinkt{white-space:pre-wrap;max-height:9em;overflow:auto;direction:auto;font-size:.76rem;border-inline-start:3px solid var(--rule);padding-inline-start:6px;margin-top:4px}
-.agstat{font-size:.72rem;color:var(--ink-3);margin-top:4px}.agjudge{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #7c4dff;background:transparent;color:#7c4dff;cursor:pointer}
+.agstat{font-size:.72rem;color:var(--ink-3);margin-top:4px}.agmsg{position:relative}.agcopy{float:left;margin:-2px -4px 2px 6px;font:inherit;font-size:.8rem;line-height:1;padding:3px 5px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);opacity:.75;cursor:pointer}.agcopy:hover{opacity:1}
+.agjpaste{display:grid;gap:6px}.agjpaste textarea{font:inherit;font-size:.82rem;width:100%;box-sizing:border-box;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:6px}.agjpaste .agjudge{justify-self:start}
+.agjudge{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #7c4dff;background:transparent;color:#7c4dff;cursor:pointer}
 .aglocal,.agenough{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #16a34a;background:transparent;color:#16a34a;cursor:pointer}
 .aglocalset{margin:8px 0;padding:8px;border:1px dashed #16a34a;border-radius:10px;font-size:.84rem}.aglocalset .agrow{display:flex;gap:6px;margin:6px 0}.aglocalset .agurl{flex:1;min-width:0;font:inherit;font-size:.8rem;padding:4px 6px;border-radius:8px;border:1px solid var(--rule);background:var(--paper);color:var(--ink)}.aglocalset .agchk{font:inherit;font-size:.8rem;padding:2px 10px;border-radius:999px;border:1px solid #16a34a;background:transparent;color:#16a34a}
 .agmsg.claude{border-color:#7c4dff;background:color-mix(in srgb,var(--paper-deep) 85%,#7c4dff 15%)}
@@ -3316,18 +3318,27 @@ const robot = (() => {
     const row = document.createElement('div'); row.className = 'agfb agjrow';
     row.innerHTML = '<button type="button" class="agjudge">⚖️ خلي Claude يقيّم الإجابة دي</button>'; b.appendChild(row);
     row.querySelector('button').onclick = e => judge(b, e.target); }
+  function showJudge(b, text){ const j = document.createElement('div'); j.className = 'agmsg bot claude agjudged';
+    j.innerHTML = '<span class="agtag">⚖️ تقييم <bdi>Claude</bdi></span><div class="agct"></div>'; const ct = j.querySelector('.agct'); ct.innerHTML = mdToHtml(text);
+    let at = b; while (at.nextElementSibling && at.nextElementSibling.classList.contains('agjudged')) at = at.nextElementSibling; at.after(j);
+    const m = /(\d+(?:\.\d+)?)\s*من\s*10/.exec(text); if (m){ j.querySelector('.agtag').innerHTML = `⚖️ تقييم <bdi>Claude</bdi>: ${m[1]} من 10`; if (!/⚖️ \d/.test(b.querySelector('.agtag').textContent)) b.querySelector('.agtag').insertAdjacentText('beforeend', ` · ⚖️ ${m[1]}/10`); }
+    fixBidi(ct); wire(ct, b.dataset.q); log.scrollTop = j.offsetTop - 8; }
   function judge(b, btn){ const prompt = judgePrompt(b);
-    if (!SAMPLE){ // no Claude inside this page (GitHub copy): copy the grading prompt and open a Claude chat
+    if (!SAMPLE){ // no Claude inside this page (GitHub copy): open a Claude chat with the request, then paste Claude's reply back here
       let ok = false; (navigator.clipboard ? navigator.clipboard.writeText(prompt).then(() => { ok = true; }).catch(() => {}) : Promise.resolve()).finally(() => {
-        const a = document.createElement('a'); a.href = 'https://claude.ai/new?q=' + encodeURIComponent(prompt); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'افتح Claude ↗';
-        const n = document.createElement('div'); n.className = 'aglearn'; n.append(ok ? '✔ نسخت طلب التقييم (السؤال والإجابة' + (b.dataset.free ? '' : ' وحقايق البنش') + '). ' : '', a, ok ? ' ولو الخانة فاضية، الصق.' : '');
-        btn.parentElement.replaceWith(n); try { window.open(a.href, '_blank', 'noopener'); } catch (x) {} }); return; }
+        const href = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
+        const n = document.createElement('div'); n.className = 'agfb agjpaste';
+        n.innerHTML = `<div class="aglearn">1️⃣ ${ok ? 'نسخت طلب التقييم، و' : ''}فتحتلك Claude. لو الخانة هناك فاضية، الصق وابعت. <a href="${href}" target="_blank" rel="noopener">افتح Claude تاني ↗</a></div>` +
+          '<div class="aglearn">2️⃣ لما Claude يرد، انسخ رده وارجع هنا والصقه:</div><textarea rows="3" placeholder="الصق رد Claude هنا"></textarea><button type="button" class="agjudge">⚖️ حط رد Claude في الشات</button>';
+        btn.parentElement.replaceWith(n);
+        n.querySelector('button').onclick = () => { const t = n.querySelector('textarea').value.trim(); if (!t){ n.querySelector('textarea').focus(); return; } n.remove(); showJudge(b, t); };
+        try { window.open(href, '_blank', 'noopener'); } catch (x) {} }); return; }
     btn.disabled = true; const ctl = new AbortController();
     const j = document.createElement('div'); j.className = 'agmsg bot claude agjudged'; j.innerHTML = '<span class="agtag">⚖️ Claude بيقيّم المخ المحلي</span><div class="agct">بيراجع…</div><button type="button" class="agstop">⏹ وقّف</button>';
     b.after(j); log.scrollTop = j.offsetTop - 8; const ct = j.querySelector('.agct'), stop = j.querySelector('.agstop'); stop.onclick = () => ctl.abort();
     SAMPLE(prompt, {signal: ctl.signal, onText: ({text}) => { ct.innerHTML = mdToHtml(text); }})
       .then(({text}) => { ct.innerHTML = mdToHtml(text); fixBidi(ct); wire(ct, b.dataset.q);
-        const m = /التقييم:\s*(\d+(?:\.\d+)?)\s*من\s*10/.exec(text); if (m){ const sc = +m[1]; j.querySelector('.agtag').textContent = `⚖️ تقييم Claude: ${sc} من 10`; b.querySelector('.agtag').insertAdjacentText('beforeend', ` · ⚖️ ${sc}/10`); }
+        const m = /التقييم:\s*(\d+(?:\.\d+)?)\s*من\s*10/.exec(text); if (m){ const sc = +m[1]; j.querySelector('.agtag').innerHTML = `⚖️ تقييم <bdi>Claude</bdi>: ${sc} من 10`; b.querySelector('.agtag').insertAdjacentText('beforeend', ` · ⚖️ ${sc}/10`); }
         const fix = (/📝[^:：\n]*[:：]?\s*([\s\S]+)$/.exec(text) || [])[1];
         if (fix && b.dataset.free){ AG.saveFreeLesson(b.dataset.q, fix.trim()); j.insertAdjacentHTML('beforeend', '<div class="aglearn">📚 المخ المحلي هيقرا التصحيح ده المرة الجاية لما تسأل سؤال شبهه.</div>'); }
         if (fix && !b.dataset.free){ const k0 = AG.learnFromClaude(b.dataset.q, fix.trim()); j.insertAdjacentHTML('beforeend', `<div class="aglearn">📚 المخ المحلي هيقرا التصحيح ده المرة الجاية${k0 ? `، والمساعد ربطه بـ عدد ${k0} خطوة` : ''}.</div>`); }
@@ -3442,11 +3453,20 @@ const robot = (() => {
   stage.addEventListener('pointerup', e => { if (!pd || Math.hypot(e.clientX - pd[0], e.clientY - pd[1]) > 8) return; const r = stage.getBoundingClientRect();
     ray.setFromCamera(new T.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), cam);
     if (ray.intersectObject(robot.g, true).length){ openChat(true); robot.setMood('happy'); } });
+  // ---------- 📋 copy button on every message
+  function addCopy(m){ if (m.querySelector(':scope > .agcopy') || m.classList.contains('wait')) return; const c = document.createElement('button'); c.type = 'button'; c.className = 'agcopy'; c.title = 'انسخ الرسالة'; c.setAttribute('aria-label', 'انسخ الرسالة'); c.textContent = '📋';
+    c.onclick = async e => { e.stopPropagation(); const t = m.cloneNode(true); t.querySelectorAll('.agcopy, .agfb, .agstop, .agenough, .agthink, details, textarea, .agstat').forEach(x => x.remove());
+      t.querySelectorAll('br').forEach(x => x.replaceWith('\n')); t.querySelectorAll('.agtag, li, p, div, pre').forEach(x => x.append('\n')); t.querySelectorAll('li').forEach(x => x.prepend('• '));
+      const txt = (t.textContent || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+      try { await navigator.clipboard.writeText(txt); c.textContent = '✔'; } catch (x){ const r = document.createRange(); r.selectNodeContents(m.querySelector('.agct') || m); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); c.textContent = '⬚'; }
+      setTimeout(() => { c.textContent = '📋'; }, 1500); };
+    m.prepend(c); }
+  new MutationObserver(() => log.querySelectorAll(':scope > .agmsg:not(.brain)').forEach(addCopy)).observe(log, {childList: true, subtree: true, attributes: true, attributeFilter: ['class']});
   // ---------- keep the chat when the phone drops the page from memory (Chrome reloads it when you come back)
   const CHAT_KEY = 'benchHelperChat';
   const chatAll = () => { try { return JSON.parse(localStorage.getItem(CHAT_KEY) || '{}'); } catch (e){ return {}; } };
   function chatSave(){ try { const all = chatAll(); const c = log.cloneNode(true);
-      c.querySelectorAll('.agmsg.brain').forEach(x => x.remove()); c.querySelectorAll('.agfb, .agstop, .agenough, .agimpbox, .agchbox, .aglocalset').forEach(x => x.remove()); c.querySelectorAll('.wait').forEach(x => x.remove());
+      c.querySelectorAll('.agmsg.brain').forEach(x => x.remove()); c.querySelectorAll('.agfb, .agstop, .agenough, .agimpbox, .agchbox, .aglocalset, .agcopy').forEach(x => x.remove()); c.querySelectorAll('.wait').forEach(x => x.remove());
       const h = c.innerHTML.trim();
       if (h) all[P.id] = {h, t: Date.now(), open: !box.hidden}; else delete all[P.id];
       chatWrite(all); } catch (e) {} }
