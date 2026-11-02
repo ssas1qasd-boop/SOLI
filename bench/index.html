@@ -573,6 +573,7 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
 .agalt{display:grid;gap:6px;width:100%}.agpick{display:grid;gap:2px;text-align:start;font:inherit;padding:6px 9px;border-radius:9px;border:1px solid #2f6fe0;background:transparent;color:var(--ink);cursor:pointer}.agpick small{color:var(--ink-3);font-size:.76rem}.agpick code{font-size:.8rem}
 .agmore{border-color:#7c4dff!important;color:#7c4dff!important;font-weight:700}
 .agmsg.localb{border-color:#16a34a;background:color-mix(in srgb,var(--paper-deep) 88%,#16a34a 12%)}.agmsg.localb .agtag{color:#16a34a}
+.agpre{margin:6px 0;padding:6px 8px;border-radius:8px;background:var(--paper);border:1px solid var(--rule);overflow-x:auto;font-size:.8rem;white-space:pre;text-align:left}
 .agthinkt{white-space:pre-wrap;max-height:9em;overflow:auto;direction:auto;font-size:.76rem;border-inline-start:3px solid var(--rule);padding-inline-start:6px;margin-top:4px}
 .agstat{font-size:.72rem;color:var(--ink-3);margin-top:4px}.aglocal,.agenough{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #16a34a;background:transparent;color:#16a34a;cursor:pointer}
 .aglocalset{margin:8px 0;padding:8px;border:1px dashed #16a34a;border-radius:10px;font-size:.84rem}.aglocalset .agrow{display:flex;gap:6px;margin:6px 0}.aglocalset .agurl{flex:1;min-width:0;font:inherit;font-size:.8rem;padding:4px 6px;border-radius:8px;border:1px solid var(--rule);background:var(--paper);color:var(--ink)}.aglocalset .agchk{font:inherit;font-size:.8rem;padding:2px 10px;border-radius:999px;border:1px solid #16a34a;background:transparent;color:#16a34a}
@@ -3207,7 +3208,9 @@ const robot = (() => {
     'اعتمد بس على «حقايق البنش» اللي تحت (دي من التشغيل الحقيقي)؛ ماتألّفش أرقام ولا قيم ولا أسطر مش موجودة. لو المعلومة مش موجودة في الحقايق، قول كده بصراحة. ' +
     'لما تذكر خطوة اكتبها بالشكل «خطوة 12» عشان تتحول لزرار. قبل أي رقم معناه عدد اكتب كلمة «عدد» (مثلاً: عدد 3 Buffers)، واستخدم «رقم» للأرقام اللي هي أسماء (VAO رقم 3). ' +
     'خلّي الرد من 4 لـ 10 سطور، ومن غير عناوين كبيرة. الكود اكتبه بين علامتي `.';
-  function mdToHtml(t){ return esc(t).replace(/`([^`]+)`/g, '<code dir="ltr">$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+  function mdToHtml(t){ const pre = []; t = String(t).replace(/```[\w+-]*\n?([\s\S]*?)(```|$)/g, (m, c) => { pre.push(c.replace(/\n+$/, '')); return '\u0000' + (pre.length - 1) + '\u0000'; });
+    return mdInline(t).replace(/\u0000(\d+)\u0000(<br>)?/g, (m, n) => `<pre class="agpre" dir="ltr"><code>${esc(pre[+n])}</code></pre>`); }
+  function mdInline(t){ return esc(t).replace(/`([^`]+)`/g, '<code dir="ltr">$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
       .replace(/^\s*[-•*]\s+(.*)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m.replace(/\n/g, '') + '</ul>')
       .replace(/خطوة\s+(\d+)((?:\s*(?:و|،|,)\s*\d+)*)/g, (m, n, more) => { const ns = [n, ...(more.match(/\d+/g) || [])].map(Number); return ns.every(x => x >= 1 && x <= ST.length) ? ns.map(x => `<button type="button" class="agchip" data-k="${x - 1}">خطوة ${x} · سطر ${ST[x - 1].ln}</button>`).join(' ') : m; }).replace(/\n/g, '<br>'); }
   function explain(question, after, btn){ if (!SAMPLE) return; btn.disabled = true;
@@ -3261,7 +3264,7 @@ const robot = (() => {
       catch (e){ enough.textContent = 'النسخة دي مش بتدعمه، دوس ⏹ وجرّب «جاوب على طول»'; } };
     const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); tmp.querySelectorAll('details, .agthink, .agtag, .agstat, .aglearn').forEach(x => x.remove()); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 300);
     const user = 'حقايق البنش:\n' + AG.context(question, {short: true}) + '\n\nإجابة البحث المحلي (ممكن تكون ناقصة):\n' + helper + '\n\nالسؤال: ' + question;
-    const body = {messages: [{role: 'system', content: LOCAL_RULES}, {role: 'user', content: user}], stream: true, temperature: .5, max_tokens: 900,
+    const body = {messages: [{role: 'system', content: LOCAL_RULES}, {role: 'user', content: user}], stream: true, temperature: .5, max_tokens: 450,
       reasoning_format: 'deepseek', reasoning_control: true, chat_template_kwargs: {enable_thinking: LOCAL.think}};
     if (!LOCAL.think) body.reasoning_effort = 'none';
     const t0 = performance.now(); let n = 0, first = 0;
