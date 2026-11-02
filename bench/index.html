@@ -3351,7 +3351,7 @@ const robot = (() => {
     SAMPLE(prompt, {signal: ctl.signal, onText: ({text}) => { ct.innerHTML = mdToHtml(text); }})
       .then(({text}) => { ct.innerHTML = mdToHtml(text); fixBidi(ct); wire(ct, b.dataset.q);
         const m = /التقييم:\s*(\d+(?:\.\d+)?)\s*من\s*10/.exec(text); if (m){ const sc = +m[1]; j.querySelector('.agtag').innerHTML = `⚖️ تقييم <bdi>Claude</bdi>: ${sc} من 10`; b.querySelector('.agtag').insertAdjacentText('beforeend', ` · ⚖️ ${sc}/10`); }
-        const fix = (/📝[^:：\n]*[:：]?\s*([\s\S]+)$/.exec(text) || [])[1];
+        let fix = (/📝[^:：\n]*[:：]?\s*([\s\S]+)$/.exec(text) || [])[1]; if (fix) fix = fix.replace(/^[*_\s]+/, '').trim();
         if (fix && b.dataset.free){ AG.saveFreeLesson(b.dataset.q, fix.trim()); j.insertAdjacentHTML('beforeend', '<div class="aglearn">📚 المخ المحلي هيقرا التصحيح ده المرة الجاية لما تسأل سؤال شبهه.</div>'); }
         if (fix && !b.dataset.free){ const k0 = AG.learnFromClaude(b.dataset.q, fix.trim()); j.insertAdjacentHTML('beforeend', `<div class="aglearn">📚 المخ المحلي هيقرا التصحيح ده المرة الجاية${k0 ? `، والمساعد ربطه بـ عدد ${k0} خطوة` : ''}.</div>`); }
         if (false){ const sv = document.createElement('button'); sv.type = 'button'; sv.textContent = '🧠 احفظ الإجابة المظبوطة في تعلّم المساعد';
