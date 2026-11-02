@@ -3264,6 +3264,17 @@ const robot = (() => {
   // ---------- optional: Claude writes a fuller explanation from the facts the helper found (published page + internet only)
   let SAMPLE = null;
   try { if (window.claude && window.claude.use) window.claude.use('sample').then(f => { SAMPLE = f || null; }).catch(() => {}); } catch (e) {}
+  // outside claude.ai: a tiny bridge on the phone (claude_bridge.py in Termux) runs Claude Code and answers here, inside the bench
+  const BRIDGE = 'http://127.0.0.1:8081'; let VIA_BRIDGE = false;
+  function bridgeSample(prompt, o = {}){ const ctl = new AbortController(); if (o.signal) o.signal.addEventListener('abort', () => ctl.abort());
+    if (o.images && o.images.length) prompt += '\n\n(ملحوظة: الصور مابتعدّيش من الجسر، فجاوب من الكلام بس، وقول للمستخدم يوصف الصورة لو مهمة.)';
+    return fetch(BRIDGE + '/ask', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({prompt}), signal: ctl.signal})
+      .then(async r => { const j = await r.json().catch(() => ({})); if (!r.ok) throw Object.assign(new Error(j.error || ('HTTP ' + r.status)), {code: 'bridge'}); const text = j.text || ''; if (o.onText) o.onText({text, delta: text}); return {text, truncated: false}; })
+      .catch(e => { if (e.name === 'AbortError') throw Object.assign(new Error('cancelled'), {code: 'cancelled'}); throw e; }); }
+  async function probeBridge(){ if (SAMPLE && !VIA_BRIDGE) return true; try { const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 2000);
+      const r = await fetch(BRIDGE + '/ping', {signal: ctl.signal}); clearTimeout(t); const j = await r.json(); if (j.ok){ SAMPLE = bridgeSample; VIA_BRIDGE = true; return true; } } catch (e) {}
+    if (VIA_BRIDGE){ SAMPLE = null; VIA_BRIDGE = false; } return false; }
+  if (!/claude\.ai|claudeusercontent/.test(location.hostname)) probeBridge();
   const RULES = 'انت مساعد شرح جوه «بنش» تعليمي بيعرض برنامج C++/OpenGL أو Python اتشغّل فعلاً خطوة بخطوة. اكتب بالعامية المصرية لطالب مبتدئ، بجمل قصيرة. ' +
     'اعتمد بس على «حقايق البنش» اللي تحت (دي من التشغيل الحقيقي)؛ ماتألّفش أرقام ولا قيم ولا أسطر مش موجودة. لو المعلومة مش موجودة في الحقايق، قول كده بصراحة. ' +
     'لما تذكر خطوة اكتبها بالشكل «خطوة 12» عشان تتحول لزرار. قبل أي رقم معناه عدد اكتب كلمة «عدد» (مثلاً: عدد 3 Buffers)، واستخدم «رقم» للأرقام اللي هي أسماء (VAO رقم 3). ' +
@@ -3275,7 +3286,7 @@ const robot = (() => {
       .replace(/خطوة\s+(\d+)((?:\s*(?:و|،|,)\s*\d+)*)/g, (m, n, more) => { const ns = [n, ...(more.match(/\d+/g) || [])].map(Number); return ns.every(x => x >= 1 && x <= ST.length) ? ns.map(x => `<button type="button" class="agchip" data-k="${x - 1}">خطوة ${x} · سطر ${ST[x - 1].ln}</button>`).join(' ') : m; }).replace(/\n/g, '<br>'); }
   function explain(question, after, btn){ if (!SAMPLE) return; btn.disabled = true;
     const ctl = new AbortController();
-    const b = document.createElement('div'); b.className = 'agmsg bot claude'; if (after._free || after.dataset.free) b.dataset.free = '1'; b.innerHTML = '<span class="agtag">✨ Claude' + (b.dataset.free ? ' · 🌍 حر' : '') + '</span><div class="agct">بيفكّر… (أول مرة هيطلب منك إذن)</div><button type="button" class="agstop">⏹ وقّف</button>';
+    const b = document.createElement('div'); b.className = 'agmsg bot claude'; if (after._free || after.dataset.free) b.dataset.free = '1'; b.innerHTML = '<span class="agtag">✨ Claude' + (VIA_BRIDGE ? ' · 🌉 جوه البنش' : '') + (b.dataset.free ? ' · 🌍 حر' : '') + '</span><div class="agct">بيفكّر… (أول مرة هيطلب منك إذن)</div><button type="button" class="agstop">⏹ وقّف</button>';
     after.after(b); log.scrollTop = b.offsetTop - 8; const ct = b.querySelector('.agct'), stop = b.querySelector('.agstop'); stop.onclick = () => ctl.abort();
     const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 1500);
     const att = after._att || [], imgs = att.filter(a => a.kind === 'img').map(a => a.blob);
@@ -3285,7 +3296,7 @@ const robot = (() => {
       .then(({text, truncated}) => { ct.innerHTML = mdToHtml(text) + (truncated ? '<br><small>(الرد اتقطع، اسأل عن جزء أصغر)</small>' : ''); if (!truncated && b.dataset.free){ AG.saveFreeLesson(question, text); ct.insertAdjacentHTML('beforeend', '<div class="aglearn">📚 المخ المحلي هيقرا الإجابة دي لو سألته سؤال شبهه.</div>'); }
         if (!truncated && !b.dataset.free){ const n = AG.learnFromClaude(question, text); ct.insertAdjacentHTML('beforeend', `<div class="aglearn">🧠 المساعد حفظ الشرح ده${n ? ` واتعلّم يربط كلمات سؤالك بـ عدد ${n} خطوة` : ''}: لو سألت سؤال شبهه هيجاوبك بيه من غير نت.</div>`); } fixBidi(ct); wire(ct, question); })
       .catch(e => { const code = e && e.code; if (e && e.text) ct.innerHTML = mdToHtml(e.text);
-        const msg = {images_unavailable: 'Claude مش قادر يشوف صور في الصفحة دي.', image_rejected: 'Claude رفض الصورة (نوعها أو حجمها مش مناسب).', cancelled: 'وقّفته.', not_granted: 'الإذن اترفض، فزرار Claude هيختفي في الفتحة دي.', sampling_disabled: 'Claude مش متاح للحساب ده.', rate_limited: 'أسئلة كتير ورا بعض، استنى شوية وجرّب تاني.', session_expired: 'محتاج تسجّل دخول تاني.', refused: 'Claude ماجاوبش على السؤال ده. جرّب صياغة تانية.'}[code] || 'حصلت مشكلة في الاتصال. جرّب تاني بعد شوية.';
+        const msg = e && e.code === 'bridge' ? 'جسر Claude رد بخطأ: ' + esc(e.message || '') : {images_unavailable: 'Claude مش قادر يشوف صور في الصفحة دي.', image_rejected: 'Claude رفض الصورة (نوعها أو حجمها مش مناسب).', cancelled: 'وقّفته.', not_granted: 'الإذن اترفض، فزرار Claude هيختفي في الفتحة دي.', sampling_disabled: 'Claude مش متاح للحساب ده.', rate_limited: 'أسئلة كتير ورا بعض، استنى شوية وجرّب تاني.', session_expired: 'محتاج تسجّل دخول تاني.', refused: 'Claude ماجاوبش على السؤال ده. جرّب صياغة تانية.'}[code] || (VIA_BRIDGE ? 'مش قادر أوصل لجسر Claude. اتأكد إن claude_bridge.py شغال في Termux.' : 'حصلت مشكلة في الاتصال. جرّب تاني بعد شوية.');
         if (!e || !e.text) ct.innerHTML = ''; ct.insertAdjacentHTML('beforeend', `<br><small>${msg}</small>`);
         if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(code)){ SAMPLE = null; log.querySelectorAll('.agmore').forEach(x => x.remove()); } })
       .finally(() => { stop.remove(); btn.disabled = false; }); }
@@ -3423,9 +3434,11 @@ const robot = (() => {
       (st.top.length ? `<b>أقوى الروابط اللي اتعلّمتها:</b><ul>${st.top.map(x => `<li>«${esc(x.f.replace(/^§/, ''))}» ← <code dir="ltr">${esc(String(x.code).slice(0, 50))}</code> (${x.w.toFixed(2)})</li>`).join('')}</ul>` : '<p>لسه ماتعلّمتش حاجة في البرنامج ده. دوس 👍 أو 👎 تحت الإجابات، أو اسأل Claude.</p>') +
       (st.log.length ? `<b>آخر الدروس:</b><ul>${st.log.map(x => `<li>${kinds[x.k] || x.k}: «${esc(x.q)}»</li>`).join('')}</ul>` : '') +
       `<label class="agauto"><input type="checkbox" id="agAuto"${autoClaude() ? ' checked' : ''}> لما أكون مش متأكد، اسأل Claude لوحدك واتعلّم من إجابته${SAMPLE ? '' : ' (مش متاح هنا: محتاج الصفحة المنشورة ونت)'}</label>` +
+      `<div class="aglocalset"><b>🌉 جسر Claude</b> <span class="agbst">${VIA_BRIDGE ? '✅ متوصّل: Claude بيرد جوه البنش' : (SAMPLE ? '✅ Claude جوه الصفحة' : '⚪ مش متوصّل: شغّل claude_bridge.py في Termux')}</span> <button type="button" class="agbchk">اختبر</button></div>` +
       `<div class="aglocalset"><b>🧠 المخ المحلي</b> <span class="aglst">${LOCAL.ok ? '✅ متوصّل: ' + esc(LOCAL.model) : '⚪ مش متوصّل'}</span><div class="agrow"><input class="agurl" dir="ltr" value="${esc(LOCAL.url)}"><button type="button" class="agchk">اختبر</button></div><label class="agauto"><input type="radio" name="agmode" value="0"${LOCAL.think ? '' : ' checked'}> ⚡ جاوب على طول (أسرع)</label><label class="agauto"><input type="radio" name="agmode" value="1"${LOCAL.think ? ' checked' : ''}> 🧠 فكّر شوية قبل ما تجاوب (أبطأ)</label></div>` +
       `<div class="agfb"><button type="button" class="agexp">📋 انسخ اللي اتعلّمته</button><button type="button" class="agimp">📥 ضيف تعلّم من جهاز تاني</button><button type="button" class="agrst">🗑️ امسح التعلّم</button></div>` +
       `<div class="agfb"><button type="button" class="agchexp">💬 انسخ كل المحادثات (عدد ${Object.keys(chatAll()).length} برنامج)</button><button type="button" class="agchimp">📥 رجّع محادثات</button></div><div class="agchbox" hidden><textarea rows="3" placeholder="الصق هنا المحادثات اللي نسختها"></textarea><button type="button" class="agchgo">رجّعها</button></div><div class="agimpbox" hidden><textarea rows="3" placeholder="الصق هنا اللي نسخته من جهاز تاني"></textarea><button type="button" class="agimpgo">ضيف</button></div>`);
+    b.querySelector('.agbchk').onclick = async e => { e.target.textContent = '…'; const ok = await probeBridge(); e.target.textContent = 'اختبر'; b.querySelector('.agbst').textContent = ok ? (VIA_BRIDGE ? '✅ متوصّل: Claude بيرد جوه البنش' : '✅ Claude جوه الصفحة') : '❌ مش لاقيه. شغّل python ~/claude_bridge.py في Termux'; };
     b.querySelectorAll('input[name=agmode]').forEach(r => r.onchange = () => { LOCAL.think = r.value === '1' && r.checked; saveLocal(); });
     b.querySelector('.agchk').onclick = async e => { LOCAL.url = b.querySelector('.agurl').value.trim() || LOCAL.url; saveLocal(); e.target.textContent = '…';
       const ok = await probeLocal(); e.target.textContent = 'اختبر'; b.querySelector('.aglst').textContent = ok ? '✅ متوصّل: ' + LOCAL.model : '❌ مش لاقيه. شغّل llama-server في Termux';
