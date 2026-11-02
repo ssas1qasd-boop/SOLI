@@ -561,6 +561,9 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
 .ag-sug{display:flex;flex-wrap:wrap;gap:6px;padding:0 10px 8px;max-height:30%;overflow-y:auto}
 .ag-sug[hidden]{display:none}
 .agsug{font:inherit;font-size:.8rem;padding:3px 10px;border-radius:999px;border:1px solid var(--rule);background:var(--paper-deep);color:var(--ink-2);cursor:pointer}
+.ag-form button.agattb{background:transparent;color:var(--ink);border:1.5px solid var(--rule);box-shadow:none}.agattb{font:inherit;font-size:1.1rem;padding:0 8px;border-radius:10px;border:1.5px solid var(--rule);background:transparent;color:var(--ink);cursor:pointer}
+.agattl{display:flex;flex-wrap:wrap;gap:6px;padding:6px 10px 0}.agattl[hidden]{display:none}.agattc{display:flex;align-items:center;gap:4px;max-width:100%;font-size:.78rem;padding:2px 4px 2px 8px;border:1px solid var(--rule);border-radius:999px;background:var(--paper)}.agattc img{width:28px;height:28px;object-fit:cover;border-radius:6px}.agattc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}.agattc button{font:inherit;border:0;background:transparent;color:var(--ink-2);cursor:pointer;padding:0 4px}
+.agmsg .agattm{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.agmsg .agattm img{max-width:120px;max-height:120px;border-radius:8px}.agmsg .agattm span{font-size:.75rem;opacity:.9}
 .ag-form{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--rule)}
 .ag-form input{flex:1;min-width:0;font:inherit;font-size:16px;padding:8px 11px;border:1.5px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink)}
 .ag-form input:focus-visible{outline:2px solid #2f6fe0;outline-offset:1px}
@@ -602,7 +605,7 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
   <header class="ag-top"><b>🤖 مساعد البنش</b><small>بيدوّر في البنش من غير نت</small><button type="button" id="agBrain" title="اللي المساعد اتعلّمه">🧠</button><button type="button" id="agNew" title="محادثة جديدة">جديد</button><button type="button" id="agX" aria-label="اقفل المساعد">✕</button></header>
   <div class="ag-log" id="agLog" aria-live="polite"></div>
   <div class="ag-sug" id="agSug"></div>
-  <form id="agForm" class="ag-form" autocomplete="off"><label for="agQ" class="vh">سؤالك</label><input id="agQ" type="text" placeholder="اكتب سؤالك… مثلاً: ليه 3 صناديق؟" enterkeyhint="send"><button type="submit">اسأل</button></form>
+  <div id="agAttList" class="agattl" hidden></div><form id="agForm" class="ag-form" autocomplete="off"><button type="button" id="agAtt" class="agattb" title="ضيف صورة أو ملف" aria-label="ضيف صورة أو ملف">📎</button><input id="agFile" type="file" hidden multiple accept="image/*,.txt,.md,.cpp,.cc,.c,.h,.hpp,.py,.js,.ts,.json,.glsl,.vert,.frag,.shader,.csv,.log,.xml,.html,.css"><label for="agQ" class="vh">سؤالك</label><input id="agQ" type="text" placeholder="اكتب سؤالك… مثلاً: ليه 3 صناديق؟" enterkeyhint="send"><button type="submit">اسأل</button></form>
 </section>
 <div id="bootMsg" style="position:fixed;inset:auto 0 50% 0;text-align:center;z-index:70;font:600 16px sans-serif;color:#888">بيحمّل البنش…</div><canvas id="gl" aria-label="موديل 3D حي للكمبيوتر وكارت الشاشة وهما بينفذوا البرنامج"></canvas>
 
@@ -3173,9 +3176,29 @@ const robot = (() => {
   function openChat(on){ box.hidden = !on; fab.hidden = on; fab.setAttribute('aria-expanded', on); document.body.classList.toggle('agopen', on); if (on){ ensure(); if (!log.children.length) renderSug(); setTimeout(() => { try { q.focus({preventScroll: true}); } catch (e) {} }, 60); } }
   function renderSug(){ ensure(); sug.hidden = false; sug.innerHTML = AG.suggestions().map(s => `<button type="button" class="agsug">${esc(s)}</button>`).join(''); sug.querySelectorAll('.agsug').forEach(b => b.onclick = () => { q.value = b.textContent; ask(); }); }
   function bubble(cls, html){ const d = document.createElement('div'); d.className = 'agmsg ' + cls; d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
-  function ask(){ const text = q.value.trim(); if (!text) return; ensure(); robot.setMood('think'); sug.hidden = true; q.value = '';
-    bubble('me', esc(text)); const wait = bubble('bot wait', 'بدوّر في البنش…');
+  // ---------- attachments: images and text files the viewer adds to a question (read only by the local brain and Claude)
+  let pending = []; const attList = $('agAttList'), fileIn = $('agFile');
+  const TXT_RE = /\.(txt|md|cpp|cc|c|h|hpp|py|js|ts|json|glsl|vert|frag|shader|csv|log|xml|html|css)$/i;
+  async function shrink(file, max, q){ const bm = await createImageBitmap(file); const k = Math.min(1, max / Math.max(bm.width, bm.height));
+    const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(bm.width * k)); cv.height = Math.max(1, Math.round(bm.height * k)); cv.getContext('2d').drawImage(bm, 0, 0, cv.width, cv.height);
+    return new Promise(res => cv.toBlob(b => res(b), 'image/jpeg', q)); }
+  const toDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+  function renderAtt(){ attList.hidden = !pending.length; attList.innerHTML = pending.map((a, n) => `<span class="agattc">${a.kind === 'img' ? `<img src="${a.thumb}" alt="">` : '📄'}<span>${esc(a.name)}</span><button type="button" data-n="${n}" aria-label="شيل">✕</button></span>`).join('');
+    attList.querySelectorAll('button').forEach(b => b.onclick = () => { pending.splice(+b.dataset.n, 1); renderAtt(); }); }
+  $('agAtt').onclick = () => fileIn.click();
+  fileIn.onchange = async () => { for (const f of [...fileIn.files]){ try {
+        if (/^image\//.test(f.type)){ const blob = await shrink(f, 1280, .85), thumb = await toDataURL(await shrink(f, 160, .7)); pending.push({kind: 'img', name: f.name || 'صورة', blob, thumb}); }
+        else if (TXT_RE.test(f.name) || /^text\//.test(f.type)){ if (f.size > 400000) throw new Error('big'); pending.push({kind: 'txt', name: f.name, text: await f.text()}); }
+        else bubble('bot low', `الملف <b>${esc(f.name)}</b> مش مدعوم. ينفع صور أو ملفات نصية (كود، txt، md، json، csv).`);
+      } catch (e){ bubble('bot low', `مش قادر أقرا <b>${esc(f.name)}</b>${e && e.message === 'big' ? ': الملف أكبر من 400 كيلوبايت' : ''}.`); } }
+    fileIn.value = ''; renderAtt(); q.focus(); };
+  const attText = (att, max) => { let out = '', left = max; for (const a of att.filter(a => a.kind === 'txt')){ const c = a.text.length > left ? a.text.slice(0, left) + '\n…(الباقي اتقطع)' : a.text; left -= c.length; out += `\n\n📄 ملف مرفق «${a.name}»:\n\`\`\`\n${c}\n\`\`\``; if (left <= 0) break; } return out; };
+  function ask(){ let text = q.value.trim(); if (!text && !pending.length) return; ensure(); robot.setMood('think'); sug.hidden = true; q.value = '';
+    const att = pending; pending = []; renderAtt(); if (!text) text = att.some(a => a.kind === 'img') ? 'اشرحلي الصورة دي' : 'اشرحلي الملف ده';
+    bubble('me', esc(text) + (att.length ? `<div class="agattm">${att.map(a => a.kind === 'img' ? `<img src="${a.thumb}" alt="${esc(a.name)}">` : `<span>📄 ${esc(a.name)}</span>`).join('')}</div>` : ''));
+    const wait = bubble('bot wait', 'بدوّر في البنش…'); wait._att = att;
     setTimeout(() => { let r; try { r = AG.answer(text); } catch (e){ r = {html: 'حصل خطأ وأنا بدوّر. جرّب تكتب السؤال بشكل تاني.', low: true}; }
+      if (wait._att && wait._att.length) r.html = '<div class="aglearn">📎 البحث المحلي مابيقراش المرفقات. دوس «🧠 اسأل المخ المحلي» أو «✨ Claude» تحت علشان يقروها.</div>' + r.html;
       wait.className = 'agmsg bot' + (r.low ? ' low' : ''); wait.innerHTML = r.html + `<div class="agfb"><button type="button" class="agup" title="الإجابة مفيدة">👍</button><button type="button" class="agdown" title="مش دي">👎 مش دي</button>${SAMPLE ? '<button type="button" class="agmore">✨ اشرحلي أكتر (Claude)</button>' : ''}${LOCAL.ok ? '<button type="button" class="aglocal">🧠 اسأل المخ المحلي</button>' : ''}${!SAMPLE && !ONCLAUDE ? '<button type="button" class="agext">✨ اسأل Claude</button>' : ''}</div>`; fixBidi(wait);
       const more = wait.querySelector('.agmore'); if (more) more.onclick = () => explain(text, wait, more);
       const lb = wait.querySelector('.aglocal'); if (lb) lb.onclick = () => askLocal(text, wait, lb);
@@ -3218,11 +3241,12 @@ const robot = (() => {
     const b = document.createElement('div'); b.className = 'agmsg bot claude'; b.innerHTML = '<span class="agtag">✨ Claude</span><div class="agct">بيفكّر… (أول مرة هيطلب منك إذن)</div><button type="button" class="agstop">⏹ وقّف</button>';
     after.after(b); log.scrollTop = b.offsetTop - 8; const ct = b.querySelector('.agct'), stop = b.querySelector('.agstop'); stop.onclick = () => ctl.abort();
     const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 1500);
-    const prompt = RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + '\n\nسؤال المستخدم: ' + question;
-    SAMPLE(prompt, {signal: ctl.signal, onText: ({text}) => { ct.innerHTML = mdToHtml(text); }})
+    const att = after._att || [], imgs = att.filter(a => a.kind === 'img').map(a => a.blob);
+    const prompt = RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + attText(att, 60000) + (imgs.length ? `\n\nالمستخدم رفع عدد ${imgs.length} صورة مع السؤال (مرفقة). اقراها واربطها بالبنش لو ليها علاقة.` : '') + '\n\nسؤال المستخدم: ' + question;
+    SAMPLE(prompt, {signal: ctl.signal, ...(imgs.length ? {images: imgs} : {}), onText: ({text}) => { ct.innerHTML = mdToHtml(text); }})
       .then(({text, truncated}) => { ct.innerHTML = mdToHtml(text) + (truncated ? '<br><small>(الرد اتقطع، اسأل عن جزء أصغر)</small>' : ''); if (!truncated){ const n = AG.learnFromClaude(question, text); ct.insertAdjacentHTML('beforeend', `<div class="aglearn">🧠 المساعد حفظ الشرح ده${n ? ` واتعلّم يربط كلمات سؤالك بـ عدد ${n} خطوة` : ''}: لو سألت سؤال شبهه هيجاوبك بيه من غير نت.</div>`); } fixBidi(ct); wire(ct, question); })
       .catch(e => { const code = e && e.code; if (e && e.text) ct.innerHTML = mdToHtml(e.text);
-        const msg = {cancelled: 'وقّفته.', not_granted: 'الإذن اترفض، فزرار Claude هيختفي في الفتحة دي.', sampling_disabled: 'Claude مش متاح للحساب ده.', rate_limited: 'أسئلة كتير ورا بعض، استنى شوية وجرّب تاني.', session_expired: 'محتاج تسجّل دخول تاني.', refused: 'Claude ماجاوبش على السؤال ده. جرّب صياغة تانية.'}[code] || 'حصلت مشكلة في الاتصال. جرّب تاني بعد شوية.';
+        const msg = {images_unavailable: 'Claude مش قادر يشوف صور في الصفحة دي.', image_rejected: 'Claude رفض الصورة (نوعها أو حجمها مش مناسب).', cancelled: 'وقّفته.', not_granted: 'الإذن اترفض، فزرار Claude هيختفي في الفتحة دي.', sampling_disabled: 'Claude مش متاح للحساب ده.', rate_limited: 'أسئلة كتير ورا بعض، استنى شوية وجرّب تاني.', session_expired: 'محتاج تسجّل دخول تاني.', refused: 'Claude ماجاوبش على السؤال ده. جرّب صياغة تانية.'}[code] || 'حصلت مشكلة في الاتصال. جرّب تاني بعد شوية.';
         if (!e || !e.text) ct.innerHTML = ''; ct.insertAdjacentHTML('beforeend', `<br><small>${msg}</small>`);
         if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(code)){ SAMPLE = null; log.querySelectorAll('.agmore').forEach(x => x.remove()); } })
       .finally(() => { stop.remove(); btn.disabled = false; }); }
@@ -3251,7 +3275,7 @@ const robot = (() => {
     fb.querySelector('.agup').onclick = () => { const k = AG.learnFromClaude(b.dataset.q, b.dataset.a); done('1', `🧠 اتحفظت${k ? ` واتربطت بـ عدد ${k} خطوة` : ''}: لو سألت سؤال شبهه هجاوبك بيها على طول.`); robot.setMood('happy'); };
     fb.querySelector('.agdown').onclick = () => done('0', 'تمام، مش هحفظها. جرّب تسأل بصياغة تانية، أو اسأل Claude.');
     b.appendChild(fb); }
-  function askLocal(question, after, btn){ btn.disabled = true;
+  async function askLocal(question, after, btn){ btn.disabled = true;
     const ctl = new AbortController(); let cid = null, think = '', ans = '';
     const b = document.createElement('div'); b.className = 'agmsg bot localb';
     b.innerHTML = `<span class="agtag">🧠 المخ المحلي · ${esc(LOCAL.model)}</span><details class="agthink"${LOCAL.think ? ' open' : ''} hidden><summary>بيفكّر…</summary><div class="agthinkt"></div></details><div class="agct">${LOCAL.think ? 'بيقرا الحقايق وبيفكّر…' : 'بيقرا الحقايق…'}</div><div class="agfb"><button type="button" class="agenough" hidden>✋ كفاية تفكير، جاوب</button><button type="button" class="agstop">⏹ وقّف</button></div>`;
@@ -3264,14 +3288,18 @@ const robot = (() => {
       catch (e){ enough.textContent = 'النسخة دي مش بتدعمه، دوس ⏹ وجرّب «جاوب على طول»'; } };
     const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); tmp.querySelectorAll('details, .agthink, .agtag, .agstat, .aglearn').forEach(x => x.remove()); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 300);
     const user = 'حقايق البنش:\n' + AG.context(question, {short: true, here: /هنا|ده\s|دي\s|الخطو[ةه] (دي|ده)|السطر (ده|دا)|دلوقتي|واقف/.test(question)}) + '\n\nإجابة البحث المحلي (ممكن تكون ناقصة):\n' + helper + '\n\nالسؤال: ' + question;
-    const body = {messages: [{role: 'system', content: LOCAL_RULES}, {role: 'user', content: user}], stream: true, temperature: .5, max_tokens: 450,
+    const att = after._att || [], imgAtt = att.filter(a => a.kind === 'img');
+    const userText = user + attText(att, 2500) + (imgAtt.length ? `\n\n(المستخدم رفع عدد ${imgAtt.length} صورة مع السؤال، وهي مرفقة.)` : '');
+    let content = userText;
+    if (imgAtt.length){ content = [{type: 'text', text: userText}]; for (const a of imgAtt) content.push({type: 'image_url', image_url: {url: await toDataURL(a.blob)}}); }
+    const body = {messages: [{role: 'system', content: LOCAL_RULES}, {role: 'user', content}], stream: true, temperature: .5, max_tokens: 450,
       reasoning_format: 'deepseek', reasoning_control: true, chat_template_kwargs: {enable_thinking: LOCAL.think}};
     if (!LOCAL.think) body.reasoning_effort = 'none';
     const t0 = performance.now(); let n = 0, first = 0;
     const paint = () => { if (think){ th.hidden = false; tht.textContent = think; th.querySelector('summary').textContent = ans ? `🧠 فكّر إزاي (عدد ${think.split(/\s+/).length} كلمة)` : 'بيفكّر…'; enough.hidden = !!ans || !cid; }
       if (ans) ct.innerHTML = mdToHtml(ans.trim()); };
     fetch(LOCAL.url.replace(/\/$/, '') + '/v1/chat/completions', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), signal: ctl.signal})
-      .then(async r => { if (!r.ok) throw new Error('HTTP ' + r.status); const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '';
+      .then(async r => { if (!r.ok){ const t = await r.text().catch(() => ''); if (imgAtt.length && /image|mmproj|multimodal|vision/i.test(t)) throw new Error('VISION'); throw new Error('HTTP ' + r.status + (t ? ': ' + t.slice(0, 160) : '')); } const rd = r.body.getReader(), dec = new TextDecoder(); let buf = '';
         for (;;){ const {value, done} = await rd.read(); if (done) break; buf += dec.decode(value, {stream: true});
           let i; while ((i = buf.indexOf('\n')) >= 0){ const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
             if (!line.startsWith('data:')) continue; const data = line.slice(5).trim(); if (data === '[DONE]') continue;
@@ -3289,16 +3317,18 @@ const robot = (() => {
         fixBidi(ct); wire(ct, question); })
       .catch(e => { if (e && e.name === 'AbortError'){ ct.insertAdjacentHTML('beforeend', '<br><small>وقّفته.</small>'); return; }
         if (ans.trim()){ ct.insertAdjacentHTML('beforeend', '<br><small>✂️ الاتصال اتقطع قبل ما الإجابة تخلص.</small>'); return; }
+        if (e && e.message === 'VISION'){ ct.innerHTML = '<small>المخ المحلي شغال من غير «عيون». علشان يقرا الصور، شغّل llama-server ومعاه ملف الرؤية <code dir="ltr">--mmproj</code> (الأوامر عند Claude في الشات).</small>'; return; }
         ct.innerHTML = `<small>مش قادر أوصل للمخ المحلي على <code dir="ltr">${esc(LOCAL.url)}</code>. اتأكد إن llama-server شغال في Termux. (${esc(String(e && e.message || e))})</small>`; LOCAL.ok = false; })
       .finally(() => { stop.remove(); enough.remove(); btn.disabled = false; }); }
   // ---------- outside claude.ai (GitHub copy): Claude can't be called from the page, so open a new Claude chat with the question + bench facts
   const ONCLAUDE = /claude\.ai|claudeusercontent/.test(location.hostname);
   async function askClaudeOutside(question, after, btn){
     const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 800);
-    const prompt = RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + '\n\nسؤال المستخدم: ' + question;
+    const att = after._att || [], nImg = att.filter(a => a.kind === 'img').length;
+    const prompt = RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + attText(att, 6000) + (nImg ? `\n\n(هرفع عدد ${nImg} صورة مع الرسالة دي.)` : '') + '\n\nسؤال المستخدم: ' + question;
     let copied = false; try { await navigator.clipboard.writeText(prompt); copied = true; } catch (e) {}
     const a = document.createElement('a'); a.href = 'https://claude.ai/new?q=' + encodeURIComponent(prompt); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'افتح Claude ↗';
-    const n = document.createElement('div'); n.className = 'aglearn'; n.append(copied ? '✔ نسخت السؤال ومعاه حقايق البنش. ' : '', a, copied ? ' ولو لقيت الخانة فاضية، الصق.' : '');
+    const n = document.createElement('div'); n.className = 'aglearn'; n.append(copied ? '✔ نسخت السؤال ومعاه حقايق البنش. ' : '', a, copied ? ' ولو لقيت الخانة فاضية، الصق.' : '', nImg ? ' 📎 الصور مابتتنقلش لوحدها: ارفعها بنفسك في شات Claude.' : '');
     btn.replaceWith(n); try { window.open(a.href, '_blank', 'noopener'); } catch (e) {} }
   const AUTO_KEY = 'benchHelperAutoClaude';
   const autoClaude = () => { try { return localStorage.getItem(AUTO_KEY) === '1'; } catch (e){ return false; } };
