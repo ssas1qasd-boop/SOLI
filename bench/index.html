@@ -3118,7 +3118,7 @@ const AG = (() => {
   function context(q, o){ const sh = !!(o && o.short); const F = facts(); const R = search(q, {pid: P.id, kinds: ['step', 'line'], n: 10}).map(x => x.d).filter((d, n, a) => a.findIndex(e => e.code === d.code) === n).slice(0, sh ? 4 : 8);
     const L = [];
     L.push(`البرنامج: ${P.title} — ${P.desc}`);
-    L.push(`الملفات: ${P.files.map(f => f.name + ' (' + f.lines.length + ' سطر)').join('، ')}. عدد الخطوات: ${ST.length}. الخطوة اللي المستخدم واقف عليها: ${i + 1} (سطر ${ST[i].ln}: ${stepText(ST[i])}).`);
+    L.push(`الملفات: ${P.files.map(f => f.name + ' (' + f.lines.length + ' سطر)').join('، ')}. عدد الخطوات: ${ST.length}.${sh && !(o && o.here) ? '' : ` الخطوة اللي المستخدم واقف عليها: ${i + 1} (سطر ${ST[i].ln}: ${stepText(ST[i])}).`}`);
     if (Object.keys(F.bufs).length) L.push('الـ Buffers في التشغيل الحقيقي: ' + Object.values(F.bufs).map(b => `Buffer ${b.id} = ${b.v || '?'} (${b.t || ''}، ${b.bytes || 0} بايت${b.src ? '، فيه ' + b.src : ''}، اتعمل في خطوة ${b.gen + 1})`).join('؛ '));
     if (Object.keys(F.vaos).length) L.push('الـ VAOs: ' + Object.values(F.vaos).map(v => `VAO ${v.id} = ${v.v || '?'} (اتعمل في خطوة ${v.gen + 1}، اترسم بيه ${v.draws} مرة${v.set.some(k => ST[k].lap != null) ? '، وصفه بيتكتب من جديد جوه اللوب' : ''})`).join('؛ '));
     if (F.draws.length) L.push('أوامر الرسم: ' + F.draws.slice(0, sh ? 4 : 8).map(d => `خطوة ${d.k + 1}: ${d.code}${d.vao ? ' (VAO ' + d.vao + ')' : ''}`).join('؛ '));
@@ -3263,7 +3263,7 @@ const robot = (() => {
         if (!r.ok || j.success === false) throw 0; enough.remove(); }
       catch (e){ enough.textContent = 'النسخة دي مش بتدعمه، دوس ⏹ وجرّب «جاوب على طول»'; } };
     const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); tmp.querySelectorAll('details, .agthink, .agtag, .agstat, .aglearn').forEach(x => x.remove()); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 300);
-    const user = 'حقايق البنش:\n' + AG.context(question, {short: true}) + '\n\nإجابة البحث المحلي (ممكن تكون ناقصة):\n' + helper + '\n\nالسؤال: ' + question;
+    const user = 'حقايق البنش:\n' + AG.context(question, {short: true, here: /هنا|ده\s|دي\s|الخطو[ةه] (دي|ده)|السطر (ده|دا)|دلوقتي|واقف/.test(question)}) + '\n\nإجابة البحث المحلي (ممكن تكون ناقصة):\n' + helper + '\n\nالسؤال: ' + question;
     const body = {messages: [{role: 'system', content: LOCAL_RULES}, {role: 'user', content: user}], stream: true, temperature: .5, max_tokens: 450,
       reasoning_format: 'deepseek', reasoning_control: true, chat_template_kwargs: {enable_thinking: LOCAL.think}};
     if (!LOCAL.think) body.reasoning_effort = 'none';
