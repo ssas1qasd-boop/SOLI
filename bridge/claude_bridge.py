@@ -63,8 +63,10 @@ class H(BaseHTTPRequestHandler):
             print(f'← رد ({len(t)} حرف)', flush=True)
             self._json(200, {'text': t})
         except subprocess.TimeoutExpired:
+            print('✕ Claude اتأخر أكتر من 4 دقايق', flush=True)
             self._json(504, {'error': 'Claude اتأخر أكتر من 4 دقايق'})
         except Exception as e:
+            print('✕ خطأ: ' + str(e), flush=True)
             self._json(500, {'error': str(e)})
     def log_message(self, *a):
         pass

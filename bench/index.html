@@ -3356,7 +3356,7 @@ const robot = (() => {
         if (false){ const sv = document.createElement('button'); sv.type = 'button'; sv.textContent = '🧠 احفظ الإجابة المظبوطة في تعلّم المساعد';
           sv.onclick = () => { const k = AG.learnFromClaude(b.dataset.q, fix.trim()); sv.replaceWith(Object.assign(document.createElement('span'), {className: 'aglearn', textContent: `🧠 اتحفظت${k ? ` واتربطت بـ عدد ${k} خطوة` : ''}`})); };
           const r = document.createElement('div'); r.className = 'agfb'; r.appendChild(sv); j.appendChild(r); } })
-      .catch(e => { ct.innerHTML = '<small>' + ({cancelled: 'وقّفته.', not_granted: 'الإذن اترفض.', rate_limited: 'أسئلة كتير ورا بعض، استنى شوية.'}[e && e.code] || 'حصلت مشكلة في الاتصال بـ Claude.') + '</small>'; })
+      .catch(e => { ct.innerHTML = '<small>' + ({cancelled: 'وقّفته.', not_granted: 'الإذن اترفض.', rate_limited: 'أسئلة كتير ورا بعض، استنى شوية.'}[e && e.code] || (e && e.code === 'bridge' ? 'جسر Claude رد بخطأ: ' + esc(e.message || '') : 'حصلت مشكلة في الاتصال بـ Claude.')) + '</small>'; })
       .finally(() => { stop.remove(); btn.disabled = false; }); }
   function localFeedback(b){ if (b.dataset.done || !b.dataset.a) return; b.querySelectorAll('.aglfb').forEach(x => x.remove());
     const fb = document.createElement('div'); fb.className = 'agfb aglfb';
