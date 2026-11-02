@@ -3174,9 +3174,10 @@ const robot = (() => {
   function ask(){ const text = q.value.trim(); if (!text) return; ensure(); robot.setMood('think'); sug.hidden = true; q.value = '';
     bubble('me', esc(text)); const wait = bubble('bot wait', 'بدوّر في البنش…');
     setTimeout(() => { let r; try { r = AG.answer(text); } catch (e){ r = {html: 'حصل خطأ وأنا بدوّر. جرّب تكتب السؤال بشكل تاني.', low: true}; }
-      wait.className = 'agmsg bot' + (r.low ? ' low' : ''); wait.innerHTML = r.html + `<div class="agfb"><button type="button" class="agup" title="الإجابة مفيدة">👍</button><button type="button" class="agdown" title="مش دي">👎 مش دي</button>${SAMPLE ? '<button type="button" class="agmore">✨ اشرحلي أكتر (Claude)</button>' : ''}${LOCAL.ok ? '<button type="button" class="aglocal">🧠 اسأل المخ المحلي</button>' : ''}</div>`; fixBidi(wait);
+      wait.className = 'agmsg bot' + (r.low ? ' low' : ''); wait.innerHTML = r.html + `<div class="agfb"><button type="button" class="agup" title="الإجابة مفيدة">👍</button><button type="button" class="agdown" title="مش دي">👎 مش دي</button>${SAMPLE ? '<button type="button" class="agmore">✨ اشرحلي أكتر (Claude)</button>' : ''}${LOCAL.ok ? '<button type="button" class="aglocal">🧠 اسأل المخ المحلي</button>' : ''}${!SAMPLE && !ONCLAUDE ? '<button type="button" class="agext">✨ اسأل Claude</button>' : ''}</div>`; fixBidi(wait);
       const more = wait.querySelector('.agmore'); if (more) more.onclick = () => explain(text, wait, more);
       const lb = wait.querySelector('.aglocal'); if (lb) lb.onclick = () => askLocal(text, wait, lb);
+      const xb = wait.querySelector('.agext'); if (xb) xb.onclick = () => askClaudeOutside(text, wait, xb);
       const shown = [...wait.querySelectorAll('.agchip')].map(b => b.dataset.ln ? `l:${b.dataset.f}:${b.dataset.ln}` : `s:${b.dataset.k}`);
       wait.querySelector('.agup').onclick = e => { if (shown[0]){ AG.remember(text, P.id, shown[0], true); AG.train(text, [[shown[0], 1]], [], .6, 'up'); } e.target.parentElement.innerHTML = '<span class="aglearn">تمام، هفتكرها 👍</span>'; robot.setMood('happy'); };
       wait.querySelector('.agdown').onclick = e => { const alt = AG.alternatives(text, shown); const fb = e.target.parentElement;
@@ -3277,6 +3278,15 @@ const robot = (() => {
       .catch(e => { if (e && e.name === 'AbortError'){ ct.insertAdjacentHTML('beforeend', '<br><small>وقّفته.</small>'); return; }
         ct.innerHTML = `<small>مش قادر أوصل للمخ المحلي على <code dir="ltr">${esc(LOCAL.url)}</code>. اتأكد إن llama-server شغال في Termux. (${esc(String(e && e.message || e))})</small>`; LOCAL.ok = false; })
       .finally(() => { stop.remove(); enough.remove(); btn.disabled = false; }); }
+  // ---------- outside claude.ai (GitHub copy): Claude can't be called from the page, so open a new Claude chat with the question + bench facts
+  const ONCLAUDE = /claude\.ai|claudeusercontent/.test(location.hostname);
+  async function askClaudeOutside(question, after, btn){
+    const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 800);
+    const prompt = RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + '\n\nسؤال المستخدم: ' + question;
+    let copied = false; try { await navigator.clipboard.writeText(prompt); copied = true; } catch (e) {}
+    const a = document.createElement('a'); a.href = 'https://claude.ai/new?q=' + encodeURIComponent(prompt); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'افتح Claude ↗';
+    const n = document.createElement('div'); n.className = 'aglearn'; n.append(copied ? '✔ نسخت السؤال ومعاه حقايق البنش. ' : '', a, copied ? ' ولو لقيت الخانة فاضية، الصق.' : '');
+    btn.replaceWith(n); try { window.open(a.href, '_blank', 'noopener'); } catch (e) {} }
   const AUTO_KEY = 'benchHelperAutoClaude';
   const autoClaude = () => { try { return localStorage.getItem(AUTO_KEY) === '1'; } catch (e){ return false; } };
   function brain(){ ensure(); const st = AG.modelStats(); const kinds = {up: '👍', pick: '👎 واخترت', click: 'دوست خطوة', claude: 'من Claude', fb: 'تصحيح'};
