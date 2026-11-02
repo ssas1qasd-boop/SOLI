@@ -3420,6 +3420,8 @@ const robot = (() => {
   // ---------- outside claude.ai (GitHub copy): Claude can't be called from the page, so open a new Claude chat with the question + bench facts
   const ONCLAUDE = /claude\.ai|claudeusercontent/.test(location.hostname);
   async function askClaudeOutside(question, after, btn){
+    // the bridge (Claude Code on the phone) may have started after this button was drawn: if it answers, Claude replies right here in the chat
+    btn.disabled = true; const viaBridge = await probeBridge(); btn.disabled = false; if (viaBridge && SAMPLE){ const nb = btn; return explain(question, after, nb); }
     const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 800);
     const att = after._att || [], nImg = att.filter(a => a.kind === 'img').length;
     const prompt = (after._free || after.dataset.free) ? FREE_RULES + attText(att, 6000) + '\n\nالسؤال: ' + question : RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + attText(att, 6000) + (nImg ? `\n\n(هرفع عدد ${nImg} صورة مع الرسالة دي.)` : '') + '\n\nسؤال المستخدم: ' + question;
