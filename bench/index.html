@@ -3121,7 +3121,7 @@ const AG = (() => {
     if (Object.keys(F.bufs).length) L.push('الـ Buffers في التشغيل الحقيقي: ' + Object.values(F.bufs).map(b => `Buffer ${b.id} = ${b.v || '?'} (${b.t || ''}، ${b.bytes || 0} بايت${b.src ? '، فيه ' + b.src : ''}، اتعمل في خطوة ${b.gen + 1})`).join('؛ '));
     if (Object.keys(F.vaos).length) L.push('الـ VAOs: ' + Object.values(F.vaos).map(v => `VAO ${v.id} = ${v.v || '?'} (اتعمل في خطوة ${v.gen + 1}، اترسم بيه ${v.draws} مرة${v.set.some(k => ST[k].lap != null) ? '، وصفه بيتكتب من جديد جوه اللوب' : ''})`).join('؛ '));
     if (F.draws.length) L.push('أوامر الرسم: ' + F.draws.slice(0, sh ? 4 : 8).map(d => `خطوة ${d.k + 1}: ${d.code}${d.vao ? ' (VAO ' + d.vao + ')' : ''}`).join('؛ '));
-    const S = PSTORY[P.id]; if (S && S.goal) L.push('الهدف والنتيجة: ' + strip(S.goal).replace(/\s+/g, ' ').slice(0, sh ? 350 : 900));
+    const S = PSTORY[P.id]; if (S && S.goal) L.push('الهدف والنتيجة: ' + strip(S.goal).replace(/\s+/g, ' ').slice(0, sh ? 720 : 900));
     if (!sh && P.term && P.term.length) L.push('اللي اتطبع: ' + P.term.slice(0, 8).join(' | '));
     L.push('أقرب السطور للسؤال (من البنش):');
     R.forEach(d => L.push(`- ${d.kind === 'step' ? 'خطوة ' + (d.k + 1) + '، ' : ''}سطر ${d.kind === 'step' ? ST[d.k].ln : d.ln}: ${d.code} — ${strip(d.ex || '').slice(0, sh ? 90 : 220)}${d.kind === 'step' ? '' : ' (سطر مش بيتنفذ لوحده)'}`));
@@ -3238,6 +3238,7 @@ const robot = (() => {
     'جاوب على طول بالعامية المصرية لطالب مبتدئ، في 3 لـ 6 جمل قصيرة، من غير مقدمات. ' +
     'اعتمد على «حقايق البنش» اللي في الرسالة، وخد الأرقام منها هي. لو المعلومة مش فيها قول «مش موجود في البنش». ' +
     'لما تذكر خطوة اكتب «خطوة N». اكتب الكود بين علامتي `.' +
+    ' جاوب السؤال نفسه على طول: ماتعلّقش على «إجابة البحث المحلي» (دي ملاحظات ليك بس)، وماتتكلمش عن الخطوة اللي المستخدم واقف عليها إلا لو السؤال عنها.' +
     ' لو الحقايق فيها «الطريقة 1» و«الطريقة 2»، اكتب كل طريقة برقمها زي ما هو مكتوب في الحقايق بالظبط (مثلاً: الطريقة 2 = VAO لكل شكل، الطريقة 1 = VAO واحد مشترك)، وماتقولش «الأولى» و«التانية» حسب ترتيب كلامك.';
   // 👍 / 👎 under a local-brain answer; rebuilt after the chat is restored from storage (the question and answer live on the bubble)
   function localFeedback(b){ if (b.dataset.done || !b.dataset.a) return; b.querySelectorAll('.aglfb').forEach(x => x.remove());
@@ -3258,7 +3259,7 @@ const robot = (() => {
       try { const r = await fetch(LOCAL.url.replace(/\/$/, '') + '/v1/chat/completions/control', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: cid, action: 'reasoning_end'})}); const j = await r.json().catch(() => ({}));
         if (!r.ok || j.success === false) throw 0; enough.remove(); }
       catch (e){ enough.textContent = 'النسخة دي مش بتدعمه، دوس ⏹ وجرّب «جاوب على طول»'; } };
-    const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 300);
+    const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); tmp.querySelectorAll('details, .agthink, .agtag, .agstat, .aglearn').forEach(x => x.remove()); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 300);
     const user = 'حقايق البنش:\n' + AG.context(question, {short: true}) + '\n\nإجابة البحث المحلي (ممكن تكون ناقصة):\n' + helper + '\n\nالسؤال: ' + question;
     const body = {messages: [{role: 'system', content: LOCAL_RULES}, {role: 'user', content: user}], stream: true, temperature: .5, max_tokens: 900,
       reasoning_format: 'deepseek', reasoning_control: true, chat_template_kwargs: {enable_thinking: LOCAL.think}};
