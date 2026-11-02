@@ -585,6 +585,7 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
 .agstat{font-size:.72rem;color:var(--ink-3);margin-top:4px}.agmsg{position:relative}.agcopy{position:absolute;top:-9px;left:10px;z-index:1;font:inherit;font-size:.68rem;line-height:1;padding:2px 4px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);opacity:.75;cursor:pointer}.agcopy:hover{opacity:1}
 .agjpaste{display:grid;gap:6px}.agjpaste textarea{font:inherit;font-size:.82rem;width:100%;box-sizing:border-box;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:6px}.agjpaste .agarch{list-style:none;margin:6px 0;padding:0;display:grid;gap:6px}.agarch-it{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 8px;border:1px solid var(--rule);border-radius:10px}.agarch-it div{min-width:0;display:grid}.agarch-it b{font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.agarch-it small{font-size:.72rem;opacity:.75}.agarch-it span{display:flex;gap:4px;flex-shrink:0}.agarch-it button,.agopenarch{font:inherit;font-size:.75rem;padding:2px 10px;border-radius:999px;border:1px solid #2f6fe0;background:transparent;color:#2f6fe0;cursor:pointer}.agarch-h{margin:6px 0 0;font-size:.8rem}
 .agtrhow{font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #e8710a;color:#e8710a;text-decoration:none}.agtrexp{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #e8710a;background:transparent;color:#e8710a;cursor:pointer}
+#agBrain[data-tr="🎓"]::after{content:"🎓";font-size:.7rem;margin-inline-start:2px}.agmsg.agalarm{border:2px solid #e8710a;background:color-mix(in srgb,var(--paper-deep) 82%,#e8710a 18%)}
 .agjudge{justify-self:start}
 .agjudge{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #7c4dff;background:transparent;color:#7c4dff;cursor:pointer}
 .aglocal,.agenough{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #16a34a;background:transparent;color:#16a34a;cursor:pointer}
@@ -3220,6 +3221,18 @@ const robot = (() => {
   function trAdd(q, a, src, free){ if (!q || !a) return; const L = trAll().filter(x => !(x.q === q && x.free === !!free && (x.pid || '') === (free ? '' : P.id)));
     L.push({q, a: a.trim(), src, free: !!free, pid: free ? '' : P.id, title: free ? '' : P.title, t: Date.now()});
     for (let k = L.length; ; k--){ try { localStorage.setItem(TR_KEY, JSON.stringify(L.slice(-k))); break; } catch (e){ if (k < 2) break; } } }
+  // 🔔 alarm when the training examples reach the goal
+  const TR_GOAL = 100, TR_ALERT_KEY = 'benchHelperTrainAlerted';
+  function trCheck(){ const n = trAll().length; let done = false; try { done = localStorage.getItem(TR_ALERT_KEY) === String(TR_GOAL); } catch (e) {}
+    const br = $('agBrain'); if (br) br.dataset.tr = n >= TR_GOAL ? '🎓' : '';
+    if (n < TR_GOAL || done) return; try { localStorage.setItem(TR_ALERT_KEY, String(TR_GOAL)); } catch (e) {}
+    try { navigator.vibrate && navigator.vibrate([300, 150, 300, 150, 600]); } catch (e) {}
+    try { const ac = new (window.AudioContext || window.webkitAudioContext)(); [0, .25, .5].forEach((t, i) => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = [660, 880, 1320][i]; g.gain.setValueAtTime(.18, ac.currentTime + t); g.gain.exponentialRampToValueAtTime(.001, ac.currentTime + t + .22); o.connect(g).connect(ac.destination); o.start(ac.currentTime + t); o.stop(ac.currentTime + t + .23); }); } catch (e) {}
+    if (box.hidden) openChat(true);
+    const m = bubble('bot agalarm', `🔔 <b>وصلنا عدد ${n} مثال تدريب!</b><br>ده كفاية علشان ندرّب المخ نفسه (fine-tuning). افتح 🧠 ودوس «📦 نزّل بيانات تدريب المخ»، وبعدين «🎓 درّبه على Colab»، وقول لـ Claude في الشات إنك جاهز.`);
+    try { robot.setMood('happy'); } catch (e) {} log.scrollTop = m.offsetTop - 8; }
+  setTimeout(trCheck, 1500);
+  const _trAdd = trAdd; trAdd = function(...a){ _trAdd(...a); trCheck(); };
   function trJSONL(){ return trAll().map(x => JSON.stringify({messages: [
       {role: 'system', content: x.free ? FREE_RULES : LOCAL_RULES + (x.title ? ` البرنامج المفتوح: «${x.title}».` : '')},
       {role: 'user', content: x.q}, {role: 'assistant', content: x.a}], source: x.src})).join('\n') + '\n'; }
@@ -3451,7 +3464,7 @@ const robot = (() => {
       `<div class="aglocalset"><b>🌉 جسر Claude</b> <span class="agbst">${VIA_BRIDGE ? '✅ متوصّل: Claude بيرد جوه البنش' : (SAMPLE ? '✅ Claude جوه الصفحة' : '⚪ مش متوصّل: شغّل claude_bridge.py في Termux')}</span> <button type="button" class="agbchk">اختبر</button></div>` +
       `<div class="aglocalset"><b>🧠 المخ المحلي</b> <span class="aglst">${LOCAL.ok ? '✅ متوصّل: ' + esc(LOCAL.model) : '⚪ مش متوصّل'}</span><div class="agrow"><input class="agurl" dir="ltr" value="${esc(LOCAL.url)}"><button type="button" class="agchk">اختبر</button></div><label class="agauto"><input type="radio" name="agmode" value="0"${LOCAL.think ? '' : ' checked'}> ⚡ جاوب على طول (أسرع)</label><label class="agauto"><input type="radio" name="agmode" value="1"${LOCAL.think ? ' checked' : ''}> 🧠 فكّر شوية قبل ما تجاوب (أبطأ)</label></div>` +
       `<div class="agfb"><button type="button" class="agexp">📋 انسخ اللي اتعلّمته</button><button type="button" class="agimp">📥 ضيف تعلّم من جهاز تاني</button><button type="button" class="agrst">🗑️ امسح التعلّم</button></div>` +
-      `<div class="agfb"><button type="button" class="agtrexp">📦 نزّل بيانات تدريب المخ (عدد ${trAll().length} مثال)</button><a class="agtrhow" href="https://colab.research.google.com/github/ssas1qasd-boop/SOLI/blob/main/train/finetune_mokh.ipynb" target="_blank" rel="noopener">🎓 درّبه على Colab ↗</a></div>` +
+      `<div class="agfb"><button type="button" class="agtrexp">📦 نزّل بيانات تدريب المخ (عدد ${trAll().length} من ${TR_GOAL} مثال)</button><a class="agtrhow" href="https://colab.research.google.com/github/ssas1qasd-boop/SOLI/blob/main/train/finetune_mokh.ipynb" target="_blank" rel="noopener">🎓 درّبه على Colab ↗</a></div>` +
       `<div class="agfb"><button type="button" class="agchexp">💬 انسخ كل المحادثات (عدد ${Object.keys(chatAll()).length} برنامج)</button><button type="button" class="agchimp">📥 رجّع محادثات</button></div><div class="agchbox" hidden><textarea rows="3" placeholder="الصق هنا المحادثات اللي نسختها"></textarea><button type="button" class="agchgo">رجّعها</button></div><div class="agimpbox" hidden><textarea rows="3" placeholder="الصق هنا اللي نسخته من جهاز تاني"></textarea><button type="button" class="agimpgo">ضيف</button></div>`);
     b.querySelector('.agbchk').onclick = async e => { e.target.textContent = '…'; const ok = await probeBridge(); e.target.textContent = 'اختبر'; b.querySelector('.agbst').textContent = ok ? (VIA_BRIDGE ? '✅ متوصّل: Claude بيرد جوه البنش' : '✅ Claude جوه الصفحة') : '❌ مش لاقيه. شغّل python ~/claude_bridge.py في Termux'; };
     b.querySelectorAll('input[name=agmode]').forEach(r => r.onchange = () => { LOCAL.think = r.value === '1' && r.checked; saveLocal(); });
