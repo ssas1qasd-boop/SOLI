@@ -2856,15 +2856,16 @@ const AG = (() => {
   function modelStats(){ const W = USER.W[P.id] || {}; const pairs = [];
     for (const f in W) for (const id in W[f]) if (W[f][id] > .3) pairs.push([f, id, W[f][id]]);
     pairs.sort((a, b) => b[2] - a[2]); return {n: USER.n || 0, feats: Object.keys(W).length, top: pairs.slice(0, 10).map(([f, id, w]) => { const d = byId(P.id, id); return {f, id, w, code: d ? (d.code || d.title) : id, d}; }), log: (USER.log || []).filter(x => x.pid === P.id).slice(-8)}; }
-  function exportModel(){ return JSON.stringify({model: USER, assoc: LEARN, claude: lsGet(CL_KEY, []), picks: lsGet0('benchHelperLearn', [])}); }
+  function exportModel(){ return JSON.stringify({model: USER, assoc: LEARN, claude: lsGet(CL_KEY, []), free: lsGet('benchHelperFreeLessons', []), picks: lsGet0('benchHelperLearn', [])}); }
   function importModel(txt){ const o = JSON.parse(txt); if (!o || !o.model || !o.model.W) throw new Error('bad');
     for (const pid in o.model.W){ const W = USER.W[pid] || (USER.W[pid] = {}); for (const f in o.model.W[pid]){ const r = W[f] || (W[f] = {}); for (const id in o.model.W[pid][f]) r[id] = Math.max(-4, Math.min(4, (r[id] || 0) + o.model.W[pid][f][id])); } }
     USER.n = (USER.n || 0) + (o.model.n || 0); saveUser();
     if (o.assoc){ for (const w in o.assoc){ LEARN[w] = LEARN[w] || {}; for (const c in o.assoc[w]) LEARN[w][c] = Math.min(.8, Math.max(LEARN[w][c] || 0, o.assoc[w][c])); } lsSet(LA_KEY, LEARN); }
     if (o.claude) lsSet(CL_KEY, lsGet(CL_KEY, []).concat(o.claude).slice(-200));
+    if (o.free) lsSet('benchHelperFreeLessons', lsGet('benchHelperFreeLessons', []).concat(o.free).slice(-150));
     if (o.picks) try { localStorage.setItem('benchHelperLearn', JSON.stringify(lsGet0('benchHelperLearn', []).concat(o.picks).slice(-300))); } catch (e){}
     return true; }
-  function resetModel(){ USER = {v: 1, n: 0, ev: 0, W: {}}; LEARN = {}; try { ['benchHelperModel', 'benchHelperAssoc', 'benchHelperFromClaude', 'benchHelperLearn'].forEach(k => localStorage.removeItem(k)); } catch (e){} }
+  function resetModel(){ USER = {v: 1, n: 0, ev: 0, W: {}}; LEARN = {}; try { ['benchHelperModel', 'benchHelperAssoc', 'benchHelperFromClaude', 'benchHelperLearn', 'benchHelperFreeLessons'].forEach(k => localStorage.removeItem(k)); } catch (e){} }
   function search(q, {pid, kinds, n = 8} = {}){
     const qt = qweights(q); if (!qt.size) return []; let FX = null;
     const qc = [...qt.keys()].filter(t => t[0] === '§' && qt.get(t) >= .7);
@@ -3021,6 +3022,17 @@ const AG = (() => {
     for (const w of k.filter(t => /[\u0621-\u064A]/.test(t) && !DF.has(t) || /[\u0621-\u064A]/.test(t))) for (const sk of steps.slice(0, 3)) for (const c of toks(stepText(ST[sk])).filter(c => c[0] !== '§' && c.length > 3)){
       LEARN[w] = LEARN[w] || {}; LEARN[w][c] = Math.min(.8, (LEARN[w][c] || 0) + .25); n++; }
     lsSet(LA_KEY, LEARN); if (steps.length) train(q, steps.slice(0, 4).map((k2, j) => ['s:' + k2, j ? .5 : 1]), [], .5, 'claude'); return steps.length; }
+  // lessons the local brain reads before answering: Claude's answers/corrections that match the question
+  const FL_KEY = 'benchHelperFreeLessons';
+  function saveFreeLesson(q, text){ const k = [...new Set(toks(q).filter(t => t[0] !== '§'))]; if (!k.length) return; const L = lsGet(FL_KEY, []).filter(x => x.raw !== q); L.push({q: k, raw: q, text, t: Date.now()}); lsSet(FL_KEY, L.slice(-150)); }
+  function lessons(q, free, n = 2){ const k = [...new Set(toks(q).filter(t => t[0] !== '§'))]; if (!k.length) return [];
+    const qw = qweights(q, true); const sc = [];
+    for (const x of free ? lsGet(FL_KEY, []) : lsGet(CL_KEY, []).filter(x => x.pid === P.id)){ let j;
+      if (x.w){ let mn = 0, mx = 0; const keys = new Set([...Object.keys(x.w), ...qw.keys()]); for (const t of keys){ const a = x.w[t] || 0, b = qw.get(t) || 0; mn += Math.min(a, b); mx += Math.max(a, b); } j = mx ? mn / mx : 0; }
+      else { const inter = x.q.filter(t => k.includes(t)).length; j = inter / new Set([...x.q, ...k]).size; }
+      if (j >= .2) sc.push([j, x]); }
+    return sc.sort((a, b) => b[0] - a[0]).slice(0, n).map(([j, x]) => ({q: x.raw || x.q.join(' '), a: x.text, j})); }
+  const lessonCount = () => ({bench: lsGet(CL_KEY, []).length, free: lsGet(FL_KEY, []).length});
   function recallClaude(q){ const k = [...new Set(toks(q).filter(t => t[0] !== '§'))]; if (!k.length) return null; let best = null, bs = 0;
     const qw = qweights(q, true);
     for (const x of lsGet(CL_KEY, [])){ if (x.pid !== P.id) continue; let j;
@@ -3135,7 +3147,7 @@ const AG = (() => {
     L.push('أقرب السطور للسؤال (من البنش):');
     R.forEach(d => L.push(`- ${d.kind === 'step' ? 'خطوة ' + (d.k + 1) + '، ' : ''}سطر ${d.kind === 'step' ? ST[d.k].ln : d.ln}: ${d.code} — ${strip(d.ex || '').slice(0, sh ? 90 : 220)}${d.kind === 'step' ? '' : ' (سطر مش بيتنفذ لوحده)'}`));
     return L.join('\n'); }
-  return {build, answer, suggestions, search, norm, toks, facts, qweights, context, learnFromClaude, train, predict, modelStats, exportModel, importModel, resetModel, remember, alternatives, docForLine, refDoc, forget(){ memSave([]); }, chipFor: d => anyChip(d), reset(){ lastQ = null; }};
+  return {lessons, saveFreeLesson, lessonCount, build, answer, suggestions, search, norm, toks, facts, qweights, context, learnFromClaude, train, predict, modelStats, exportModel, importModel, resetModel, remember, alternatives, docForLine, refDoc, forget(){ memSave([]); }, chipFor: d => anyChip(d), reset(){ lastQ = null; }};
 })();
 
 // ---------- the robot (built from simple shapes)
@@ -3268,7 +3280,8 @@ const robot = (() => {
     const free = !!(after._free || after.dataset.free);
     const prompt = free ? FREE_RULES + `\n\n(للمعلومية: المستخدم بيذاكر جرافيكس وOpenGL، وفاتح في البنش برنامج «${P.title}».)` + attText(att, 60000) + (imgs.length ? `\n\nالمستخدم رفع عدد ${imgs.length} صورة (مرفقة).` : '') + '\n\nالسؤال: ' + question : RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + attText(att, 60000) + (imgs.length ? `\n\nالمستخدم رفع عدد ${imgs.length} صورة مع السؤال (مرفقة). اقراها واربطها بالبنش لو ليها علاقة.` : '') + '\n\nسؤال المستخدم: ' + question;
     SAMPLE(prompt, {signal: ctl.signal, ...(imgs.length ? {images: imgs} : {}), onText: ({text}) => { ct.innerHTML = mdToHtml(text); }})
-      .then(({text, truncated}) => { ct.innerHTML = mdToHtml(text) + (truncated ? '<br><small>(الرد اتقطع، اسأل عن جزء أصغر)</small>' : ''); if (!truncated && !b.dataset.free){ const n = AG.learnFromClaude(question, text); ct.insertAdjacentHTML('beforeend', `<div class="aglearn">🧠 المساعد حفظ الشرح ده${n ? ` واتعلّم يربط كلمات سؤالك بـ عدد ${n} خطوة` : ''}: لو سألت سؤال شبهه هيجاوبك بيه من غير نت.</div>`); } fixBidi(ct); wire(ct, question); })
+      .then(({text, truncated}) => { ct.innerHTML = mdToHtml(text) + (truncated ? '<br><small>(الرد اتقطع، اسأل عن جزء أصغر)</small>' : ''); if (!truncated && b.dataset.free){ AG.saveFreeLesson(question, text); ct.insertAdjacentHTML('beforeend', '<div class="aglearn">📚 المخ المحلي هيقرا الإجابة دي لو سألته سؤال شبهه.</div>'); }
+        if (!truncated && !b.dataset.free){ const n = AG.learnFromClaude(question, text); ct.insertAdjacentHTML('beforeend', `<div class="aglearn">🧠 المساعد حفظ الشرح ده${n ? ` واتعلّم يربط كلمات سؤالك بـ عدد ${n} خطوة` : ''}: لو سألت سؤال شبهه هيجاوبك بيه من غير نت.</div>`); } fixBidi(ct); wire(ct, question); })
       .catch(e => { const code = e && e.code; if (e && e.text) ct.innerHTML = mdToHtml(e.text);
         const msg = {images_unavailable: 'Claude مش قادر يشوف صور في الصفحة دي.', image_rejected: 'Claude رفض الصورة (نوعها أو حجمها مش مناسب).', cancelled: 'وقّفته.', not_granted: 'الإذن اترفض، فزرار Claude هيختفي في الفتحة دي.', sampling_disabled: 'Claude مش متاح للحساب ده.', rate_limited: 'أسئلة كتير ورا بعض، استنى شوية وجرّب تاني.', session_expired: 'محتاج تسجّل دخول تاني.', refused: 'Claude ماجاوبش على السؤال ده. جرّب صياغة تانية.'}[code] || 'حصلت مشكلة في الاتصال. جرّب تاني بعد شوية.';
         if (!e || !e.text) ct.innerHTML = ''; ct.insertAdjacentHTML('beforeend', `<br><small>${msg}</small>`);
@@ -3315,8 +3328,10 @@ const robot = (() => {
     SAMPLE(prompt, {signal: ctl.signal, onText: ({text}) => { ct.innerHTML = mdToHtml(text); }})
       .then(({text}) => { ct.innerHTML = mdToHtml(text); fixBidi(ct); wire(ct, b.dataset.q);
         const m = /التقييم:\s*(\d+(?:\.\d+)?)\s*من\s*10/.exec(text); if (m){ const sc = +m[1]; j.querySelector('.agtag').textContent = `⚖️ تقييم Claude: ${sc} من 10`; b.querySelector('.agtag').insertAdjacentText('beforeend', ` · ⚖️ ${sc}/10`); }
-        const fix = (/📝[^\n]*\n?([\s\S]+)$/.exec(text) || [])[1];
-        if (fix && !b.dataset.free){ const sv = document.createElement('button'); sv.type = 'button'; sv.textContent = '🧠 احفظ الإجابة المظبوطة في تعلّم المساعد';
+        const fix = (/📝[^:：\n]*[:：]?\s*([\s\S]+)$/.exec(text) || [])[1];
+        if (fix && b.dataset.free){ AG.saveFreeLesson(b.dataset.q, fix.trim()); j.insertAdjacentHTML('beforeend', '<div class="aglearn">📚 المخ المحلي هيقرا التصحيح ده المرة الجاية لما تسأل سؤال شبهه.</div>'); }
+        if (fix && !b.dataset.free){ const k0 = AG.learnFromClaude(b.dataset.q, fix.trim()); j.insertAdjacentHTML('beforeend', `<div class="aglearn">📚 المخ المحلي هيقرا التصحيح ده المرة الجاية${k0 ? `، والمساعد ربطه بـ عدد ${k0} خطوة` : ''}.</div>`); }
+        if (false){ const sv = document.createElement('button'); sv.type = 'button'; sv.textContent = '🧠 احفظ الإجابة المظبوطة في تعلّم المساعد';
           sv.onclick = () => { const k = AG.learnFromClaude(b.dataset.q, fix.trim()); sv.replaceWith(Object.assign(document.createElement('span'), {className: 'aglearn', textContent: `🧠 اتحفظت${k ? ` واتربطت بـ عدد ${k} خطوة` : ''}`})); };
           const r = document.createElement('div'); r.className = 'agfb'; r.appendChild(sv); j.appendChild(r); } })
       .catch(e => { ct.innerHTML = '<small>' + ({cancelled: 'وقّفته.', not_granted: 'الإذن اترفض.', rate_limited: 'أسئلة كتير ورا بعض، استنى شوية.'}[e && e.code] || 'حصلت مشكلة في الاتصال بـ Claude.') + '</small>'; })
@@ -3348,6 +3363,10 @@ const robot = (() => {
     const free = !!(after._free || after.dataset.free); if (free){ b.dataset.free = '1'; b.querySelector('.agtag').insertAdjacentText('beforeend', ' · 🌍 حر');
       const ft = question + attText(att, 2500) + (imgAtt.length ? `\n\n(المستخدم رفع عدد ${imgAtt.length} صورة، وهي مرفقة.)` : '');
       if (Array.isArray(content)) content[0].text = ft; else content = ft; }
+    const les = AG.lessons(question, free);
+    if (les.length){ const lt = '\n\n📚 دروس اتعلّمتها قبل كده من Claude في أسئلة شبه دي (الإجابات دي مظبوطة، استخدمها لو مناسبة للسؤال):\n' + les.map(l => 'س: ' + l.q + '\nج: ' + l.a.slice(0, 700)).join('\n\n');
+      if (Array.isArray(content)) content[0].text = lt + '\n\n' + content[0].text; else content = lt + '\n\n' + content;
+      b.querySelector('.agtag').insertAdjacentText('beforeend', ` · 📚 عدد ${les.length} درس من Claude`); }
     const body = {messages: [{role: 'system', content: free ? FREE_RULES : LOCAL_RULES}, {role: 'user', content}], stream: true, temperature: .5, max_tokens: 450,
       reasoning_format: 'deepseek', reasoning_control: true, chat_template_kwargs: {enable_thinking: LOCAL.think}};
     if (!LOCAL.think) body.reasoning_effort = 'none';
@@ -3389,7 +3408,7 @@ const robot = (() => {
   const AUTO_KEY = 'benchHelperAutoClaude';
   const autoClaude = () => { try { return localStorage.getItem(AUTO_KEY) === '1'; } catch (e){ return false; } };
   function brain(){ ensure(); const st = AG.modelStats(); const kinds = {up: '👍', pick: '👎 واخترت', click: 'دوست خطوة', claude: 'من Claude', fb: 'تصحيح'};
-    const b = bubble('bot brain', `<b>🧠 اللي اتعلّمته في البرنامج ده</b><ul><li>عدد ${st.n} درس اتعلّمته (من كل البرامج).</li><li>عدد ${st.feats} كلمة ليها أوزان في البرنامج ده.</li></ul>` +
+    const b = bubble('bot brain', `<b>🧠 اللي اتعلّمته في البرنامج ده</b><ul><li>عدد ${st.n} درس اتعلّمته (من كل البرامج).</li><li>📚 دروس Claude اللي المخ المحلي بيقراها: عدد ${AG.lessonCount().bench} عن البنش، وعدد ${AG.lessonCount().free} أسئلة حرة.</li><li>عدد ${st.feats} كلمة ليها أوزان في البرنامج ده.</li></ul>` +
       (st.top.length ? `<b>أقوى الروابط اللي اتعلّمتها:</b><ul>${st.top.map(x => `<li>«${esc(x.f.replace(/^§/, ''))}» ← <code dir="ltr">${esc(String(x.code).slice(0, 50))}</code> (${x.w.toFixed(2)})</li>`).join('')}</ul>` : '<p>لسه ماتعلّمتش حاجة في البرنامج ده. دوس 👍 أو 👎 تحت الإجابات، أو اسأل Claude.</p>') +
       (st.log.length ? `<b>آخر الدروس:</b><ul>${st.log.map(x => `<li>${kinds[x.k] || x.k}: «${esc(x.q)}»</li>`).join('')}</ul>` : '') +
       `<label class="agauto"><input type="checkbox" id="agAuto"${autoClaude() ? ' checked' : ''}> لما أكون مش متأكد، اسأل Claude لوحدك واتعلّم من إجابته${SAMPLE ? '' : ' (مش متاح هنا: محتاج الصفحة المنشورة ونت)'}</label>` +
