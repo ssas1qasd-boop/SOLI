@@ -581,7 +581,7 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
 .agtag{display:inline-block;font-size:.72rem;font-weight:700;color:#7c4dff;margin-bottom:2px}
 .agstop{font:inherit;font-size:.75rem;margin-top:6px;padding:2px 10px;border-radius:999px;border:1px solid var(--rule);background:transparent;color:var(--ink-2);cursor:pointer}
 .agthink{margin-top:6px;font-size:.8rem;color:var(--ink-3)}.agthink summary{cursor:pointer}.agthink ul{margin:4px 0}
-.agauto{display:flex;gap:6px;align-items:flex-start;margin:6px 0;font-size:.82rem}.agimpbox{display:grid;gap:6px;margin-top:6px}.agimpbox textarea{font:inherit;font-size:.8rem;width:100%;box-sizing:border-box;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:6px}.agimpbox button{font:inherit;font-size:.8rem;justify-self:start;padding:3px 12px;border-radius:999px;border:1px solid #2f6fe0;background:transparent;color:#2f6fe0}
+.agauto{display:flex;gap:6px;align-items:flex-start;margin:6px 0;font-size:.82rem}.agchbox{display:grid;gap:6px;margin-top:6px}.agchbox textarea{font:inherit;font-size:.8rem;width:100%;box-sizing:border-box;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:6px}.agchbox button{font:inherit;font-size:.8rem;justify-self:start;padding:3px 12px;border-radius:999px;border:1px solid #2f6fe0;background:transparent;color:#2f6fe0}.agimpbox{display:grid;gap:6px;margin-top:6px}.agimpbox textarea{font:inherit;font-size:.8rem;width:100%;box-sizing:border-box;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:6px}.agimpbox button{font:inherit;font-size:.8rem;justify-self:start;padding:3px 12px;border-radius:999px;border:1px solid #2f6fe0;background:transparent;color:#2f6fe0}
 .agline{display:flex;gap:6px}.agline input{flex:1;min-width:0;font:inherit;font-size:16px;padding:4px 8px;border-radius:8px;border:1px solid var(--rule);background:var(--paper);color:var(--ink)}.agline button{font:inherit;font-size:.8rem;padding:3px 12px;border-radius:999px;border:1px solid #2f6fe0;background:#2f6fe0;color:#fff}
 .aglearn{font-size:.8rem;color:#2f8a4a;font-weight:700}
 .agimg{display:block;max-width:220px;width:100%;margin-top:6px;border-radius:6px}
@@ -3308,7 +3308,8 @@ const robot = (() => {
       (st.log.length ? `<b>آخر الدروس:</b><ul>${st.log.map(x => `<li>${kinds[x.k] || x.k}: «${esc(x.q)}»</li>`).join('')}</ul>` : '') +
       `<label class="agauto"><input type="checkbox" id="agAuto"${autoClaude() ? ' checked' : ''}> لما أكون مش متأكد، اسأل Claude لوحدك واتعلّم من إجابته${SAMPLE ? '' : ' (مش متاح هنا: محتاج الصفحة المنشورة ونت)'}</label>` +
       `<div class="aglocalset"><b>🧠 المخ المحلي</b> <span class="aglst">${LOCAL.ok ? '✅ متوصّل: ' + esc(LOCAL.model) : '⚪ مش متوصّل'}</span><div class="agrow"><input class="agurl" dir="ltr" value="${esc(LOCAL.url)}"><button type="button" class="agchk">اختبر</button></div><label class="agauto"><input type="radio" name="agmode" value="0"${LOCAL.think ? '' : ' checked'}> ⚡ جاوب على طول (أسرع)</label><label class="agauto"><input type="radio" name="agmode" value="1"${LOCAL.think ? ' checked' : ''}> 🧠 فكّر شوية قبل ما تجاوب (أبطأ)</label></div>` +
-      `<div class="agfb"><button type="button" class="agexp">📋 انسخ اللي اتعلّمته</button><button type="button" class="agimp">📥 ضيف تعلّم من جهاز تاني</button><button type="button" class="agrst">🗑️ امسح التعلّم</button></div><div class="agimpbox" hidden><textarea rows="3" placeholder="الصق هنا اللي نسخته من جهاز تاني"></textarea><button type="button" class="agimpgo">ضيف</button></div>`);
+      `<div class="agfb"><button type="button" class="agexp">📋 انسخ اللي اتعلّمته</button><button type="button" class="agimp">📥 ضيف تعلّم من جهاز تاني</button><button type="button" class="agrst">🗑️ امسح التعلّم</button></div>` +
+      `<div class="agfb"><button type="button" class="agchexp">💬 انسخ كل المحادثات (عدد ${Object.keys(chatAll()).length} برنامج)</button><button type="button" class="agchimp">📥 رجّع محادثات</button></div><div class="agchbox" hidden><textarea rows="3" placeholder="الصق هنا المحادثات اللي نسختها"></textarea><button type="button" class="agchgo">رجّعها</button></div><div class="agimpbox" hidden><textarea rows="3" placeholder="الصق هنا اللي نسخته من جهاز تاني"></textarea><button type="button" class="agimpgo">ضيف</button></div>`);
     b.querySelectorAll('input[name=agmode]').forEach(r => r.onchange = () => { LOCAL.think = r.value === '1' && r.checked; saveLocal(); });
     b.querySelector('.agchk').onclick = async e => { LOCAL.url = b.querySelector('.agurl').value.trim() || LOCAL.url; saveLocal(); e.target.textContent = '…';
       const ok = await probeLocal(); e.target.textContent = 'اختبر'; b.querySelector('.aglst').textContent = ok ? '✅ متوصّل: ' + LOCAL.model : '❌ مش لاقيه. شغّل llama-server في Termux';
@@ -3317,6 +3318,11 @@ const robot = (() => {
     b.querySelector('.agexp').onclick = async e => { const t = AG.exportModel(); try { await navigator.clipboard.writeText(t); e.target.textContent = '✔ اتنسخ'; } catch (x){ const ta = b.querySelector('textarea'); b.querySelector('.agimpbox').hidden = false; ta.value = t; ta.select(); e.target.textContent = 'انسخه من المربع'; } };
     b.querySelector('.agimp').onclick = () => { b.querySelector('.agimpbox').hidden = false; b.querySelector('textarea').value = ''; b.querySelector('textarea').focus(); };
     b.querySelector('.agimpgo').onclick = e => { try { AG.importModel(b.querySelector('textarea').value); e.target.textContent = '✔ اتضاف'; } catch (x){ e.target.textContent = 'النص ده مش تعلّم صالح'; } };
+    b.querySelector('.agchexp').onclick = async e => { chatSave(); const t = JSON.stringify({benchChats: 1, chats: chatAll()}); try { await navigator.clipboard.writeText(t); e.target.textContent = '✔ اتنسخت، الصقها في أي مكان تحفظ فيه'; } catch (x){ const bx = b.querySelector('.agchbox'); bx.hidden = false; const ta = bx.querySelector('textarea'); ta.value = t; ta.select(); e.target.textContent = 'انسخها من المربع'; } };
+    b.querySelector('.agchimp').onclick = () => { const bx = b.querySelector('.agchbox'); bx.hidden = false; bx.querySelector('textarea').value = ''; bx.querySelector('textarea').focus(); };
+    b.querySelector('.agchgo').onclick = e => { try { const j = JSON.parse(b.querySelector('.agchbox textarea').value); const inc = j && j.chats; if (!inc || typeof inc !== 'object') throw 0;
+        const all = chatAll(); let n = 0; for (const [k, v] of Object.entries(inc)){ if (!v || typeof v.h !== 'string' || !PROGS.some(p => p.id === k)) continue; if (!all[k] || (v.t || 0) > (all[k].t || 0)){ all[k] = {h: v.h, t: v.t || Date.now(), open: false}; n++; } }
+        chatWrite(all); e.target.textContent = `✔ رجعت عدد ${n} محادثة`; } catch (x){ e.target.textContent = 'النص ده مش محادثات صالحة'; } };
     b.querySelector('.agrst').onclick = e => { if (e.target.dataset.sure){ AG.resetModel(); e.target.textContent = '✔ اتمسح'; } else { e.target.dataset.sure = '1'; e.target.textContent = 'متأكد؟ دوس تاني للمسح'; } };
     sug.hidden = true; }
   $('agBrain').onclick = brain;
@@ -3335,11 +3341,13 @@ const robot = (() => {
   const CHAT_KEY = 'benchHelperChat';
   const chatAll = () => { try { return JSON.parse(localStorage.getItem(CHAT_KEY) || '{}'); } catch (e){ return {}; } };
   function chatSave(){ try { const all = chatAll(); const c = log.cloneNode(true);
-      c.querySelectorAll('.agfb, .agstop, .agenough, .agimpbox, .aglocalset').forEach(x => x.remove()); c.querySelectorAll('.wait').forEach(x => x.remove());
+      c.querySelectorAll('.agmsg.brain').forEach(x => x.remove()); c.querySelectorAll('.agfb, .agstop, .agenough, .agimpbox, .agchbox, .aglocalset').forEach(x => x.remove()); c.querySelectorAll('.wait').forEach(x => x.remove());
       const h = c.innerHTML.trim();
       if (h) all[P.id] = {h, t: Date.now(), open: !box.hidden}; else delete all[P.id];
-      const ks = Object.keys(all).sort((a, b) => all[b].t - all[a].t); ks.slice(12).forEach(k => delete all[k]);
-      localStorage.setItem(CHAT_KEY, JSON.stringify(all)); } catch (e) {} }
+      chatWrite(all); } catch (e) {} }
+  // no fixed limit: keep every program's chat; only if the browser runs out of room, drop the oldest chats until it fits
+  function chatWrite(all){ const ks = Object.keys(all).sort((a, b) => all[a].t - all[b].t);
+    for (;;){ try { localStorage.setItem(CHAT_KEY, JSON.stringify(all)); return true; } catch (e){ const k = ks.shift(); if (!k || k === P.id) return false; delete all[k]; } } }
   function chatRestore(id){ const s = chatAll()[id]; if (!s || !s.h) return null; log.innerHTML = s.h; sug.hidden = true; wire(log); fixBidi(log); log.querySelectorAll('.localb[data-a]').forEach(localFeedback);
     // an answer that was still being written when the phone dropped the page: say so and offer to ask again
     log.querySelectorAll('.localb[data-q]:not([data-a])').forEach(b => { if (b.querySelector('.agcut')) return; const n = document.createElement('div'); n.className = 'agfb agcut';
