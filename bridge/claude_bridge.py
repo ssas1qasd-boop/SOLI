@@ -16,7 +16,11 @@ def claude_cmd():
     # Claude Code متسطّب جوه Ubuntu (proot-distro). لو متسطّب في Termux نفسه، بنستخدمه على طول.
     if shutil.which('claude'):
         return ['claude']
-    return ['proot-distro', 'login', 'ubuntu', '--', 'bash', '-lc', 'cd /root && exec claude "$@"', 'claude']
+    # bash -lc مابيقراش ~/.bashrc، فبنضيف أماكن Claude Code المعروفة للـ PATH بنفسنا
+    find = ('export PATH="$HOME/.local/bin:$HOME/.claude/local:$HOME/.npm-global/bin:/usr/local/bin:$PATH"; '
+            'C=$(command -v claude || ls $HOME/.local/bin/claude $HOME/.claude/local/claude 2>/dev/null | head -1); '
+            'if [ -z "$C" ]; then echo "Claude Code مش متسطّب جوه Ubuntu" >&2; exit 127; fi; cd /root && exec "$C" "$@"')
+    return ['proot-distro', 'login', 'ubuntu', '--', 'bash', '-lc', find, 'bridge']
 
 BASE = claude_cmd()
 
