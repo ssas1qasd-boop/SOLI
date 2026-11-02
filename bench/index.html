@@ -3319,7 +3319,21 @@ const robot = (() => {
   stage.addEventListener('pointerup', e => { if (!pd || Math.hypot(e.clientX - pd[0], e.clientY - pd[1]) > 8) return; const r = stage.getBoundingClientRect();
     ray.setFromCamera(new T.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), cam);
     if (ray.intersectObject(robot.g, true).length){ openChat(true); robot.setMood('happy'); } });
-  const _load = loadProgram; loadProgram = function(id, keep, fromChat){ const r = _load(id, keep); AG.reset(); if (!fromChat){ log.innerHTML = ''; renderSug(); } return r; };
+  // ---------- keep the chat when the phone drops the page from memory (Chrome reloads it when you come back)
+  const CHAT_KEY = 'benchHelperChat';
+  const chatAll = () => { try { return JSON.parse(localStorage.getItem(CHAT_KEY) || '{}'); } catch (e){ return {}; } };
+  function chatSave(){ try { const all = chatAll(); const c = log.cloneNode(true);
+      c.querySelectorAll('.agfb, .agstop, .agenough, .agimpbox, .aglocalset').forEach(x => x.remove()); c.querySelectorAll('.wait').forEach(x => x.remove());
+      const h = c.innerHTML.trim();
+      if (h) all[P.id] = {h, t: Date.now(), open: !box.hidden}; else delete all[P.id];
+      const ks = Object.keys(all).sort((a, b) => all[b].t - all[a].t); ks.slice(12).forEach(k => delete all[k]);
+      localStorage.setItem(CHAT_KEY, JSON.stringify(all)); } catch (e) {} }
+  function chatRestore(id){ const s = chatAll()[id]; if (!s || !s.h) return null; log.innerHTML = s.h; sug.hidden = true; wire(log); fixBidi(log); return s; }
+  let saveT = 0; new MutationObserver(() => { clearTimeout(saveT); saveT = setTimeout(chatSave, 600); }).observe(log, {childList: true, subtree: true, characterData: true});
+  document.addEventListener('visibilitychange', () => { if (document.hidden) chatSave(); });
+  addEventListener('pagehide', chatSave);
+  const _load = loadProgram; loadProgram = function(id, keep, fromChat){ if (!fromChat) chatSave(); const r = _load(id, keep); AG.reset(); if (!fromChat){ if (!chatRestore(P.id)){ log.innerHTML = ''; renderSug(); } } return r; };
+  { const s = chatRestore(P.id); if (s){ ensure(); if (s.open) openChat(true); setTimeout(() => { log.scrollTop = log.scrollHeight; }, 50); } }
   window.__agent = {ask: t => { ensure(); return AG.answer(t); }, AG, open: openChat};
 })();
 
