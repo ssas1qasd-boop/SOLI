@@ -3237,7 +3237,8 @@ const robot = (() => {
   const LOCAL_RULES = 'انت مساعد شرح جوه «بنش» تعليمي بيعرض برنامج C++/OpenGL أو Python اتشغّل فعلاً خطوة بخطوة. ' +
     'جاوب على طول بالعامية المصرية لطالب مبتدئ، في 3 لـ 6 جمل قصيرة، من غير مقدمات. ' +
     'اعتمد على «حقايق البنش» اللي في الرسالة، وخد الأرقام منها هي. لو المعلومة مش فيها قول «مش موجود في البنش». ' +
-    'لما تذكر خطوة اكتب «خطوة N». اكتب الكود بين علامتي `.';
+    'لما تذكر خطوة اكتب «خطوة N». اكتب الكود بين علامتي `.' +
+    ' لو الحقايق فيها «الطريقة 1» و«الطريقة 2»، اكتب كل طريقة برقمها زي ما هو مكتوب في الحقايق بالظبط (مثلاً: الطريقة 2 = VAO لكل شكل، الطريقة 1 = VAO واحد مشترك)، وماتقولش «الأولى» و«التانية» حسب ترتيب كلامك.';
   // 👍 / 👎 under a local-brain answer; rebuilt after the chat is restored from storage (the question and answer live on the bubble)
   function localFeedback(b){ if (b.dataset.done || !b.dataset.a) return; b.querySelectorAll('.aglfb').forEach(x => x.remove());
     const fb = document.createElement('div'); fb.className = 'agfb aglfb';
@@ -3250,7 +3251,7 @@ const robot = (() => {
     const ctl = new AbortController(); let cid = null, think = '', ans = '';
     const b = document.createElement('div'); b.className = 'agmsg bot localb';
     b.innerHTML = `<span class="agtag">🧠 المخ المحلي · ${esc(LOCAL.model)}</span><details class="agthink"${LOCAL.think ? ' open' : ''} hidden><summary>بيفكّر…</summary><div class="agthinkt"></div></details><div class="agct">${LOCAL.think ? 'بيقرا الحقايق وبيفكّر…' : 'بيقرا الحقايق…'}</div><div class="agfb"><button type="button" class="agenough" hidden>✋ كفاية تفكير، جاوب</button><button type="button" class="agstop">⏹ وقّف</button></div>`;
-    after.after(b); log.scrollTop = b.offsetTop - 8;
+    b.dataset.q = question; after.after(b); log.scrollTop = b.offsetTop - 8;
     const ct = b.querySelector('.agct'), th = b.querySelector('.agthink'), tht = b.querySelector('.agthinkt'), stop = b.querySelector('.agstop'), enough = b.querySelector('.agenough');
     stop.onclick = () => ctl.abort();
     enough.onclick = async () => { enough.disabled = true; enough.textContent = 'بقوله يجاوب…';
@@ -3283,6 +3284,7 @@ const robot = (() => {
         if (ans.trim()){ b.dataset.q = question; b.dataset.a = ans.trim(); localFeedback(b); }
         fixBidi(ct); wire(ct, question); })
       .catch(e => { if (e && e.name === 'AbortError'){ ct.insertAdjacentHTML('beforeend', '<br><small>وقّفته.</small>'); return; }
+        if (ans.trim()){ ct.insertAdjacentHTML('beforeend', '<br><small>✂️ الاتصال اتقطع قبل ما الإجابة تخلص.</small>'); return; }
         ct.innerHTML = `<small>مش قادر أوصل للمخ المحلي على <code dir="ltr">${esc(LOCAL.url)}</code>. اتأكد إن llama-server شغال في Termux. (${esc(String(e && e.message || e))})</small>`; LOCAL.ok = false; })
       .finally(() => { stop.remove(); enough.remove(); btn.disabled = false; }); }
   // ---------- outside claude.ai (GitHub copy): Claude can't be called from the page, so open a new Claude chat with the question + bench facts
@@ -3334,7 +3336,13 @@ const robot = (() => {
       if (h) all[P.id] = {h, t: Date.now(), open: !box.hidden}; else delete all[P.id];
       const ks = Object.keys(all).sort((a, b) => all[b].t - all[a].t); ks.slice(12).forEach(k => delete all[k]);
       localStorage.setItem(CHAT_KEY, JSON.stringify(all)); } catch (e) {} }
-  function chatRestore(id){ const s = chatAll()[id]; if (!s || !s.h) return null; log.innerHTML = s.h; sug.hidden = true; wire(log); fixBidi(log); log.querySelectorAll('.localb[data-a]').forEach(localFeedback); return s; }
+  function chatRestore(id){ const s = chatAll()[id]; if (!s || !s.h) return null; log.innerHTML = s.h; sug.hidden = true; wire(log); fixBidi(log); log.querySelectorAll('.localb[data-a]').forEach(localFeedback);
+    // an answer that was still being written when the phone dropped the page: say so and offer to ask again
+    log.querySelectorAll('.localb[data-q]:not([data-a])').forEach(b => { if (b.querySelector('.agcut')) return; const n = document.createElement('div'); n.className = 'agfb agcut';
+      n.innerHTML = '<span class="aglearn">✂️ الإجابة دي اتقطعت لما خرجت من الصفحة.</span> <button type="button" class="aglocal">🧠 اسأل المخ تاني</button>';
+      n.querySelector('button').onclick = e => { const q = b.dataset.q; n.remove(); if (LOCAL.ok) askLocal(q, b, e.target); else { probeLocal().then(ok => ok ? askLocal(q, b, e.target) : b.insertAdjacentHTML('beforeend', '<small>المخ المحلي مش شغال. شغّل llama-server في Termux.</small>')); } };
+      b.appendChild(n); });
+    return s; }
   let saveT = 0; new MutationObserver(() => { clearTimeout(saveT); saveT = setTimeout(chatSave, 600); }).observe(log, {childList: true, subtree: true, characterData: true});
   document.addEventListener('visibilitychange', () => { if (document.hidden) chatSave(); });
   addEventListener('pagehide', chatSave);
