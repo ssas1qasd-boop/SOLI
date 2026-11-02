@@ -583,7 +583,8 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
 .agpre{margin:6px 0;padding:6px 8px;border-radius:8px;background:var(--paper);border:1px solid var(--rule);overflow-x:auto;font-size:.8rem;white-space:pre;text-align:left}
 .agthinkt{white-space:pre-wrap;max-height:9em;overflow:auto;direction:auto;font-size:.76rem;border-inline-start:3px solid var(--rule);padding-inline-start:6px;margin-top:4px}
 .agstat{font-size:.72rem;color:var(--ink-3);margin-top:4px}.agmsg{position:relative}.agcopy{position:absolute;top:-9px;left:10px;z-index:1;font:inherit;font-size:.68rem;line-height:1;padding:2px 4px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);opacity:.75;cursor:pointer}.agcopy:hover{opacity:1}
-.agjpaste{display:grid;gap:6px}.agjpaste textarea{font:inherit;font-size:.82rem;width:100%;box-sizing:border-box;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:6px}.agjpaste .agjudge{justify-self:start}
+.agjpaste{display:grid;gap:6px}.agjpaste textarea{font:inherit;font-size:.82rem;width:100%;box-sizing:border-box;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:6px}.agjpaste .agarch{list-style:none;margin:6px 0;padding:0;display:grid;gap:6px}.agarch-it{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 8px;border:1px solid var(--rule);border-radius:10px}.agarch-it div{min-width:0;display:grid}.agarch-it b{font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.agarch-it small{font-size:.72rem;opacity:.75}.agarch-it span{display:flex;gap:4px;flex-shrink:0}.agarch-it button,.agopenarch{font:inherit;font-size:.75rem;padding:2px 10px;border-radius:999px;border:1px solid #2f6fe0;background:transparent;color:#2f6fe0;cursor:pointer}.agarch-h{margin:6px 0 0;font-size:.8rem}
+.agjudge{justify-self:start}
 .agjudge{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #7c4dff;background:transparent;color:#7c4dff;cursor:pointer}
 .aglocal,.agenough{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #16a34a;background:transparent;color:#16a34a;cursor:pointer}
 .aglocalset{margin:8px 0;padding:8px;border:1px dashed #16a34a;border-radius:10px;font-size:.84rem}.aglocalset .agrow{display:flex;gap:6px;margin:6px 0}.aglocalset .agurl{flex:1;min-width:0;font:inherit;font-size:.8rem;padding:4px 6px;border-radius:8px;border:1px solid var(--rule);background:var(--paper);color:var(--ink)}.aglocalset .agchk{font:inherit;font-size:.8rem;padding:2px 10px;border-radius:999px;border:1px solid #16a34a;background:transparent;color:#16a34a}
@@ -609,7 +610,7 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
 
 <button type="button" class="agfab" id="agFab" aria-expanded="false" aria-controls="askbot" title="اسأل مساعد البنش"><svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="27" rx="22" ry="17" fill="#eef1f6"/><ellipse cx="32" cy="27" rx="16" ry="11" fill="#0e2233"/><path d="M22 27a4 4 0 0 1 8 0z M34 27a4 4 0 0 1 8 0z" fill="#5ee6ff"/><path d="M29 32a3 3 0 0 0 6 0z" fill="#5ee6ff"/><rect x="8" y="23" width="4" height="9" rx="2" fill="#c9ced8"/><rect x="52" y="23" width="4" height="9" rx="2" fill="#c9ced8"/><ellipse cx="32" cy="54" rx="13" ry="9" fill="#eef1f6"/></svg><span>اسأل</span></button>
 <section class="askbot" id="askbot" aria-label="مساعد البنش" hidden>
-  <header class="ag-top"><b>🤖 مساعد البنش</b><small>بيدوّر في البنش من غير نت</small><button type="button" id="agFree" aria-pressed="false" title="مقيّد بالبنش أو سؤال حر">🔒 البنش</button><button type="button" id="agBrain" title="اللي المساعد اتعلّمه">🧠</button><button type="button" id="agNew" title="محادثة جديدة">جديد</button><button type="button" id="agX" aria-label="اقفل المساعد">✕</button></header>
+  <header class="ag-top"><b>🤖 مساعد البنش</b><small>بيدوّر في البنش من غير نت</small><button type="button" id="agFree" aria-pressed="false" title="مقيّد بالبنش أو سؤال حر">🔒 البنش</button><button type="button" id="agBrain" title="اللي المساعد اتعلّمه">🧠</button><button type="button" id="agHist" title="المحادثات القديمة" aria-label="المحادثات القديمة">🕘</button><button type="button" id="agNew" title="محادثة جديدة">جديد</button><button type="button" id="agX" aria-label="اقفل المساعد">✕</button></header>
   <div class="ag-log" id="agLog" aria-live="polite"></div>
   <div class="ag-sug" id="agSug"></div>
   <div id="agAttList" class="agattl" hidden></div><form id="agForm" class="ag-form" autocomplete="off"><button type="button" id="agAtt" class="agattb" title="ضيف صورة أو ملف" aria-label="ضيف صورة أو ملف">📎</button><input id="agFile" type="file" hidden multiple accept="image/*,.txt,.md,.cpp,.cc,.c,.h,.hpp,.py,.js,.ts,.json,.glsl,.vert,.frag,.shader,.csv,.log,.xml,.html,.css"><label for="agQ" class="vh">سؤالك</label><input id="agQ" type="text" placeholder="اكتب سؤالك… مثلاً: ليه 3 صناديق؟" enterkeyhint="send"><button type="submit">اسأل</button></form>
@@ -3449,16 +3450,19 @@ const robot = (() => {
     b.querySelector('.agexp').onclick = async e => { const t = AG.exportModel(); try { await navigator.clipboard.writeText(t); e.target.textContent = '✔ اتنسخ'; } catch (x){ const ta = b.querySelector('textarea'); b.querySelector('.agimpbox').hidden = false; ta.value = t; ta.select(); e.target.textContent = 'انسخه من المربع'; } };
     b.querySelector('.agimp').onclick = () => { b.querySelector('.agimpbox').hidden = false; b.querySelector('textarea').value = ''; b.querySelector('textarea').focus(); };
     b.querySelector('.agimpgo').onclick = e => { try { AG.importModel(b.querySelector('textarea').value); e.target.textContent = '✔ اتضاف'; } catch (x){ e.target.textContent = 'النص ده مش تعلّم صالح'; } };
-    b.querySelector('.agchexp').onclick = async e => { chatSave(); const t = JSON.stringify({benchChats: 1, chats: chatAll()}); try { await navigator.clipboard.writeText(t); e.target.textContent = '✔ اتنسخت، الصقها في أي مكان تحفظ فيه'; } catch (x){ const bx = b.querySelector('.agchbox'); bx.hidden = false; const ta = bx.querySelector('textarea'); ta.value = t; ta.select(); e.target.textContent = 'انسخها من المربع'; } };
+    b.querySelector('.agchexp').onclick = async e => { chatSave(); const t = JSON.stringify({benchChats: 1, chats: chatAll(), archive: archAll()}); try { await navigator.clipboard.writeText(t); e.target.textContent = '✔ اتنسخت، الصقها في أي مكان تحفظ فيه'; } catch (x){ const bx = b.querySelector('.agchbox'); bx.hidden = false; const ta = bx.querySelector('textarea'); ta.value = t; ta.select(); e.target.textContent = 'انسخها من المربع'; } };
     b.querySelector('.agchimp').onclick = () => { const bx = b.querySelector('.agchbox'); bx.hidden = false; bx.querySelector('textarea').value = ''; bx.querySelector('textarea').focus(); };
     b.querySelector('.agchgo').onclick = e => { try { const j = JSON.parse(b.querySelector('.agchbox textarea').value); const inc = j && j.chats; if (!inc || typeof inc !== 'object') throw 0;
+        if (Array.isArray(j.archive)){ const A = archAll(), ids = new Set(A.map(a => a.id)); j.archive.forEach(a => { if (a && a.id && typeof a.h === 'string' && !ids.has(a.id)) A.push(a); }); A.sort((x, y) => x.t - y.t); archWrite(A); }
         const all = chatAll(); let n = 0; for (const [k, v] of Object.entries(inc)){ if (!v || typeof v.h !== 'string' || !PROGS.some(p => p.id === k)) continue; if (!all[k] || (v.t || 0) > (all[k].t || 0)){ all[k] = {h: v.h, t: v.t || Date.now(), open: false}; n++; } }
         chatWrite(all); e.target.textContent = `✔ رجعت عدد ${n} محادثة`; } catch (x){ e.target.textContent = 'النص ده مش محادثات صالحة'; } };
     b.querySelector('.agrst').onclick = e => { if (e.target.dataset.sure){ AG.resetModel(); e.target.textContent = '✔ اتمسح'; } else { e.target.dataset.sure = '1'; e.target.textContent = 'متأكد؟ دوس تاني للمسح'; } };
     sug.hidden = true; }
   $('agBrain').onclick = brain;
   $('agForm').addEventListener('submit', e => { e.preventDefault(); ask(); });
-  $('agNew').onclick = () => { log.innerHTML = ''; AG.reset(); renderSug(); q.focus(); };
+  $('agNew').onclick = () => { const saved = archiveCurrent(); log.innerHTML = ''; chatSave(); AG.reset(); renderSug();
+    if (saved){ const n = bubble('bot', '🕘 المحادثة اللي فاتت اتحفظت في <b>المحادثات القديمة</b>. <button type="button" class="agopenarch">افتحها</button>'); n.querySelector('button').onclick = openArchive; } q.focus(); };
+  $('agHist').onclick = openArchive;
   $('agX').onclick = () => openChat(false);
   fab.onclick = () => openChat(true);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !box.hidden) openChat(false); });
@@ -3481,10 +3485,30 @@ const robot = (() => {
   const CHAT_KEY = 'benchHelperChat';
   const chatAll = () => { try { return JSON.parse(localStorage.getItem(CHAT_KEY) || '{}'); } catch (e){ return {}; } };
   function chatSave(){ try { const all = chatAll(); const c = log.cloneNode(true);
-      c.querySelectorAll('.agmsg.brain').forEach(x => x.remove()); c.querySelectorAll('.agfb, .agstop, .agenough, .agimpbox, .agchbox, .aglocalset, .agcopy').forEach(x => x.remove()); c.querySelectorAll('.wait').forEach(x => x.remove());
+      c.querySelectorAll('.agmsg.brain, .agmsg.agarch').forEach(x => x.remove()); c.querySelectorAll('.agopenarch').forEach(x => x.closest('.agmsg').remove()); c.querySelectorAll('.agfb, .agstop, .agenough, .agimpbox, .agchbox, .aglocalset, .agcopy').forEach(x => x.remove()); c.querySelectorAll('.wait').forEach(x => x.remove());
       const h = c.innerHTML.trim();
       if (h) all[P.id] = {h, t: Date.now(), open: !box.hidden}; else delete all[P.id];
       chatWrite(all); } catch (e) {} }
+  // ---------- old chats: «جديد» moves the current chat here instead of deleting it
+  const ARCH_KEY = 'benchHelperChatArchive';
+  const archAll = () => { try { return JSON.parse(localStorage.getItem(ARCH_KEY) || '[]'); } catch (e){ return []; } };
+  function archWrite(L){ for (;;){ try { localStorage.setItem(ARCH_KEY, JSON.stringify(L)); return true; } catch (e){ if (!L.length) return false; L.shift(); } } }
+  function archiveCurrent(){ chatSave(); const cur = chatAll()[P.id]; if (!cur || !cur.h) return false;
+    const tmp = document.createElement('div'); tmp.innerHTML = cur.h; const me = tmp.querySelector('.agmsg.me'); const first = me ? me.textContent.replace(/\s+/g, ' ').trim().slice(0, 70) : '';
+    const n = tmp.querySelectorAll('.agmsg.me').length; if (!n) return false;
+    const L = archAll(); L.push({id: Date.now().toString(36), pid: P.id, title: P.title, h: cur.h, t: Date.now(), first, n}); archWrite(L); return true; }
+  function openArchive(){ ensure(); const L = archAll().slice().reverse(); const fmt = t => new Date(t).toLocaleString('ar-EG', {day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'});
+    const row = x => `<li class="agarch-it" data-id="${x.id}"><div><b>${esc(x.first || '(من غير سؤال)')}</b><small>${esc(x.title)} · عدد ${x.n} سؤال · ${fmt(x.t)}</small></div><span><button type="button" class="agaopen">افتح</button><button type="button" class="agadel" title="امسح">🗑</button></span></li>`;
+    const here = L.filter(x => x.pid === P.id), other = L.filter(x => x.pid !== P.id);
+    const b = bubble('bot brain agarch', `<b>🕘 المحادثات القديمة</b>` + (L.length ? '' : '<p>لسه مفيش. لما تدوس «جديد»، المحادثة اللي قبلها بتتحفظ هنا.</p>') +
+      (here.length ? `<p class="agarch-h">في البرنامج ده (عدد ${here.length}):</p><ul class="agarch">${here.map(row).join('')}</ul>` : '') +
+      (other.length ? `<details><summary>في برامج تانية (عدد ${other.length})</summary><ul class="agarch">${other.map(row).join('')}</ul></details>` : ''));
+    b.querySelectorAll('.agaopen').forEach(btn => btn.onclick = () => { const id = btn.closest('li').dataset.id; const x = archAll().find(a => a.id === id); if (!x) return;
+      b.remove(); archiveCurrent(); archWrite(archAll().filter(a => a.id !== id)); const all = chatAll(); all[x.pid] = {h: x.h, t: Date.now(), open: true}; chatWrite(all);
+      if (x.pid !== P.id) loadProgram(x.pid, false); else { chatRestore(P.id); } openChat(true); log.scrollTop = log.scrollHeight; });
+    b.querySelectorAll('.agadel').forEach(btn => btn.onclick = () => { if (!btn.dataset.sure){ btn.dataset.sure = '1'; btn.textContent = 'متأكد؟'; return; }
+      const li = btn.closest('li'); archWrite(archAll().filter(a => a.id !== li.dataset.id)); li.remove(); });
+    sug.hidden = true; log.scrollTop = b.offsetTop - 8; }
   // no fixed limit: keep every program's chat; only if the browser runs out of room, drop the oldest chats until it fits
   function chatWrite(all){ const ks = Object.keys(all).sort((a, b) => all[a].t - all[b].t);
     for (;;){ try { localStorage.setItem(CHAT_KEY, JSON.stringify(all)); return true; } catch (e){ const k = ks.shift(); if (!k || k === P.id) return false; delete all[k]; } } }
