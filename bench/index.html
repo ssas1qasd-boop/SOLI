@@ -582,7 +582,8 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
 .agmsg.localb{border-color:#16a34a;background:color-mix(in srgb,var(--paper-deep) 88%,#16a34a 12%)}.agmsg.localb .agtag{color:#16a34a}
 .agpre{margin:6px 0;padding:6px 8px;border-radius:8px;background:var(--paper);border:1px solid var(--rule);overflow-x:auto;font-size:.8rem;white-space:pre;text-align:left}
 .agthinkt{white-space:pre-wrap;max-height:9em;overflow:auto;direction:auto;font-size:.76rem;border-inline-start:3px solid var(--rule);padding-inline-start:6px;margin-top:4px}
-.agstat{font-size:.72rem;color:var(--ink-3);margin-top:4px}.aglocal,.agenough{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #16a34a;background:transparent;color:#16a34a;cursor:pointer}
+.agstat{font-size:.72rem;color:var(--ink-3);margin-top:4px}.agjudge{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #7c4dff;background:transparent;color:#7c4dff;cursor:pointer}
+.aglocal,.agenough{font:inherit;font-size:.78rem;padding:2px 10px;border-radius:999px;border:1px solid #16a34a;background:transparent;color:#16a34a;cursor:pointer}
 .aglocalset{margin:8px 0;padding:8px;border:1px dashed #16a34a;border-radius:10px;font-size:.84rem}.aglocalset .agrow{display:flex;gap:6px;margin:6px 0}.aglocalset .agurl{flex:1;min-width:0;font:inherit;font-size:.8rem;padding:4px 6px;border-radius:8px;border:1px solid var(--rule);background:var(--paper);color:var(--ink)}.aglocalset .agchk{font:inherit;font-size:.8rem;padding:2px 10px;border-radius:999px;border:1px solid #16a34a;background:transparent;color:#16a34a}
 .agmsg.claude{border-color:#7c4dff;background:color-mix(in srgb,var(--paper-deep) 85%,#7c4dff 15%)}
 .agtag{display:inline-block;font-size:.72rem;font-weight:700;color:#7c4dff;margin-bottom:2px}
@@ -3291,6 +3292,35 @@ const robot = (() => {
     ' جاوب السؤال نفسه على طول: ماتعلّقش على «إجابة البحث المحلي» (دي ملاحظات ليك بس)، وماتتكلمش عن الخطوة اللي المستخدم واقف عليها إلا لو السؤال عنها.' +
     ' لو الحقايق فيها «الطريقة 1» و«الطريقة 2»، اكتب كل طريقة برقمها زي ما هو مكتوب في الحقايق بالظبط (مثلاً: الطريقة 2 = VAO لكل شكل، الطريقة 1 = VAO واحد مشترك)، وماتقولش «الأولى» و«التانية» حسب ترتيب كلامك.';
   // 👍 / 👎 under a local-brain answer; rebuilt after the chat is restored from storage (the question and answer live on the bubble)
+  // ---------- Claude grades a local-brain answer (in-page on claude.ai; elsewhere opens a Claude chat with the same prompt)
+  const JUDGE_RULES = 'انت مصحّح بيراجع إجابة نموذج ذكاء صناعي صغير شغال على موبايل طالب. اكتب بالعامية المصرية وباختصار، بالشكل ده بالظبط:\n' +
+    'التقييم: X من 10\n✅ الصح: (نقط قصيرة)\n❌ الغلط أو الناقص: (نقط قصيرة، ولو مفيش اكتب «مفيش»)\n📝 الإجابة المظبوطة: (من 3 لـ 5 جمل)\n' +
+    'خليك دقيق وعادل: ماتنقصش درجات على الأسلوب لو المعنى صح. قبل أي رقم معناه عدد اكتب «عدد».';
+  function judgePrompt(b){ const free = !!b.dataset.free;
+    return JUDGE_RULES + (free ? '\n\n(سؤال عام، مش لازم يكون عن البنش. احكم من معلوماتك.)' : '\n\nحقايق البنش (من التشغيل الحقيقي، احكم بيها):\n' + AG.context(b.dataset.q)) +
+      '\n\nسؤال الطالب: ' + b.dataset.q + '\n\nإجابة النموذج المحلي:\n' + b.dataset.a; }
+  function judgeBtn(b){ if (!b.dataset.a) return; b.querySelectorAll('.agjrow').forEach(x => x.remove());
+    const row = document.createElement('div'); row.className = 'agfb agjrow';
+    row.innerHTML = '<button type="button" class="agjudge">⚖️ خلي Claude يقيّم الإجابة دي</button>'; b.appendChild(row);
+    row.querySelector('button').onclick = e => judge(b, e.target); }
+  function judge(b, btn){ const prompt = judgePrompt(b);
+    if (!SAMPLE){ // no Claude inside this page (GitHub copy): copy the grading prompt and open a Claude chat
+      let ok = false; (navigator.clipboard ? navigator.clipboard.writeText(prompt).then(() => { ok = true; }).catch(() => {}) : Promise.resolve()).finally(() => {
+        const a = document.createElement('a'); a.href = 'https://claude.ai/new?q=' + encodeURIComponent(prompt); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'افتح Claude ↗';
+        const n = document.createElement('div'); n.className = 'aglearn'; n.append(ok ? '✔ نسخت طلب التقييم (السؤال والإجابة' + (b.dataset.free ? '' : ' وحقايق البنش') + '). ' : '', a, ok ? ' ولو الخانة فاضية، الصق.' : '');
+        btn.parentElement.replaceWith(n); try { window.open(a.href, '_blank', 'noopener'); } catch (x) {} }); return; }
+    btn.disabled = true; const ctl = new AbortController();
+    const j = document.createElement('div'); j.className = 'agmsg bot claude agjudged'; j.innerHTML = '<span class="agtag">⚖️ Claude بيقيّم المخ المحلي</span><div class="agct">بيراجع…</div><button type="button" class="agstop">⏹ وقّف</button>';
+    b.after(j); log.scrollTop = j.offsetTop - 8; const ct = j.querySelector('.agct'), stop = j.querySelector('.agstop'); stop.onclick = () => ctl.abort();
+    SAMPLE(prompt, {signal: ctl.signal, onText: ({text}) => { ct.innerHTML = mdToHtml(text); }})
+      .then(({text}) => { ct.innerHTML = mdToHtml(text); fixBidi(ct); wire(ct, b.dataset.q);
+        const m = /التقييم:\s*(\d+(?:\.\d+)?)\s*من\s*10/.exec(text); if (m){ const sc = +m[1]; j.querySelector('.agtag').textContent = `⚖️ تقييم Claude: ${sc} من 10`; b.querySelector('.agtag').insertAdjacentText('beforeend', ` · ⚖️ ${sc}/10`); }
+        const fix = (/📝[^\n]*\n?([\s\S]+)$/.exec(text) || [])[1];
+        if (fix && !b.dataset.free){ const sv = document.createElement('button'); sv.type = 'button'; sv.textContent = '🧠 احفظ الإجابة المظبوطة في تعلّم المساعد';
+          sv.onclick = () => { const k = AG.learnFromClaude(b.dataset.q, fix.trim()); sv.replaceWith(Object.assign(document.createElement('span'), {className: 'aglearn', textContent: `🧠 اتحفظت${k ? ` واتربطت بـ عدد ${k} خطوة` : ''}`})); };
+          const r = document.createElement('div'); r.className = 'agfb'; r.appendChild(sv); j.appendChild(r); } })
+      .catch(e => { ct.innerHTML = '<small>' + ({cancelled: 'وقّفته.', not_granted: 'الإذن اترفض.', rate_limited: 'أسئلة كتير ورا بعض، استنى شوية.'}[e && e.code] || 'حصلت مشكلة في الاتصال بـ Claude.') + '</small>'; })
+      .finally(() => { stop.remove(); btn.disabled = false; }); }
   function localFeedback(b){ if (b.dataset.done || !b.dataset.a) return; b.querySelectorAll('.aglfb').forEach(x => x.remove());
     const fb = document.createElement('div'); fb.className = 'agfb aglfb';
     fb.innerHTML = '<button type="button" class="agup" title="الإجابة صح">👍 صح، احفظها</button><button type="button" class="agdown" title="فيها غلط">👎 فيها غلط</button>';
@@ -3339,7 +3369,7 @@ const robot = (() => {
         if (!ans.trim()) ct.innerHTML = '<small>خلص من غير ما يكتب إجابة. جرّب «جاوب على طول» من 🧠.</small>';
         const sec = (performance.now() - t0) / 1000;
         ct.insertAdjacentHTML('beforeend', `<div class="agstat">عدد ${n} توكن في ${sec.toFixed(1)} ثانية${first ? ` · أول كلمة بعد ${((first - t0) / 1000).toFixed(1)} ثانية` : ''}</div>`);
-        if (ans.trim()){ b.dataset.q = question; b.dataset.a = ans.trim(); localFeedback(b); }
+        if (ans.trim()){ b.dataset.q = question; b.dataset.a = ans.trim(); localFeedback(b); judgeBtn(b); }
         fixBidi(ct); wire(ct, question); })
       .catch(e => { if (e && e.name === 'AbortError'){ ct.insertAdjacentHTML('beforeend', '<br><small>وقّفته.</small>'); return; }
         if (ans.trim()){ ct.insertAdjacentHTML('beforeend', '<br><small>✂️ الاتصال اتقطع قبل ما الإجابة تخلص.</small>'); return; }
@@ -3404,7 +3434,7 @@ const robot = (() => {
   // no fixed limit: keep every program's chat; only if the browser runs out of room, drop the oldest chats until it fits
   function chatWrite(all){ const ks = Object.keys(all).sort((a, b) => all[a].t - all[b].t);
     for (;;){ try { localStorage.setItem(CHAT_KEY, JSON.stringify(all)); return true; } catch (e){ const k = ks.shift(); if (!k || k === P.id) return false; delete all[k]; } } }
-  function chatRestore(id){ const s = chatAll()[id]; if (!s || !s.h) return null; log.innerHTML = s.h; sug.hidden = true; wire(log); fixBidi(log); log.querySelectorAll('.localb[data-a]').forEach(localFeedback);
+  function chatRestore(id){ const s = chatAll()[id]; if (!s || !s.h) return null; log.innerHTML = s.h; sug.hidden = true; wire(log); fixBidi(log); log.querySelectorAll('.localb[data-a]').forEach(b => { localFeedback(b); judgeBtn(b); });
     // an answer that was still being written when the phone dropped the page: say so and offer to ask again
     log.querySelectorAll('.localb[data-q]:not([data-a])').forEach(b => { if (b.querySelector('.agcut')) return; const n = document.createElement('div'); n.className = 'agfb agcut';
       n.innerHTML = '<span class="aglearn">✂️ الإجابة دي اتقطعت لما خرجت من الصفحة.</span> <button type="button" class="aglocal">🧠 اسأل المخ تاني</button>';
