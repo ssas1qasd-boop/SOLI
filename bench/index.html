@@ -3565,3 +3565,73 @@ requestAnimationFrame(frame);
     window.__BENCH_DATA = {programs: parts.flatMap(p => p.programs)}; if (st) st.remove(); window.__benchBoot(); }
   catch (e){ if (st) st.textContent = 'مقدرتش أحمّل داتا البنش. افتح الصفحة تاني.'; } })();
 </script>
+<style>
+/* sheet tabs at the bottom (like Excel): the bench and the maps of the open day */
+:root{--tb-bg:#e9e6df;--tb-tab:#f6f4ef;--tb-on:#ffffff;--tb-ink:#3a3f47;--tb-line:#c9c4b8;--tb-acc:#1f7a3a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--tb-bg:#17191d;--tb-tab:#22252b;--tb-on:#2e323a;--tb-ink:#d9dce2;--tb-line:#3a3f48;--tb-acc:#5fd38a}}
+:root[data-theme="dark"]{--tb-bg:#17191d;--tb-tab:#22252b;--tb-on:#2e323a;--tb-ink:#d9dce2;--tb-line:#3a3f48;--tb-acc:#5fd38a}
+body{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+#sheetTabs{position:fixed;z-index:59;left:0;right:0;bottom:0;display:flex;justify-content:flex-start;align-items:flex-start;gap:2px;direction:rtl;
+  background:var(--tb-bg);border-top:1px solid var(--tb-line);height:calc(34px + env(safe-area-inset-bottom,0px));
+  padding:0 max(12px, env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(76px, calc(env(safe-area-inset-left,0px) + 76px));box-sizing:border-box}
+#sheetTabs button{font:600 13px system-ui,"Segoe UI",Tahoma,sans-serif;color:var(--tb-ink);background:var(--tb-tab);border:1px solid var(--tb-line);border-top:0;
+  border-radius:0 0 8px 8px;padding:5px 14px 6px;margin-top:-1px;cursor:pointer;white-space:nowrap}
+#sheetTabs button[aria-selected="true"]{background:var(--tb-on);box-shadow:inset 0 -3px 0 var(--tb-acc);color:var(--tb-acc)}
+#sheetTabs button:focus-visible{outline:2px solid var(--tb-acc);outline-offset:-2px}
+#mapsPane{position:fixed;z-index:58;left:0;right:0;top:0;bottom:calc(34px + env(safe-area-inset-bottom,0px));background:var(--tb-on)}
+#mapsPane iframe{width:100%;height:100%;border:0;display:block}
+#mapsMsg{position:absolute;inset:40% 0 auto 0;text-align:center;font:600 15px system-ui,sans-serif;color:var(--tb-ink)}
+</style>
+<div id="mapsPane" hidden role="tabpanel" aria-labelledby="tabMaps"><p id="mapsMsg"></p><iframe id="mapsFrame" title="خرايط برامج اليوم"></iframe></div>
+<nav id="sheetTabs" role="tablist" aria-label="صفحات البنش">
+  <button type="button" role="tab" id="tabBench" aria-selected="true">📊 البنش</button>
+  <button type="button" role="tab" id="tabMaps" aria-selected="false">🗺 خرايط اليوم <span id="tabDay"></span></button>
+</nav>
+<script>
+(() => {
+  const tB = document.getElementById('tabBench'), tM = document.getElementById('tabMaps'), pane = document.getElementById('mapsPane'),
+        fr = document.getElementById('mapsFrame'), msg = document.getElementById('mapsMsg'), dayEl = document.getElementById('tabDay');
+  const cache = {}; let shownDay = null;
+  const progs = () => { try { return (window.__bench && window.__bench.progs()) || []; } catch (e) { return []; } };
+  const cur = () => { const ps = progs(); const id = location.hash.slice(1); return ps.find(p => p.id === id) || ps[0] || null; };
+  const label = () => { const p = cur(); dayEl.textContent = p ? p.day : ''; };
+  setInterval(label, 1000);
+  function openProg(p){
+    try { const d = fr.contentDocument; if (!d || !p) return;
+      const s = d.getElementById(p.id.replace(/_/g, '-')); if (!s) return;
+      d.querySelectorAll('.prog > .pd').forEach(x => { x.open = x.parentNode === s; });
+      setTimeout(() => s.scrollIntoView({block: 'start'}), 60); } catch (e) {}
+  }
+  async function showMaps(){
+    const p = cur(); if (!p){ msg.textContent = 'البنش لسه بيحمّل.'; return; }
+    const day = p.day;
+    if (shownDay === day){ openProg(p); return; }
+    msg.textContent = 'بيحمّل خرايط اليوم ' + day + '…'; fr.style.visibility = 'hidden';
+    try {
+      if (!cache[day]){ const r = await fetch('maps_day' + day + '.html'); if (!r.ok) throw 0; cache[day] = await r.text(); }
+      const th = document.documentElement.getAttribute('data-theme');
+      const extra = '<style>nav.days{display:none!important}</style>';
+      fr.onload = () => { try { if (th) fr.contentDocument.documentElement.setAttribute('data-theme', th); } catch (e) {}
+        try { const d = fr.contentDocument;
+          d.querySelectorAll('.prog').forEach(sec => { const pid = sec.dataset.pid; const desc = sec.querySelector('.desc'); if (!pid || !desc) return;
+            const bt = d.createElement('button'); bt.type = 'button'; bt.className = 'goc'; bt.textContent = '📊 افتح البرنامج ده في البنش';
+            bt.style.margin = '0 0 8px';
+            bt.onclick = () => { try { window.__bench.load(pid); } catch (e) {} sel('bench'); };
+            desc.after(bt); }); } catch (e) {}
+        msg.textContent = ''; fr.style.visibility = 'visible'; shownDay = day; openProg(p); };
+      fr.srcdoc = cache[day].replace('</head>', extra + '</head>');
+    } catch (e){ msg.textContent = 'مقدرتش أحمّل خرايط اليوم ' + day + '. جرّب تاني.'; }
+  }
+  function sel(which){
+    const maps = which === 'maps';
+    tB.setAttribute('aria-selected', !maps); tM.setAttribute('aria-selected', maps); pane.hidden = !maps;
+    try { localStorage.setItem('benchSheetTab', which); } catch (e) {}
+    if (maps) showMaps();
+  }
+  tB.addEventListener('click', () => sel('bench')); tM.addEventListener('click', () => sel('maps'));
+  document.getElementById('sheetTabs').addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ e.preventDefault(); const m = tM.getAttribute('aria-selected') !== 'true'; sel(m ? 'maps' : 'bench'); (m ? tM : tB).focus(); } });
+  let saved = null; try { saved = localStorage.getItem('benchSheetTab'); } catch (e) {}
+  const start = () => { label(); if (saved === 'maps') sel('maps'); };
+  const wait = setInterval(() => { if (progs().length){ clearInterval(wait); start(); } }, 300);
+})();
+</script>
