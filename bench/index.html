@@ -181,6 +181,14 @@ input[type=range]:focus-visible{outline:2px solid var(--celeste-ink);outline-off
 .pk-day{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
 .pk-day>span{font-size:11px;font-weight:700;color:var(--ink-3);min-width:46px}
 .pk-list{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+details.pk-week{display:block;width:100%;border:1.5px solid var(--ink);background:var(--paper)}
+details.pk-week>summary{list-style:none;cursor:pointer;display:flex;gap:10px;align-items:center;padding:10px 12px;font:800 14.5px var(--sans);color:var(--ink)}
+details.pk-week>summary::-webkit-details-marker{display:none}
+details.pk-week>summary::before{content:"◂";color:var(--ink-3)}
+details.pk-week[open]>summary::before{content:"▾"}
+details.pk-week>summary small{font-weight:500;color:var(--ink-3);font-size:12px}
+details.pk-week:has(button[aria-pressed="true"])>summary span{color:var(--arancio)}
+details.pk-week>.pk-days{display:grid;gap:6px;padding:0 10px 10px}
 details.pk-day{display:block;width:100%;border:1px solid var(--rule);background:color-mix(in srgb,var(--paper) 90%,var(--ink) 10%)}
 details.pk-day>summary{list-style:none;cursor:pointer;display:flex;gap:10px;align-items:center;padding:8px 10px;font:700 13px var(--sans);color:var(--ink)}
 details.pk-day>summary::-webkit-details-marker{display:none}
@@ -1398,7 +1406,7 @@ function loadProgram(id, keepStep){
   IMGS = P.frames.map(u => { const im = new Image(); im.onload = () => { if (P && ST[i]) applyStep(true); }; im.src = u; return im; });
   clearDyn();
   document.querySelectorAll('#picker button').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === P.id));
-  document.querySelectorAll('#picker details.pk-day').forEach(dt => { if (+dt.dataset.day === P.day) dt.open = true; });
+  document.querySelectorAll('#picker details.pk-day').forEach(dt => { if (+dt.dataset.day === P.day){ dt.open = true; const w = dt.closest('details.pk-week'); if (w) w.open = true; } });
   $('ptitle').textContent = P.title; $('pday').textContent = P.day; $('pdesc').textContent = P.desc;
   const noGL = !P.frames.length && !ST.some(s => /\bgl[A-Z]/.test(stepText(s))); document.body.classList.toggle('nogl', noGL);
   const isPy = P.files.some(f => /\.py$/.test(f.name)); $('termCap').textContent = isPy ? 'print' : 'std::cout';
@@ -2715,7 +2723,14 @@ if ($('bytBtn')){ $('bytBtn').onclick = () => showBytes($('bytesSheet').hidden);
     const list = row.querySelector('.pk-list');
     ps.forEach(p => { const b = document.createElement('button'); b.type = 'button'; b.dataset.id = p.id; b.setAttribute('aria-pressed', 'false');
       b.innerHTML = `<i class="${p.kind === 'CAD' ? 'cad' : p.kind === 'رسم' ? '' : 'cli'}">${esc(p.kind)}</i>${esc(p.title)}`; b.onclick = () => loadProgram(p.id); list.appendChild(b); });
-    pk.appendChild(row); }); }
+    if (multi){ const wk = d >= 8 ? 3 : 2; let w = pk.querySelector(`details.pk-week[data-week="${wk}"]`);
+      if (!w){ w = document.createElement('details'); w.className = 'pk-week'; w.dataset.week = wk;
+        w.innerHTML = `<summary><span>الأسبوع ${wk}</span><small></small></summary><div class="pk-days"></div>`; pk.appendChild(w); }
+      if (wk === 3) row.querySelector('summary span').textContent = 'اليوم ' + (d - 7);
+      w.querySelector('.pk-days').appendChild(row);
+      const n = w.querySelectorAll('.pk-day').length, np = w.querySelectorAll('.pk-list button').length;
+      w.querySelector('summary small').textContent = `عدد ${n} أيام · عدد ${np} برنامج`;
+    } else pk.appendChild(row); }); }
 addEventListener('hashchange', () => { const h = location.hash.slice(1); if (h && (!P || h !== P.id) && PROGS.some(p => p.id === h)) loadProgram(h); });
 setMode('cutaway');
 const fromFile = (/__(d\d_\w+?)\.html?$/i.exec(decodeURIComponent(location.pathname)) || [])[1];
@@ -3585,7 +3600,7 @@ body{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
 <div id="mapsPane" hidden role="tabpanel" aria-labelledby="tabMaps"><p id="mapsMsg"></p><iframe id="mapsFrame" title="خرايط برامج اليوم"></iframe></div>
 <nav id="sheetTabs" role="tablist" aria-label="صفحات البنش">
   <button type="button" role="tab" id="tabBench" aria-selected="true">📊 البنش</button>
-  <button type="button" role="tab" id="tabMaps" aria-selected="false">🗺 خرايط اليوم <span id="tabDay"></span></button>
+  <button type="button" role="tab" id="tabMaps" aria-selected="false">🗺 خرايط <span id="tabDay"></span></button>
 </nav>
 <script>
 (() => {
@@ -3594,7 +3609,8 @@ body{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
   const cache = {}; let shownDay = null;
   const progs = () => { try { return (window.__bench && window.__bench.progs()) || []; } catch (e) { return []; } };
   const cur = () => { const ps = progs(); const id = location.hash.slice(1); return ps.find(p => p.id === id) || ps[0] || null; };
-  const label = () => { const p = cur(); dayEl.textContent = p ? p.day : ''; };
+  const dname = d => d >= 8 ? 'الأسبوع 3 · اليوم ' + (d - 7) : 'الأسبوع 2 · اليوم ' + d;
+  const label = () => { const p = cur(); dayEl.textContent = p ? dname(shownDay && !pane.hidden ? shownDay : p.day) : ''; };
   setInterval(label, 1000);
   function openProg(p){
     try { const d = fr.contentDocument; if (!d || !p) return;
@@ -3602,15 +3618,15 @@ body{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
       d.querySelectorAll('.prog > .pd').forEach(x => { x.open = x.parentNode === s; });
       setTimeout(() => s.scrollIntoView({block: 'start'}), 60); } catch (e) {}
   }
-  async function showMaps(){
+  async function showMaps(pickDay){
     const p = cur(); if (!p){ msg.textContent = 'البنش لسه بيحمّل.'; return; }
-    const day = p.day;
-    if (shownDay === day){ openProg(p); return; }
+    const day = pickDay || p.day;
+    if (shownDay === day){ if (!pickDay) openProg(p); return; }
     msg.textContent = 'بيحمّل خرايط اليوم ' + day + '…'; fr.style.visibility = 'hidden';
     try {
       if (!cache[day]){ const r = await fetch('maps_day' + day + '.html'); if (!r.ok) throw 0; cache[day] = await r.text(); }
       const th = document.documentElement.getAttribute('data-theme');
-      const extra = '<style>nav.days{display:none!important}</style>';
+      const extra = '';
       fr.onload = () => { try { if (th) fr.contentDocument.documentElement.setAttribute('data-theme', th); } catch (e) {}
         try { const d = fr.contentDocument;
           d.querySelectorAll('.prog').forEach(sec => { const pid = sec.dataset.pid; const desc = sec.querySelector('.desc'); if (!pid || !desc) return;
@@ -3618,7 +3634,8 @@ body{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
             bt.style.margin = '0 0 8px';
             bt.onclick = () => { try { window.__bench.load(pid); } catch (e) {} sel('bench'); };
             desc.after(bt); }); } catch (e) {}
-        msg.textContent = ''; fr.style.visibility = 'visible'; shownDay = day; openProg(p); };
+        try { fr.contentDocument.querySelectorAll('nav.days a').forEach(a => { const m = /day(\d+)\.html/.exec(a.getAttribute('href') || ''); if (m) a.onclick = e => { e.preventDefault(); showMaps(+m[1]); }; }); } catch (e) {}
+        msg.textContent = ''; fr.style.visibility = 'visible'; shownDay = day; label(); if (day === p.day) openProg(p); };
       fr.srcdoc = cache[day].replace('</head>', extra + '</head>');
     } catch (e){ msg.textContent = 'مقدرتش أحمّل خرايط اليوم ' + day + '. جرّب تاني.'; }
   }
