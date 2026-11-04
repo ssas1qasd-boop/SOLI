@@ -1,0 +1,8 @@
+#!/data/data/com.termux/files/usr/bin/bash
+M=~/qwen9b.gguf
+P=~/qwen9b_mmproj.gguf
+if [ ! -f "$M" ]; then M=$(ls ~/*.gguf 2>/dev/null | grep -iv mmproj | grep -i qwen | head -1); fi
+[ -f "$M" ] || { echo "X model file not found in ~"; exit 1; }
+echo "model: $M"
+termux-wake-lock 2>/dev/null
+exec llama-server -m "$M" --mmproj "$P" -np 1 -c 8192 -fa on -ctk q8_0 -ctv q8_0 -t 4 --host 127.0.0.1 --port 8080

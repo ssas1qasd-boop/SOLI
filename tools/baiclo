@@ -1,0 +1,10 @@
+#!/data/data/com.termux/files/usr/bin/bash
+B=~/claude_bridge.py
+U=https://raw.githubusercontent.com/ssas1qasd-boop/SOLI/main/bridge/claude_bridge.py
+if [ ! -f "$B" ] || [ "$1" = update ]; then curl -fsSL -o "$B" "$U" || { echo "✕ مش قادر أنزّل الجسر"; exit 1; }; fi
+termux-wake-lock 2>/dev/null
+python "$B" & P=$!
+trap 'kill $P 2>/dev/null' INT TERM EXIT
+sleep 2
+termux-open-url https://ssas1qasd-boop.github.io/SOLI/bench/ 2>/dev/null
+wait $P
