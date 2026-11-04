@@ -1,0 +1,8 @@
+frame 0: u_Time = 0.415342
+frame 30: u_Time = 0.938907
+frame 60: u_Time = 1.44272
+frame 90: u_Time = 1.94578
+frame 120: u_Time = 2.45282
+frame 150: u_Time = 2.95607
+frame 180: u_Time = 3.46057
+frame 210: u_Time = 3.96386

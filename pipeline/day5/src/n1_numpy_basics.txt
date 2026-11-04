@@ -1,0 +1,14 @@
+a = [1 2 3]
+b = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+ndim: 1 2
+shape: (3,) (2, 3)
+dtype: int64 float64
+itemsize: 8 bytes, nbytes: 24 bytes
+b[1, 2] = 6.0
+row 0 = [1. 2. 3.]
+column 1 = [2. 5.]
+a + 2 = [3 4 5]
+a * 2 = [2 4 6]
+a ** 2 = [1 4 9]
+after c = a and c[0] = 100: a = [100   2   3]
+after d = a.copy() and d[0] = 100: a = [1 2 3] d = [100   2   3]

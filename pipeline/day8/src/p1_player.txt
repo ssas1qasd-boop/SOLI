@@ -1,0 +1,10 @@
+start:              x = 0, y = 0
+player.Move(1, -1): x = 2, y = -2
+Move(player, 1, -1): x = 4, y = -4
+enemy:              x = 5, y = 10
+player still:       x = 4, y = -4
+sizeof(Player) = 12 bytes
+&player       = 0x7ffe1b2768e0
+&player.x     = 0x7ffe1b2768e0
+&player.y     = 0x7ffe1b2768e4
+&player.speed = 0x7ffe1b2768e8

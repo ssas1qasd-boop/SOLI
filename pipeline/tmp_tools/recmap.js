@@ -1,0 +1,17 @@
+const { chromium } = require('playwright'); const T0 = Date.now();
+(async () => { const b = await chromium.launch();
+  const ctx = await b.newContext({viewport:{width:1280,height:1320}, recordVideo:{dir:'/tmp/claude-0/vid', size:{width:1280,height:1320}}});
+  const p = await ctx.newPage(); await p.route(/fonts\.g/, r => r.abort());
+  await p.goto('file:///home/claude/maps/out/day10.html#d10-t1'); await p.waitForTimeout(800);
+  const S = '#d10-t1';
+  const top = await p.$eval(`${S} .nav2`, e => e.getBoundingClientRect().top + scrollY - 8);
+  await p.evaluate(t => window.scrollTo(0, t), top); await p.waitForTimeout(300);
+  const box = await p.evaluate(s => { const a = document.querySelector(s + ' .nav2').getBoundingClientRect(), f = document.querySelector(s + ' .frame').getBoundingClientRect(); return [a.left, a.top, f.right, f.bottom]; }, S);
+  console.log(JSON.stringify(box));
+  await p.$eval(`${S} .nsp`, e => { e.value = '0'; e.dispatchEvent(new Event('input')); });
+  await p.fill(`${S} .ni[data-k="step"]`, '10'); await p.waitForTimeout(400);
+  const t0 = Date.now(); await p.click(`${S} .npl`);
+  await p.waitForTimeout(34000);
+  await p.click(`${S} .npl`); await p.waitForTimeout(600);
+  console.log('ended at step', await p.inputValue(`${S} .ni[data-k="step"]`), 'start offset ms', t0 - T0);
+  await ctx.close(); await b.close(); })();

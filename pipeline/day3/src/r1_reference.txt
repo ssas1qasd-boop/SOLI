@@ -1,0 +1,3 @@
+a    = 2
+&a   = 0x7ffd1e13b91c
+&ref = 0x7ffd1e13b91c

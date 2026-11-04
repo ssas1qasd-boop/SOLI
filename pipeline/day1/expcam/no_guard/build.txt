@@ -1,0 +1,9 @@
+In file included from no_guard/Camera.h:13,
+                 from no_guard/main.cpp:4:
+no_guard/shaderClass.h:4:7: error: redefinition of 'class Shader'
+    4 | class Shader
+      |       ^~~~~~
+In file included from no_guard/main.cpp:3:
+no_guard/shaderClass.h:4:7: note: previous definition of 'class Shader'
+    4 | class Shader
+      |       ^~~~~~

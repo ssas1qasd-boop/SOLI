@@ -1,0 +1,10 @@
+const {chromium}=require('playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});
+const p=await b.newPage({viewport:{width:412,height:900},colorScheme:'dark'}); const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.route('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',r=>r.fulfill({path:'/home/claude/sim/three.min.js',contentType:'application/javascript'}));
+await p.route(/fonts\.(googleapis|gstatic)\.com/,r=>r.abort());
+await p.setContent('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"></head><body>'+fs.readFileSync('/home/claude/sim/bench_full.html','utf8')+'</body></html>',{waitUntil:'load'});
+const h=()=>p.evaluate(()=>document.getElementById('gloss').hidden);
+const a=await h(); await p.click('#glossBtn'); const b2=await h(); await p.waitForTimeout(300); await p.screenshot({path:'/home/claude/sim/GL.png'});
+await p.fill('#glq','VAO'); const n=await p.evaluate(()=>document.querySelectorAll('#glList dt').length); await p.click('#glossBtn'); const c=await h();
+console.log(a,b2,n,c,errs); await b.close();})();

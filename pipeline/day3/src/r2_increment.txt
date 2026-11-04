@@ -1,0 +1,3 @@
+copy:      a = 5
+pointer:   a = 6
+reference: a = 7

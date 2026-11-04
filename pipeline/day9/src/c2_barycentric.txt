@@ -1,0 +1,7 @@
+pixel (320, 240): alpha = 0.248372, beta = 0.250326, gamma = 0.501302
+   CPU color = 63 64 128   GPU color = 63 64 128
+pixel (200, 100): alpha = 0.665039, beta = 0.198242, gamma = 0.136719
+   CPU color = 170 51 35   GPU color = 170 51 35
+pixel (60, 400): alpha = 0.547852, beta = -0.46582, gamma = 0.917969
+   outside the triangle, GPU color = 0 0 0
+glGetError() = 0

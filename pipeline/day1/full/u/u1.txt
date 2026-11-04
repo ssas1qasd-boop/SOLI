@@ -1,0 +1,2 @@
+u_Color location = 0
+u_Colour location = -1

@@ -1,0 +1,1 @@
+app: /usr/include/glm/ext/matrix_clip_space.inl:251: glm::mat<4, 4, T, glm::packed_highp> glm::perspectiveRH_NO(T, T, T, T) [with T = float]: Assertion `abs(aspect - std::numeric_limits<T>::epsilon()) > static_cast<T>(0)' failed.

@@ -1,0 +1,5 @@
+Texture(res/letter.png): 8 x 8, channels = 3, ID = 1
+loop ended (Escape)
+~Texture(): deleted ID = 1
+
+exit=0

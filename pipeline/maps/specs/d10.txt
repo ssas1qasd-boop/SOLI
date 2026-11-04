@@ -1,0 +1,252 @@
+@d10_p1
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L44 · return 0 | البداية | 44-45, 66-67
+row
+[Types] v zgpu
+ni vao struct NoInit | float x, y ; no constructor | من غير Constructor | 3-6
+en vao class Entity | Entity() → 0, 0 ; Entity(float x, float y) → this->x = x | Constructor مرتين | 8-31
+lg vao class Log | Log() = delete ; static Write(message) | ممنوع object | 33-42
+[Objects (main)] v zram
+raw ram NoInit* raw (heap) | new after delete ; x, y = leftover bytes | أرقام عجيبة | 46-53
+e1 ram Entity e1 (stack) | Entity() → 0, 0 | من غير قوسين | 55-56
+e2 ram Entity e2 · e3 | (10, 5) stack · (3, 4) heap ; delete e3 | Constructor برقمين | 58-63
+[Terminal (std::cout)] v zloop
+p1 out no constructor | 2 strange numbers (change each run) | مفيش قيم | 52
+p2 out Entity() ran · 0, 0 | Entity(float, float) ran · 10, 5 · 3, 4 | الـ Constructor اشتغل لوحده | 17, 24, 29
+p3 out [Log] Hello | Log::Write without an object | static | 65
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ni raw
+> en e1
+> en e2
+> raw p1
+> e1 p2
+> e2 p2
+> lg p3
+> p1 p2
+> p2 p3
+> p3 term
+
+@d10_p2
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L48 · return 0 | البداية | 48-49, 63-64
+row
+[Types] v zgpu
+en vao class Entity | Entity() → Created ; ~Entity() → Destroyed | Constructor + Destructor | 3-19
+bf vao class Buffer | Buffer(n): new float[n] ; ~Buffer(): delete[] data | بيحجز ويرجّع | 21-39
+fn prg Function() | Entity e on the stack ; dies at its } | object جوه دالة | 41-46
+[Objects (main)] v zram
+st ram Function() call | Created · Function end · Destroyed | الـ Stack | 50-51
+hp ram Entity* heap | new Entity() ; alive until delete heap | الـ Heap | 53-55
+bb ram { Buffer b(16); } | 16 floats on the heap ; ~Buffer at the inner } | الـ { } | 57-62
+[Terminal (std::cout)] v zloop
+o1 out Created / Destroyed | stack: at } · heap: at delete | إمتى بيموت | 12, 17, 43, 45, 51, 54
+o2 out Buffer(16) · ~Buffer() | data[0] = 1.5 · after the { } | حجز ورجوع | 31, 37, 60, 62
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> en fn
+> fn st
+> en hp
+> bf bb
+> st o1
+> hp o1
+> bb o2
+> o1 o2
+> o2 term
+
+@d10_m1
+[Setup] h none
+np ctl import numpy as np | np.identity · np.array · column_stack | NumPy | 1
+row
+[Basis] v zram
+id ram I2 · I3 | np.identity(2) · np.identity(3) | مصفوفة الوحدة | 3-6
+xx ram x = (7, -2, 5) | I3 @ x = x | زي الرقم 1 | 7-8
+ee ram e1 = (1, 0) · e2 = (0, 1) | 3 e1 + 5 e2 = (3, 5) | القاعدة المعيارية | 10-12
+[Transformation] v zgpu
+T prg def T(v) | (x1 + 3x2, 5x2 - x1, 4x1 + x2) | من ℝ² لـ ℝ³ | 15-17
+A prg A = column_stack | [T(e1) \| T(e2)] · shape (3, 2) | الأعمدة | 23-26
+[Results (print)] v zloop
+r1 out T(e1) · T(e2) | (1, -1, 4) · (3, 5, 1) | الأعمدة | 20-21
+r2 out T(v) = A @ v | (1, 1) → (4, 4, 5) ; (2, -1) → (-1, -7, 7) · (0, 0) → 0 | نفس النتيجة | 28-29
+term out Terminal | $term | اللي اتطبع | -
+~ np id
+> id xx
+> ee T
+> T r1
+> T A
+> A r2
+> r1 r2
+> r2 term
+
+@d10_m2
+[Setup] h none
+np ctl numpy + matplotlib | Agg: draw into a file | المكتبات | 1-4
+row
+[Data] v zram
+F ram F (11 points) | the letter F, closed | شكل مش متماثل | 6
+tr ram transforms (4) | scale x2 · rotate 90 ; shear · mirror | كل واحدة عمودين | 13-18
+[Matrices] v zgpu
+mx prg def matrix(Te1, Te2) | column_stack([Te1, Te2]) | e راح فين | 9-10
+mv prg moved = (A @ F.T).T | all 11 points at once | الضرب | 20-23
+[Picture + print] v zloop
+pl out plot + arrows | grey original · orange moved ; blue = column 1 · green = column 2 | الرسم | 24-32
+r1 out corner (2, 3) | (4, 3) · (-3, 2) · (5, 3) · (-2, 3) | الركن راح فين | 23
+img out shapes.png | saved | الصورة | 34-36
+term out Terminal | $term | اللي اتطبع | -
+~ np F
+> tr mx
+> F mv
+> mx mv
+> mv pl
+> mv r1
+> pl img
+> r1 term
+
+@d10_c1
+[Setup] h none
+inc ctl #include × 4 | iostream · vector ; string · cmath | المكتبات | 1-4
+main ctl main() | L48 · return 0 | البداية | 48-49, 97-98
+row
+[Types (B-Rep)] v zgpu
+ty vao 5 structs | Vertex · Edge · Use ; Loop · Face ; x y z · curve v0 v1 ; edge reversed · uses · surface loops | المخطط | 6-32
+geo prg Circle(t, z) · Side(u, v) | C(t) on an edge ; S(u, v) on the side face | المنحنى والسطح | 34-46
+[Cylinder data] v zram
+vv ram vertices (2) | (1, 0, 2) · (1, 0, 0) | على خط اللحام | 50
+ed ram edges (3) | circle top · seam · circle bottom | الأضلاع | 52-56
+lp ram loops (3) | e0+ ; e0- e1+ e2+ e1- ; e2- | اللحام مرتين | 58-62
+fc ram faces (3) | top · side · bottom | الوشوش | 64-68
+[Checks (print)] v zloop
+pr out V E F · edges · faces | 2, 3, 3 · loops printed | الجدول | 70-81
+ct out count per edge | 2 · 2 · 2 → manifold | كل ضلع مرتين | 83-88
+eu out V - E + F · C(t) · S(u, v) | 2 · (-4.37e-08, 1, 2) | أويلر | 90-96
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ty vv
+> ty ed
+> ed lp
+> lp fc
+> fc pr
+> lp ct
+> geo eu
+> pr ct
+> ct eu
+> eu term
+
+@d10_c2
+[Setup] h none
+inc ctl #include × 5 | iostream · vector · map ; utility · algorithm | المكتبات | 1-5
+main ctl main() | L52 · return 0 | البداية | 52-53, 87-88
+row
+[Types] v zgpu
+ty vao Face · Shape | loops (outer + holes) ; V · faces | الشكل | 7-16
+ce prg CountEdges(s) | map (min, max) → count | كل ضلع كام مرة | 18-30
+rp prg Report(name, s) | V E F loops · Euler ; every edge 2? | التقرير | 32-50
+[Shapes] v zram
+bx ram box with a hole | 16 vertices · 10 faces ; top + bottom: 2 loops | Trim Loop | 54-68
+cb ram two cubes | 14 vertices · 12 faces ; share edge 2-6 | شكل غلط | 70-86
+[Terminal (std::cout)] v zloop
+o1 out box | 16, 24, 10, 12 loops ; Euler 2 · with loops 0 · manifold yes | خرم واحد | 39-40, 49
+o2 out cubes | 14, 23, 12 · Euler 3 ; edge 2-6 used by 4 faces · no | مش Manifold | 47, 49
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ty bx
+> ty cb
+> ce rp
+> bx rp
+> cb rp
+> rp o1
+> rp o2
+> o1 o2
+> o2 term
+
+@d10_t1
+[Setup (once)] h none
+main ctl main() | L90 | البداية | 90-91
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 92-105
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 107-108
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 170-173, 183
+row
+[Disk + CPU · RAM] v zram
+png ram res/crate.png | stbi_load in the constructor ; 64 × 64 · 3 channels | الصندوق | f0:60
+vtx ram GLfloat vertices[28] | 4 corners × 7 floats ; x y · r g b · u v · stride 28 B | المستطيل والألوان | 110-115
+idx ram GLuint indices[6] | 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 116-119
+src ram Shader text (2 strings) | vertex: color + texCoord ; fragment: texture × color | نص الـ Shaders | 137-160
+[GPU · Texture class + VAO] v zgpu
+cls vao class Texture | Texture(path): load + upload ; ~Texture(): glDeleteTextures | Constructor + Destructor | 51-88
+tex buf Texture crate (ID 1, unit 0) | GL_RGB · LINEAR_MIPMAP_LINEAR · NEAREST ; inside { } before the loop | سطر واحد | 167-168
+vao vao VAO 1 + vbo + ebo | slot 0 ← xy · slot 1 ← rgb · slot 2 ← uv | الوصف | 121-135
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | tex0 = unit 0 ; clear (0.07, 0.13, 0.17) | CreateShader + glUseProgram | 162-165
+win out Window "Crate" | $img | اللي بتشوفه | 181-182
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+draw m2 Bind + draw | L176 glUseProgram · L177 crate.Bind(0) ; L178 bind vao · L179 glDrawElements(6) | الصندوق على المستطيل | 175-179
+row
+[Helpers (called from main) + cleanup] g3 zloop
+inc ctl #include × 5 | glad · GLFW · iostream ; string · stb_image.h | المكتبات | 1-5
+stb ctl stb.cpp | #define STB_IMAGE_IMPLEMENTATION ; #include "stb_image.h" | كود المكتبة نفسه | f1:1-2
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 7-32
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 34-49
+cl ctl Cleanup | } → ~Texture · glDeleteProgram ; glfwTerminate | التنضيف والخروج | 184-191
+~ main glfw
+~ glfw glad
+~ glad loop
+> png cls
+> cls tex
+> vtx vao L126
+> idx vao
+> tex prog unit 0
+> src prog L162
+> vao prog
+> prog win
+> tex term
+~ loop draw
+> cs cr
+
+@d10_t2
+[Setup (once)] h none
+main ctl main() | L90 | البداية | 90-91
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 92-105
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 107-108
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 176-179, 190
+row
+[Disk + CPU · RAM] v zram
+png ram crate.png · face.png | 64 × 64 · 3 ch ; 32 × 32 · 4 ch | الصورتين | f0:60
+vtx ram GLfloat vertices[28] | 4 corners × (x y + r g b + u v) | المستطيل | 110-115
+idx ram GLuint indices[6] | 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 116-119
+src ram Shader text (2 strings) | fragment: tex0 · tex1 · amount ; mix(crate, face, face.a × amount) | الخلط | 137-163
+[GPU · 2 Textures + VAO] v zgpu
+cls vao class Texture | constructor · destructor · Bind(unit) | نفس الـ class | 51-88
+tex buf crate (ID 1) · face (ID 2) | unit 0 · unit 1 ; destroyed 2 then 1 | خانتين | 172-174
+vao vao VAO 1 + vbo + ebo | slot 0 ← xy · slot 1 ← rgb · slot 2 ← uv | الوصف | 121-135
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | tex0 = 0 · tex1 = 1 · amount = 0.8 | glUniform | 165-170
+win out Window "Two Textures" | $img | اللي بتشوفه | 188-189
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+draw m2 Bind + draw | L183 crate.Bind(0) · L184 face.Bind(1) ; L185 bind vao · L186 glDrawElements(6) | الوش فوق الصندوق | 181-186
+row
+[Helpers (called from main) + cleanup] g3 zloop
+inc ctl #include × 5 | glad · GLFW · iostream ; string · stb_image.h | المكتبات | 1-5
+stb ctl stb.cpp | #define STB_IMAGE_IMPLEMENTATION ; #include "stb_image.h" | كود المكتبة نفسه | f1:1-2
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 7-32
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 34-49
+cl ctl Cleanup | } → ~Texture × 2 · glDeleteProgram ; glfwTerminate | التنضيف والخروج | 191-198
+~ main glfw
+~ glfw glad
+~ glad loop
+> png cls
+> cls tex
+> vtx vao L126
+> idx vao
+> tex prog units 0 + 1
+> src prog L165
+> vao prog
+> prog win
+> tex term
+~ loop draw
+> cs cr

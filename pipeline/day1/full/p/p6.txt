@@ -1,0 +1,5 @@
+ptr      = 0x7ffe66982998
+&buffer  = 0x7ffe66982998
+*ptr     = 0x559e686852b0
+buffer   = 0x559e686852b0
+(*ptr)[0] = 0

@@ -1,0 +1,6 @@
+var = 8   &var = 0x7ffe9daad634   ptr = 0x7ffe9daad634
+after *intPtr = 10: var = 10
+sizeof(int*) = 8   sizeof(double*) = 8   sizeof(char*) = 8
+buffer = 0x5621906ee2c0   text = Hi
+ptrToBuffer = 0x7ffe9daad638   *ptrToBuffer = 0x5621906ee2c0   **ptrToBuffer = H
+after delete[]: buffer = 0

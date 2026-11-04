@@ -1,0 +1,314 @@
+@d3_s1
+[Setup (once)] h none
+main ctl main() | L87 | البداية | 87-88
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 89-102
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 104-105
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 134-135, 140
+row
+[Disk · res/shaders/Basic.shader] v zloop
+fv prg #shader vertex | gl_Position = position | الجزء الأول من الملف | f1:1-9
+ff prg #shader fragment | color = (0.2, 0.3, 0.8, 1) | الجزء التاني | f1:11-19
+[CPU · RAM] v zram
+pos ram float positions[6] | 24 B · 3 corners × (x, y) | أركان المثلث | 107-111
+src ram ShaderProgramSource source | VertexSource · FragmentSource | النصين بعد القراية | 125
+[GPU · Program → screen] v zgpu
+buf buf Buffer 1 + VAO 1 | 24 B · slot 0 ← 2 floats · stride 8 | الأركان على الكارت | 113-123
+prog prg Program 1 (shader) | made from the 2 strings | CreateShader + glUseProgram | 131-132
+win out Window "Shader File" | $img | اللي بتشوفه | 136-139
+term out Terminal | $term | النصين اتطبعوا | 126-129
+row
+[Helpers] g2 zloop
+types vao struct + enum class | ShaderProgramSource · ShaderType (NONE -1, VERTEX 0, FRAGMENT 1) | شكل النتيجة | 8-19
+ps prg ParseShader(filepath) | line by line · "#shader" picks ss[0] or ss[1] | بيقسم الملف لنصين | 21-44
+cs prg CompileShader() | glCreateShader · compile · error → 0 | بيترجم Shader واحد | 46-68
+cr prg CreateShader() | create · attach × 2 · link · validate | بيعمل الـ Program | 70-85
+row
+[Cleanup] h zloop
+inc ctl #include × 6 | glad · GLFW · iostream · fstream · sstream · string | المكتبات | 1-6
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 142-145
+~ main glfw
+~ glfw glad
+~ glad loop
+> fv src ParseShader
+> ff src
+> pos buf L120
+> src prog L131
+> src term L127, L129
+> buf prog vertices
+> prog win
+> ps cs
+> cs cr
+
+@d3_l1
+[Setup (once)] h none
+main ctl main() | L49 | البداية | 49-50
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 51-64
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 66-67
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 91-92, 103
+row
+[CPU · RAM] v zram
+pts ram float points[4] | 16 B · (-0.6, -0.4) → (0.5, 0.6) | النقطتين | 69-72
+src ram Shader text (2 strings) | vertex: vec4(aPosition, 0, 1) ; fragment: color = u_Color | نص الـ Shaders | 5-18
+loc ram location = 0 · glPointSize(12) | u_Color slot · dots 12 px | خانة اللون وحجم النقطة | 88-89
+[GPU · Buffer + VAO] v zgpu
+buf buf Buffer 1 · buffer | GL_ARRAY_BUFFER · 16 B | النقطتين | 78-81
+vao vao VAO 1 · vao | slot 0 ← 2 floats · stride 8 | وصف الركن | 74-76, 83-84
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | Fragment: color = u_Color | CreateShader + glUseProgram | 86-87
+back out Back buffer · 640 × 480 | glClear L93 | اللوحة اللي ورا | 93
+win out Window "Line" | $img | اللي بتشوفه | 101-102
+row
+[Render loop (each frame): same 2 points, drawn twice] h zloop
+ln m2 1 · white line | L95 u_Color = (1, 1, 1) ; L96 glDrawArrays(GL_LINES, 0, 2) | خط أبيض بين النقطتين | 95-96
+dt m1 2 · orange dots | L98 u_Color = (1, 0.5, 0.1) ; L99 glDrawArrays(GL_POINTS, 0, 2) | نقطتين برتقاني فوقه | 98-99
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 3 | glad · GLFW · iostream | المكتبات | 1-3
+cs prg CompileShader() | glCreateShader → glShaderSource ; → glCompileShader (× 2: vs, fs) | بيترجم Shader واحد | 20-34
+cr prg CreateShader() | glCreateProgram → attach × 2 ; → link → Program 1 | بيعمل الـ Program | 36-47
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 105-108
+~ main glfw
+~ glfw glad
+~ glad loop
+> pts buf L81
+> buf vao
+> vao prog vertices
+> src prog L86
+> loc prog glUniform4f
+> prog back
+> back win swap · L101
+~ loop ln
+~ ln dt
+> cs cr
+
+@d3_l2
+[Setup (once)] h none
+main ctl main() | L73 | البداية | 73-74
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 75-88
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 90-91
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 109-110, 123
+row
+[Mouse (each click)] v zloop
+mcb m1 MouseButtonCallback() | left button · press only | بيتنادى مع كل ضغطة | 53-56
+conv m1 pixel → OpenGL | x = 2·px/width − 1 ; y = 1 − 2·py/height | تحويل مكان الماوس | 58-64
+pb m1 push_back(x) · push_back(y) | then print the click | نضيف النقطة | 65-67
+up m1 glBufferData(points) | whole vector → Buffer 1 again | نرفع النقط للكارت تاني | 69-71
+[CPU · RAM (globals)] v zram
+pts ram std::vector<float> points | 5 clicks → 10 floats | كل النقط | 50
+bid ram unsigned int buffer | Buffer 1's number | رقم الـ Buffer | 51
+src ram Shader text (2 strings) | fragment: color = u_Color | نص الـ Shaders | 6-19
+[GPU · Program → screen] v zgpu
+vao vao VAO 1 + Buffer 1 | slot 0 ← 2 floats · stride 8 ; GL_DYNAMIC_DRAW | الوصف والنقط | 93-101
+prog prg Program 1 (shader) | location = 0 · glPointSize(12) | CreateShader + glUseProgram | 103-107
+win out Window "Click Lines" | $img | اللي بتشوفه | 121-122
+term out Terminal | $term | مكان كل ضغطة | -
+row
+[Render loop (each frame)] h zloop
+cnt m2 count = points.size() / 2 | 5 points after 5 clicks | عدد النقط | 111-113
+ln m2 white lines | L115 u_Color white ; L116 glDrawArrays(GL_LINES, 0, count) | خطوط بين كل نقطتين | 115-116
+dt m2 orange dots | L118 u_Color orange ; L119 glDrawArrays(GL_POINTS, 0, count) | النقط نفسها | 118-119
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · iostream · vector | المكتبات | 1-4
+cs prg CompileShader() | glCreateShader → compile | بيترجم Shader واحد | 21-35
+cr prg CreateShader() | create → attach × 2 → link | بيعمل الـ Program | 37-48
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 125-128
+~ main glfw
+~ glfw glad
+~ glad loop
+~ mcb conv
+~ conv pb
+~ pb up
+> pb pts
+> pts vao L70
+> src prog L103
+> vao prog vertices
+> prog win
+> pb term L67
+~ loop cnt
+~ cnt ln
+~ ln dt
+> cs cr
+
+@d3_r1
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L3 | البداية | 3-4
+end ctl std::cin.get() | wait for Enter | استنى زرار | 12-13
+row
+[CPU · Stack (main)] v zram
+a ram int a = 5 → 2 | 4 B at 0x7fffffff95ac | المتغير الأصلي | 5
+ref ram int& ref = a | no new memory · same address | اسم تاني لـ a | 6
+wr ram ref = 2 | writes into a | الكتابة في ref = الكتابة في a | 8
+[Terminal (std::cout)] v zloop
+pr out std::cout × 3 | a · &a · &ref | الطباعة | 9-11
+term out Terminal | $term | &a و &ref نفس العنوان | -
+~ inc main
+~ main end
+> ref a same box
+> wr a
+> a pr
+> pr term
+
+@d3_r2
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L18 | البداية | 18-19
+end ctl std::cin.get() | wait for Enter | استنى زرار | 30-31
+row
+[CPU · Stack (main)] v zram
+a ram int a = 5 → 6 → 7 | at 0x7fffffff95b4 | المتغير | 20
+c1 ram IncrementCopy(a) | sends a copy | نسخة | 22
+c2 ram IncrementPointer(&a) | sends the address | عنوان | 25
+c3 ram IncrementReference(a) | sends a itself | Reference | 28
+[The 3 functions] v zgpu
+f1 prg IncrementCopy(int value) | value++ on the copy (6) | a ما اتغيرش | 3-6
+f2 prg IncrementPointer(int* value) | (*value)++ | a بقى 6 | 8-11
+f3 prg IncrementReference(int& value) | value++ | a بقى 7 | 13-16
+[Terminal (std::cout)] v zloop
+pr out std::cout × 3 | after each call | الطباعة | 23, 26, 29
+term out Terminal | $term | النسخة بس اللي ماغيرتش | -
+~ inc main
+~ main end
+> c1 f1 copy
+> c2 f2 &a
+> c3 f3 a
+> f2 a
+> f3 a
+> a pr
+> pr term
+
+@d3_r3
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L3 | البداية | 3-4
+end ctl std::cin.get() | wait for Enter | استنى زرار | 17-18
+row
+[CPU · Stack (main)] v zram
+a ram int a = 5 → 8 → 2 | at 0x7fffffff95a0 | a | 5
+b ram int b = 8 → 1 | at 0x7fffffff95a4 | b | 6
+[Reference] v zgpu
+ref prg int& ref = a | ref = b copies 8 into a | الـ Reference مش بيتنقل | 8-9
+[Pointer] v zgpu
+ptr prg int* ptr = &a → &b | *ptr = 2 (a) · then *ptr = 1 (b) | الـ Pointer بيتنقل | 12-15
+row
+[Terminal (std::cout)] h zloop
+p1 out after ref = b | a = 8 · b = 8 | بعد الـ Reference | 10
+p2 out after pointer | a = 2 · b = 1 | بعد الـ Pointer | 16
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+~ main end
+> ref a
+> ptr a
+> ptr b
+> p1 p2
+> p2 term
+
+@d3_r4
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+mac ctl #define LOG(x) | std::cout << x << std::endl | اختصار للطباعة | 3
+main ctl main() | L10 | البداية | 10-11
+end ctl std::cin.get() | wait for Enter | استنى زرار | 30-31
+row
+[CPU · Stack (main)] v zram
+a ram int a = 5 → 2 → 3 → 2 | at 0x7fffffff95a0 | a | 12
+b ram int b = 8 → 1 | at 0x7fffffff95a4 | b | 13
+[Steps on a and b] v zgpu
+s1 prg int& ref = a · ref = 2 | a = 2 | Reference | 15-17
+s2 prg Increment(a) | a = 3 | دالة بـ Reference | 19-20
+s3 prg int* ptr = &a · *ptr = 2 | a = 2 | Pointer | 22-24
+s4 prg ptr = &b · *ptr = 1 | b = 1 | الـ Pointer اتنقل لـ b | 26-28
+[Function + Terminal] v zloop
+inc2 prg Increment(int& value) | value++ | بتزوّد الأصل | 5-8
+term out Terminal (LOG × 4) | $term | اللي اتطبع | -
+~ inc mac
+~ mac main
+~ main end
+> s1 a
+> s2 inc2
+> s3 a
+> s4 b
+> inc2 term
+
+@d3_h1
+[Setup] h none
+inc ctl #include × 2 | stdio.h · string.h | المكتبات | 1-2
+main ctl main(void) | 3 calls to compute | البداية | 21-22
+end ctl return 0 | the end | النهاية | 26-27
+row
+[main (3 pairs of DNA)] v zram
+c1 ram pair 1 · 17 letters | "GAGCCTACTAACGGGAT" ; vs "CATCGTAATGACGGCCT" | سلسلتين مختلفين | 23
+c2 ram pair 2 · same 7 letters | "GGACTGA" vs "GGACTGA" | زي بعض | 24
+c3 ram pair 3 · 4 vs 3 letters | "AATG" vs "AAA" | طولهم مختلف | 25
+[compute(lhs, rhs)] v zgpu
+len prg strlen × 2 | lengths differ → return -1 | نقارن الطول الأول | 4-9
+lp prg for i < length | lhs[i] != rhs[i] → distance++ | نعد الحروف المختلفة | 11-16
+ret prg return distance | 7 · 0 | النتيجة | 18-19
+[Terminal (printf)] v zloop
+term out Terminal | $term | نتيجة كل نداء بالترتيب | -
+~ inc main
+~ main end
+> c1 len
+> c2 len
+> c3 len
+> ret term
+> len term -1
+
+@d3_h2
+[Setup] h none
+inc ctl #include <stdio.h> | printf | المكتبة | 1
+main ctl main(void) | 4 calls to compute | البداية | 18-19
+end ctl return 0 | the end | النهاية | 24-25
+row
+[main (4 calls)] v zram
+c1 ram pair 1 · 17 letters | "GAGCCTACTAACGGGAT" ; vs "CATCGTAATGACGGCCT" | مختلفين | 20
+c2 ram pair 2 · same 7 letters | "GGACTGA" vs "GGACTGA" | زي بعض | 21
+c3 ram pair 3 · 4 vs 3 letters | "AATG" vs "AAA" | طولهم مختلف | 22
+c4 ram pair 4 · NULL | NULL vs "AAA" | مفيش سلسلة | 23
+[compute(lhs, rhs) with pointers] v zgpu
+nul prg !lhs \|\| !rhs → -1 | NULL check first | حماية من NULL | 3-6
+lp prg for: *lhs && *rhs | lhs++, rhs++ each lap ; *lhs != *rhs → distance++ | الـ Pointers بتمشي حرف حرف | 8-13
+ret prg (*lhs \|\| *rhs) ? -1 : distance | one string left over → -1 | واحدة لسه فيها حروف؟ | 15-16
+[Terminal (printf)] v zloop
+term out Terminal | $term | نتيجة كل نداء بالترتيب | -
+~ inc main
+~ main end
+> c1 nul
+> c2 nul
+> c3 nul
+> c4 nul
+> nul lp
+> lp ret
+> ret term
+
+@d3_x1
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+ty vao struct Vec3 | float x, y, z | متجه 3D | 3-6
+main ctl main() | L25 | البداية | 25-26
+end ctl std::cin.get() | wait for Enter | استنى زرار | 36-37
+row
+[main] v zram
+c2 ram cross2D × 3 | v = (-3, 1) · w = (2, 1) · 3v = (-9, 3) | الحالة 2D | 27-29
+vw ram Vec3 v, w | v = (0, 0, 2) · w = (0, 2, 0) | متجهين 3D | 31-32
+c ram Vec3 c = cross(v, w) | c = (-4, 0, 0) | الناتج | 33
+[Our functions] v zgpu
+f2 prg cross2D(v1, v2, w1, w2) | v1·w2 − v2·w1 | رقم واحد: مساحة بإشارة | 8-11
+f3 prg cross(v, w) | (vy·wz − vz·wy, vz·wx − vx·wz, ; vx·wy − vy·wx) | متجه عمودي على الاتنين | 13-18
+fd prg dot(a, b) | ax·bx + ay·by + az·bz | للتأكد: لازم 0 | 20-23
+[Terminal (std::cout)] v zloop
+p1 out print 2D results | -5 · 5 · -15 | الترتيب بيقلب الإشارة | 27-29
+p2 out print c and c·v, c·w | (-4, 0, 0) · 0 · 0 | عمودي على الاتنين | 34-35
+term out Terminal | $term | اللي اتطبع | -
+~ inc ty
+~ ty main
+~ main end
+> c2 f2
+> vw f3
+> f3 c
+> c fd
+> f2 p1
+> fd p2
+> p1 p2
+> p2 term

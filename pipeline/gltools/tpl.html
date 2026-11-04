@@ -1,0 +1,187 @@
+<title>apitrace و RenderDoc على الطريقتين</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: a capture report. Each draw call is one row: the framebuffer after it beside the GPU state at that moment. */
+:root{
+  --bg:#eef1f4; --paper:#ffffff; --fg:#14202b; --muted:#566573; --rule:#cfd6dd;
+  --gpu:#0b7a75; --gpu-soft:#d9efed; --draw:#b8461b; --draw-soft:#f8e3d9; --bad:#b42318; --bad-soft:#fbe4e1; --code:#0f1720; --code-fg:#dbe6ee;
+  --sans:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f151b; --paper:#16202a; --fg:#e4ebf1; --muted:#97a6b3; --rule:#2c3a47;
+  --gpu:#48c2bb; --gpu-soft:#12322f; --draw:#f08a5d; --draw-soft:#3a2117; --bad:#ff8a80; --bad-soft:#3a1916; --code:#0a0f14; --code-fg:#dbe6ee; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f151b; --paper:#16202a; --fg:#e4ebf1; --muted:#97a6b3; --rule:#2c3a47;
+  --gpu:#48c2bb; --gpu-soft:#12322f; --draw:#f08a5d; --draw-soft:#3a2117; --bad:#ff8a80; --bad-soft:#3a1916; --code:#0a0f14; --code-fg:#dbe6ee; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);direction:rtl;line-height:1.75;font-size:15.5px}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px;display:grid;gap:28px}
+h1{font-size:clamp(24px,4vw,34px);line-height:1.3;margin:0;text-wrap:balance}
+h2{font-size:21px;margin:0 0 6px;text-wrap:balance}
+h3{font-size:16.5px;margin:0}
+p{margin:0;max-width:70ch}
+.lede{color:var(--muted);max-width:70ch}
+code,.mono{font-family:var(--mono);font-size:.88em;direction:ltr;unicode-bidi:isolate}
+section{display:grid;gap:12px}
+.panel{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:16px 18px;display:grid;gap:10px;min-width:0}
+pre{margin:0;background:var(--code);color:var(--code-fg);border-radius:8px;padding:12px 14px;overflow-x:auto;direction:ltr;text-align:left;font-family:var(--mono);font-size:13px;line-height:1.6}
+.tblwrap{overflow-x:auto;border:1px solid var(--rule);border-radius:10px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--rule);text-align:right;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12.5px;letter-spacing:.02em;white-space:nowrap}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+td.c{direction:ltr;text-align:left;font-family:var(--mono);font-size:12.5px;min-width:260px}
+td.src{direction:ltr;text-align:left;font-family:var(--mono);font-size:12px;color:var(--muted);min-width:220px}
+tr.draw td{background:var(--draw-soft)} tr.draw td.c{color:var(--draw);font-weight:600}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:99px;background:var(--gpu-soft);color:var(--gpu);white-space:nowrap}
+.tag.d{background:var(--draw-soft);color:var(--draw)} .tag.b{background:var(--bad-soft);color:var(--bad)}
+.draws{display:grid;gap:14px}
+.drow{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:720px){.drow{grid-template-columns:1fr}}
+.drow img{width:100%;border-radius:8px;border:1px solid var(--rule);display:block;background:#000}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;min-width:0}
+.note{border-inline-start:3px solid var(--gpu);padding:2px 12px;color:var(--fg)}
+.note.bad{border-color:var(--bad)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.pair{grid-template-columns:1fr}}
+figure{margin:0;display:grid;gap:6px} figcaption{font-size:13px;color:var(--muted)}
+details>summary{cursor:pointer;font-weight:600;color:var(--gpu)}
+details>summary:focus-visible,a:focus-visible{outline:2px solid var(--gpu);outline-offset:2px}
+.cmp td:first-child{font-weight:600;white-space:nowrap}
+</style>
+<div class="wrap">
+<header style="display:grid;gap:8px">
+  <span class="tag">تجربة حقيقية · Mesa llvmpipe · OpenGL 4.5 Core</span>
+  <h1>apitrace و RenderDoc على برنامج «الطريقتين جنب بعض» (اليوم 7)</h1>
+  <p class="lede">شغّلنا <code>two_methods.cpp</code> تحت الأداتين وسجّلنا أول فريم. كل رقم وكل صورة هنا طالعين من التسجيل نفسه، مش مكتوبين بإيدنا.</p>
+</header>
+
+<section>
+  <h2>1. إزاي سجّلنا</h2>
+  <div class="panel">
+    <p><b>apitrace</b> بيقعد بين البرنامج والدرايفر، ويكتب كل أمر <code>gl</code> بقيمه في ملف (<code>.trace</code>). وبعدين نقدر نعيد تشغيل الملف ونوقف عند أي أمر ونسأل: حالة الكارت إيه دلوقتي؟ والصورة شكلها إيه؟</p>
+<pre>apitrace trace -o two_methods.trace ./two_methods     # record every gl call
+apitrace dump two_methods.trace                       # list the calls
+glretrace -D 4021 two_methods.trace > state.json      # GPU state + framebuffer right after call 4021</pre>
+    <p class="note">مشكلة صغيرة واجهتنا: GLFW بيفتح <code>libGLX.so.0</code> مباشرة، فـ apitrace ماكانش شايف أي أمر، والملف طلع فاضي. حلّيناها بملف صغير (<code>glxshim.so</code>) بيحوّل الطلب لـ <code>libGL.so.1</code>. على Windows مش هتحتاج ده.</p>
+  </div>
+</section>
+
+<section>
+  <h2>2. كل أوامر الكارت في أول فريم (<span id="ncalls"></span> أمر)</h2>
+  <p class="lede">العمود الأول رقم الأمر في الملف، والتالت السطر اللي في الكود بتاعنا اللي بعته. الصفوف الملونة = أوامر رسم.</p>
+  <div class="tblwrap"><table><thead><tr><th>رقم</th><th>الأمر بقيمه الحقيقية</th><th>السطر في two_methods.cpp</th></tr></thead><tbody id="calls"></tbody></table></div>
+</section>
+
+<section>
+  <h2>3. الصورة والحالة بعد كل أمر رسم</h2>
+  <p class="lede">زي RenderDoc بالظبط: وقفنا بعد كل رسمة من الأربعة، وطلّعنا اللوحة اللي ورا (Back buffer) وحالة الكارت.</p>
+  <div class="draws" id="draws"></div>
+</section>
+
+<section>
+  <h2>4. الأداة بتمسك الغلطة</h2>
+  <div class="panel">
+    <p>سجّلنا كمان النسخة الغلط من نفس البرنامج: شلنا <code>glVertexAttribPointer</code> قبل المثلث اليمين (نفس تجربة ملف اليوم 7). الصورة بتوري إن المثلث باظ، والحالة بتقول السبب بالظبط:</p>
+    <div class="pair">
+      <figure><img id="okimg" alt="الصورة الصح بعد آخر رسمة"><figcaption>الصح: آخر رسمة (الأمر 4035)</figcaption></figure>
+      <figure><img id="bugimg" alt="الصورة الغلط بعد آخر رسمة"><figcaption>الغلط: آخر رسمة في النسخة اللي فيها الغلطة</figcaption></figure>
+    </div>
+    <div class="tblwrap"><table class="cmp"><thead><tr><th></th><th>الصح</th><th>الغلط</th></tr></thead><tbody id="bug"></tbody></table></div>
+    <p class="note bad">الصندوق المربوط دلوقتي هو 3 (المثلث)، بس الخانة 0 لسه بتقرا من الصندوق 1 (المربع) برقمين لكل ركن، لأن آخر <code>glVertexAttribPointer</code> اتنفذ وقت ما كان الصندوق 1 هو المربوط. فالكارت رسم أول 3 أركان من المربع: نص مربع أزرق. ده بالظبط معنى «glVertexAttribPointer بيربط الصندوق المربوط وقتها».</p>
+  </div>
+</section>
+
+<section id="rd">
+  <h2>5. نفس البرنامج في RenderDoc</h2>
+  <div class="panel">
+    <p><b>RenderDoc</b> فكرته غير apitrace: مش بيسجل البرنامج من أوله، بيسجل <b>فريم واحد</b> بس لما تطلب (Capture)، ويحفظه في ملف <code>.rdc</code>. وبعدين تفتح الملف وتتنقل بين أوامر الفريم ده، وعند كل أمر رسم يوريك 4 حاجات: قايمة الأوامر (Event Browser)، وحالة الكارت (Pipeline State)، والأركان قبل وبعد الـ Shader (Mesh Viewer)، والصورة (Texture Viewer).</p>
+<pre>renderdoccmd capture ./two_methods          # inject RenderDoc, then press F12 to grab a frame
+# we did the same from Python:
+rd.ExecuteAndInject(...)  -&gt;  TargetControl.TriggerCapture(1)  -&gt;  cap_frame1451.rdc
+ctrl.SetFrameEvent(eid)  -&gt;  GetGLPipelineState() / GetPostVSData() / SaveTexture()</pre>
+    <p class="note">RenderDoc مش موجود جاهز هنا، فبنيناه من الكود بتاعه على GitHub (الواجهة الرسومية مقفولة، والمكتبة والـ Python شغالين). مسك الفريم رقم <span class="mono">1451</span> من البرنامج وهو شغال. وعلى جهازك هتحمّله من renderdoc.org وتشتغل بالواجهة على طول.</p>
+  </div>
+
+  <h3>قايمة الأوامر (Event Browser): <span id="rdn"></span> أمر في الفريم</h3>
+  <p class="lede">RenderDoc بيدّي كل أمر رقم اسمه EID (رقم الحدث) بيبدأ من أول الفريم، بدل رقم الأمر من أول البرنامج اللي في apitrace. والأسماء زي <span class="mono">Buffer 26</span> أرقام RenderDoc الداخلية، فكتبنا جنبها اسم المتغير اللي في الكود.</p>
+  <div class="tblwrap"><table><thead><tr><th>EID</th><th>الأمر زي ما RenderDoc سجّله</th><th>السطر في two_methods.cpp</th></tr></thead><tbody id="rdev"></tbody></table></div>
+
+  <h3>عند كل رسمة: الحالة والأركان والصورة</h3>
+  <p class="lede"><b>VS In</b> = الأرقام اللي الكارت قراها من الصندوق لكل ركن. <b>VS Out</b> = <code>gl_Position</code> بعد الـ Vertex Shader، يعني الركن + <code>u_Offset</code>. لو قارنت العمودين هتشوف جمع الـ Shader قدامك.</p>
+  <div class="draws" id="rddraws"></div>
+
+  <h3>RenderDoc بيمسك نفس الغلطة</h3>
+  <div class="panel">
+    <p>مسكنا فريم من النسخة الغلط (من غير <code>glVertexAttribPointer</code> قبل المثلث اليمين). بص على آخر رسمة فيها:</p>
+    <div class="drow" id="rdbug"></div>
+    <p class="note bad">صفحة Pipeline State بتقول إن الخانة 0 فيها <span class="mono">R32G32_FLOAT</span> (رقمين لكل ركن) من <span class="mono">Buffer 26</span> = <code>squareBuffer</code>. والـ Mesh Viewer بيوري إن الـ 3 أركان اللي اتقرت هما أول 3 أركان المربع. يعني نفس اللي apitrace قاله، بس هنا مكتوب بشكل جاهز في الصفحة من غير ما تدوّر في JSON.</p>
+  </div>
+
+  <h3>حاجة RenderDoc ورّاها لنا ومكناش واخدين بالنا منها</h3>
+  <div class="panel">
+    <p id="rdnote"></p>
+  </div>
+</section>
+
+<section>
+  <h2>6. المقارنة بالبنش بتاعنا</h2>
+  <div class="tblwrap"><table class="cmp"><thead><tr><th></th><th>apitrace / RenderDoc</th><th>البنش</th></tr></thead><tbody>
+    <tr><td>بيسجل</td><td>أوامر الكارت بس (<code>gl*</code>)</td><td>كل سطر C++ تحت gdb، وأوامر الكارت جزء منه</td></tr>
+    <tr><td>الحالة</td><td>كاملة: كل إعداد في الكارت (+700 إعداد)</td><td>اللي البرنامج ده محتاجه بس، مرسوم كأجهزة</td></tr>
+    <tr><td>الصور</td><td>بعد كل أمر رسم</td><td>بعد كل <code>glfwSwapBuffers</code></td></tr>
+    <tr><td>الرام والمتغيرات</td><td>لأ</td><td>أيوه (Stack و Heap)</td></tr>
+    <tr><td>الشرح</td><td>مفيش: أداة للمحترفين</td><td>كل سطر بالعربي، وقصة، وتجارب</td></tr>
+  </tbody></table></div>
+</section>
+</div>
+<script id="data" type="application/json">%%DATA%%</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const esc = t => String(t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+document.getElementById('ncalls').textContent = D.calls.length;
+document.getElementById('calls').innerHTML = D.calls.map(([n, fn, a]) => { const ln = D.line[n]; const draw = /^glDraw/.test(fn);
+  return `<tr class="${draw ? 'draw' : ''}"><td class="n">${n}</td><td class="c">${esc(fn)}(${esc(a)})</td><td class="src">${ln ? `${ln}: ${esc(D.src[ln - 1].trim())}` : (n >= 3998 && n <= 4013 ? 'جوه CreateShader' : '')}</td></tr>`; }).join('');
+const fmt = v => Array.isArray(v) ? '(' + v.join(', ') + ')' : v;
+const stateHtml = s => `<dl class="kv">
+  <dt>VAO المربوط</dt><dd><span class="mono">${s.vao}</span></dd>
+  <dt>GL_ARRAY_BUFFER</dt><dd><span class="mono">${s.abuf}</span></dd>
+  <dt>صندوق الترتيب (EBO)</dt><dd><span class="mono">${s.ebuf || 'مفيش'}</span></dd>
+  <dt>الخانة 0 بتقرا من</dt><dd>الصندوق <span class="mono">${s.attrbuf}</span>: <span class="mono">${s.size}</span> أرقام لكل ركن، stride <span class="mono">${s.stride}</span> بايت</dd>
+  <dt>u_Offset</dt><dd><span class="mono">${fmt(s.uni.u_Offset)}</span></dd>
+  <dt>u_Color</dt><dd><span class="mono">${fmt(s.uni.u_Color)}</span></dd>
+  <dt>الأركان اللي اتقرت</dt><dd><span class="mono">${s.verts.map(fmt).join('  ')}</span></dd></dl>`;
+document.getElementById('draws').innerHTML = D.draws.map(([c, name, how, img]) => { const s = D.S[c]; const ln = D.line[c];
+  return `<div class="panel drow"><figure><img src="${img}" alt="اللوحة بعد الأمر ${c}"><figcaption>اللوحة اللي ورا بعد الأمر <span class="mono">${c}</span></figcaption></figure>
+  <div style="display:grid;gap:8px;min-width:0"><h3><span class="tag d">رسم ${c}</span> ${name}</h3><p>${how}. السطر ${ln}: <code>${esc(D.src[ln - 1].trim())}</code></p>${stateHtml(s)}</div></div>`; }).join('');
+document.getElementById('okimg').src = D.okimg; document.getElementById('bugimg').src = D.bugimg;
+const s = D.S['4035'], b = D.BUG;
+document.getElementById('bug').innerHTML = [['GL_ARRAY_BUFFER (المربوط دلوقتي)', s.abuf, b.abuf], ['الخانة 0 بتقرا من صندوق', s.attrbuf, b.attrbuf], ['أرقام لكل ركن', s.size, b.size], ['stride', s.stride, b.stride],
+  ['أول 3 أركان اتقرت', s.verts.slice(0, 3).map(fmt).join(' '), b.verts.slice(0, 3).map(fmt).join(' ')]]
+  .map(([k, x, y]) => `<tr><td>${k}</td><td class="mono">${x}</td><td class="mono" style="color:var(--bad)">${y}</td></tr>`).join('');
+const R = D.rd, nm = v => R.names[v] ? `${v} <span style="color:var(--muted)">= ${R.names[v]}</span>` : v;
+const nmArgs = a => esc(a).replace(/(Buffer \d+|Vertex Array \d+)/g, m => R.names[m] ? `${m} <b style="color:var(--gpu)">(${R.names[m]})</b>` : m);
+document.getElementById('rdn').textContent = R.events.length;
+document.getElementById('rdev').innerHTML = R.events.map(([e, fn, a]) => { const ln = R.line[e]; const draw = /^glDraw/.test(fn);
+  return `<tr class="${draw ? 'draw' : ''}"><td class="n">${e}</td><td class="c">${esc(fn)}(${nmArgs(a)})</td><td class="src">${ln ? `${ln}: ${esc(D.src[ln - 1].trim())}` : ''}</td></tr>`; }).join('');
+const nUsed = x => /Arrays/.test(x.name) ? x.n : Math.max(...x.idx) + 1;
+const vrows = x => x.vsin.slice(0, nUsed(x)).map((v, i) => `<tr><td class="n">${i}</td><td class="n"><span class="mono">(${v.join(', ')})</span></td><td class="n"><span class="mono">${x.post[i] ? '(' + x.post[i].slice(0, 2).join(', ') + ')' : ''}</span></td></tr>`).join('');
+const rdState = x => `<dl class="kv">
+  <dt>VAO</dt><dd class="mono">${nm(x.vao)}</dd>
+  <dt>الخانة 0</dt><dd><span class="mono">${x.attr0.fmt}</span> (${x.attr0.comp === 2 ? 'رقمين' : x.attr0.comp + ' أرقام'} لكل ركن) من <span class="mono">${nm(x.attr0.buf)}</span>، والمسافة بين ركن والتاني (stride) <span class="mono">${x.attr0.stride}</span> بايت</dd>
+  <dt>صندوق الترتيب في الـ VAO</dt><dd>${x.ibuf === 'ResourceId::0' ? 'مفيش' : '<span class="mono">' + nm(x.ibuf) + '</span>'}${x.idx && /Arrays/.test(x.name) ? ' <span style="color:var(--muted)">(موجود، بس <code>glDrawArrays</code> مش بيستخدمه)</span>' : ''}</dd>
+  ${x.idx && /Elements/.test(x.name) ? `<dt>الترتيب</dt><dd class="mono">${x.idx.join(', ')}</dd>` : ''}
+  <dt>u_Offset</dt><dd class="mono">(${x.uni.u_Offset.join(', ')})</dd>
+  <dt>u_Color</dt><dd class="mono">(${x.uni.u_Color.join(', ')})</dd></dl>
+  <div class="tblwrap"><table><thead><tr><th>ركن</th><th>VS In (من الصندوق)</th><th>VS Out (x, y)</th></tr></thead><tbody>${vrows(x)}</tbody></table></div>`;
+document.getElementById('rddraws').innerHTML = R.draws.map(x => { const [name, how] = R.titles[x.eid]; const ln = R.line[x.eid];
+  return `<div class="panel drow"><figure><img src="${x.img}" alt="الصورة بعد EID ${x.eid}"><figcaption>Texture Viewer عند EID <span class="mono">${x.eid}</span></figcaption></figure>
+  <div style="display:grid;gap:8px;min-width:0"><h3><span class="tag d">EID ${x.eid}</span> ${name} <span class="tag">${how}</span></h3><p>السطر ${ln}: <code>${esc(D.src[ln - 1].trim())}</code></p>${rdState(x)}</div></div>`; }).join('');
+const B = R.bug;
+document.getElementById('rdbug').innerHTML = `<figure><img src="${B.img}" alt="الصورة الغلط"><figcaption>Texture Viewer عند EID <span class="mono">${B.eid}</span> في النسخة الغلط</figcaption></figure><div style="display:grid;gap:8px;min-width:0">${rdState(B)}</div>`;
+const d20 = R.draws.find(x => x.eid === 20);
+document.getElementById('rdnote').innerHTML = `عند EID <span class="mono">20</span> (المثلث اليمين بـ <code>glDrawArrays</code>)، صندوق الترتيب اللي جوه <span class="mono">${nm(d20.vao)}</span> لسه <span class="mono">${nm(d20.ibuf)}</span>. ليه؟ لأن السطر 167 ربطه في الـ VAO ده عشان المربع، ومحدش فكّه. ده مش غلط: <code>glDrawArrays</code> بيقرا الأركان بالترتيب ومش بيبص على صندوق الترتيب خالص. بس لو حد غيّر المثلث لـ <code>glDrawElements</code> ونسي يربط صندوقه، هيترسم بترتيب المربع. ده مثال على اللي قلناه في الدرس: الـ VAO بيفتكر صندوق الترتيب لحد ما تغيّره.`;
+</script>

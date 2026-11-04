@@ -1,0 +1,5 @@
+MAX_AGE = 90
+int*:              *a = 2
+const int*:        *b = 90
+int* const:        *c = 2
+const int* const:  *d = 90

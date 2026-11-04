@@ -1,0 +1,11 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch({args:['--use-gl=swiftshader']}); const p = await b.newPage({viewport:{width:412,height:915}});
+  const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+  await p.route('**/three.min.js', r => r.fulfill({path:'/home/claude/sim/three.min.js', contentType:'application/javascript'})); await p.route(/fonts\.g/, r => r.abort());
+  await p.goto('file:///home/claude/bench2/bench_days.html'); await p.waitForTimeout(900); console.log("E",errs, await p.evaluate(()=>typeof loadProgram));
+  await p.evaluate(() => { __bench.load('d7_r2'); document.getElementById('stoBtn').click(); });
+  await p.waitForTimeout(500);
+  await p.evaluate(() => { const e = [...document.querySelectorAll('#story2 summary')].find(x => /مين بتاع مين/.test(x.textContent));
+    let x = e.parentElement.parentElement; while (x) { if (x.tagName === 'DETAILS') x.open = true; x = x.parentElement; } e.parentElement.previousElementSibling.scrollIntoView({block:'start'}); });
+  await p.waitForTimeout(300);
+  await p.screenshot({path:'/tmp/claude-0/s30.png'}); console.log(errs); await b.close(); })();

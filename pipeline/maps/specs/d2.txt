@@ -1,0 +1,322 @@
+@d2_va1
+[Setup (once)] h none
+main ctl main() | L48 | البداية | 48-49
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 50-63
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 65-66
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 89-90, 95
+row
+[CPU · RAM] v zram
+pos ram float positions[6] | 24 B · 3 corners × (x, y) | أركان المثلث | 68-72
+src ram Shader text (2 strings) | vertex: vec4(aPosition, 0, 1) ; fragment: orange (1, 0.5, 0.2) | نص الـ Shaders | 5-17
+[GPU · Buffer + VAO] v zgpu
+buf buf Buffer 1 · buffer | GL_ARRAY_BUFFER · 24 B | أركان المثلث | 78-81
+vao vao VAO 1 · vao | slot 0 ← Buffer 1 · 2 floats · stride 8 | وصف الركن: مكان بس | 74-76, 83-84
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | Vertex: aPosition → gl_Position ; Fragment: one orange color | CreateShader + glUseProgram | 86-87
+ras prg Rasterizer | triangle → pixels | المثلث لبكسلات | -
+back out Back buffer · 640 × 480 | glClear L91 · draw lands here | اللوحة اللي ورا | 91
+win out Window "Vertex Attributes" | $img | اللي بتشوفه | 93-94
+row
+[Render loop (each frame)] h zloop
+draw m2 Draw | L92 glDrawArrays(GL_TRIANGLES, 0, 3) | رسم 3 أركان | 92
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 3 | glad · GLFW · iostream | المكتبات | 1-3
+cs prg CompileShader() | glCreateShader → glShaderSource ; → glCompileShader (× 2: vs, fs) | بيترجم Shader واحد | 19-33
+cr prg CreateShader() | glCreateProgram → attach × 2 ; → link → Program 1 | بيعمل الـ Program | 35-46
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 97-100
+~ main glfw
+~ glfw glad
+~ glad loop
+> pos buf L81
+> buf vao L84
+> vao prog vertices
+> src prog L86
+> prog ras
+> ras back
+> back win swap · L93
+~ loop draw
+> cs cr
+
+@d2_va2
+[Setup (once)] h none
+main ctl main() | L52 | البداية | 52-53
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 54-67
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 69-70
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 96-97, 102
+row
+[CPU · RAM] v zram
+vtx ram float vertices[15] | 60 B · 3 corners × (x y + r g b) | أركان المثلث وألوانها | 72-76
+src ram Shader text (2 strings) | vertex: aPosition + aColor → vertexColor ; fragment: color = vertexColor | نص الـ Shaders | 5-21
+[GPU · Buffer + VAO] v zgpu
+buf buf Buffer 1 · buffer | GL_ARRAY_BUFFER · 60 B | الأركان والألوان | 82-85
+vao vao VAO 1 · vao | slot 0 ← 2 floats (x, y) · offset 0 ; slot 1 ← 3 floats (r g b) · offset 8 ; stride 20 B (5 floats) | وصف الركن: مكان + لون | 78-80, 87-91
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | Vertex: passes the color on ; Fragment: mixes it between corners | CreateShader + glUseProgram | 93-94
+ras prg Rasterizer | triangle → pixels · colors blend | الألوان بتتخلط جوه المثلث | -
+back out Back buffer · 640 × 480 | glClear L98 · draw lands here | اللوحة اللي ورا | 98
+win out Window "Vertex Attributes" | $img | اللي بتشوفه | 100-101
+row
+[Render loop (each frame)] h zloop
+draw m2 Draw | L99 glDrawArrays(GL_TRIANGLES, 0, 3) | رسم 3 أركان | 99
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 3 | glad · GLFW · iostream | المكتبات | 1-3
+cs prg CompileShader() | glCreateShader → glShaderSource ; → glCompileShader (× 2: vs, fs) | بيترجم Shader واحد | 23-37
+cr prg CreateShader() | glCreateProgram → attach × 2 ; → link → Program 1 | بيعمل الـ Program | 39-50
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 104-107
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx buf L85
+> buf vao L88, L91
+> vao prog vertices
+> src prog L93
+> prog ras
+> ras back
+> back win swap · L100
+~ loop draw
+> cs cr
+
+@d2_c1
+[Setup] h none
+inc ctl #include <stdio.h> | printf | المكتبة | 1
+main ctl main(void) | L3 | البداية | 3-4
+end ctl return 0 | the end | النهاية | 8-9
+row
+[CPU · Stack (main)] v zram
+year ram int year = 1972 | 4 B | سنة ميلاد لغة C | 5
+[Terminal (printf)] v zloop
+p1 out printf("C was born in %d") | %d ← year | طباعة رقم | 6
+p2 out printf("Hello from C!\n") | plain text | طباعة نص | 7
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+~ main end
+> year p1 %d
+> p1 p2
+> p2 term
+
+@d2_c2
+[Setup] h none
+inc ctl #include × 2 | stdio.h · stdlib.h | المكتبات | 1-2
+main ctl main(void) | L4 | البداية | 4-5
+end ctl return 0 | the end | النهاية | 18-19
+row
+[CPU · Stack (main)] v zram
+cnt ram int count = 5 | 4 B | عدد الخانات | 6
+num ram int* numbers | holds 0x55555558a2a0 ; NULL check (L8) | عنوان الحتة في الـ Heap | 7-9
+[CPU · Heap] v zram
+heap buf malloc(5 * sizeof(int)) | 20 B at 0x55555558a2a0 | حجز 5 خانات int | -
+fill buf for: numbers[i] = i * 10 | 0, 10, 20, 30, 40 | ملينا الخانات | 11-12
+fr ctl free(numbers) | the 20 B go back | رجّعنا الحتة | 17
+[Terminal (printf)] v zloop
+pr out for: printf numbers[i] | 5 lines | طباعة الخانات | 14-15
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+~ main end
+> cnt num count × 4
+> num heap points to
+> fill pr
+> pr term
+
+@d2_c3
+[Setup] h none
+inc ctl #include <stdio.h> | printf | المكتبة | 1
+main ctl main(void) | L3 | البداية | 3-4
+end ctl return 0 | the end | النهاية | 13-14
+row
+[CPU · Stack (main)] v zram
+arr ram int arr[4] = {10, 20, 30, 40} | 16 B from 0x7fffffff95a0 | 4 خانات ورا بعض | 5
+p ram int* p = arr | starts at 0x7fffffff95a0 | Pointer لأول خانة | 6
+[Loop (4 times)] v zloop
+lp m1 for i = 0 .. 3 | print p and *p ; p++ → address + 4 B | كل لفة الـ Pointer يتنقل خانة | 8-9, 12
+inc2 m1 p++ | 0x7fffffff95a0 → a4 → a8 → ac | بيزيد 4 بايت = int واحد | 11
+[Terminal (printf)] v zloop
+pr out printf("p = %p   *p = %d") | (void*)p · *p | الطباعة | 10
+term out Terminal | $term | العنوان بيزيد 4 كل مرة | -
+~ inc main
+~ main end
+> arr p
+> p lp
+> lp pr
+> pr term
+
+@d2_c4
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L8 | البداية | 8-9
+end ctl std::cin.get() | wait for Enter | استنى زرار | 14-15
+row
+[CPU · Stack (main)] v zram
+score ram int score = 21 → 42 | 4 B at 0x7fffffff95b4 | المتغير اللي هيتضاعف | 10
+call ram doubleIt(&score) | passes the address | بنبعت العنوان | 12
+[doubleIt() (our function)] v zgpu
+fn prg doubleIt(int* number) | number = 0x7fffffff95b4 ; *number = *number * 2 | بتكتب في متغير main نفسه | 3-6
+[Terminal (std::cout)] v zloop
+b out before | score = 21 | قبل | 11
+a out after | score = 42 | بعد | 13
+term out Terminal | $term | اتضاعف من جوه الدالة | -
+~ inc main
+~ main end
+> call fn &score
+> fn score writes
+> score b
+> b a
+> a term
+
+@d2_d1
+[Setup] h none
+inc ctl #include × 2 | iostream · cmath | المكتبات | 1-2
+main ctl main() | L17 | البداية | 17-18
+end ctl std::cin.get() | wait for Enter | استنى زرار | 30-31
+row
+[CPU · Stack (main)] v zram
+ab ram float a[2], b[2] | a = {2, 5} · b = {7, 1} | متجهين في 2D | 19-20
+cd ram float c[3], d[3] | c = {1, 2, 3} · d = {-2, 0, 5} | متجهين في 3D | 23-24
+[Our functions] v zgpu
+dot prg dot(a, b, n) | sum += a[i] * b[i] for i < n | الضرب النقطي | 4-10
+len prg length(a, n) | sqrt(dot(a, a, n)) | الطول = جذر الضرب في نفسه | 12-15
+[Terminal (std::cout)] v zloop
+p1 out dot(a, b, 2) and dot(c, d, 3) | 2×7 + 5×1 = 19 · -2 + 0 + 15 = 13 | الضرب النقطي | 21, 25
+p2 out length(a) and sqrt(29) | dot(a, a) = 29 ; 29 · 5.38516 · 5.38516 | الطول | 27-29
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+~ main end
+> ab dot
+> cd dot
+> dot len
+> dot p1
+> len p2
+> p1 p2
+> p2 term
+
+@d2_v1
+[Setup] h none
+inc ctl #include × 2 | iostream · vector | المكتبات | 1-2
+ty vao struct Vertex | float x, y, z · 12 B | شكل الركن | 4-7
+main ctl main() | L9 | البداية | 9-10
+end ctl std::cin.get() | wait for Enter | استنى زرار | 22-23
+row
+[CPU · Stack (main)] v zram
+vec ram std::vector<Vertex> vertices | size 0 at start | الـ vector فاضي | 11
+v ram Vertex v = {7, 8, 9} | 12 B | ركن جاهز | 16
+[CPU · Heap (vector data)] v zram
+push buf push_back × 3 | {1,2,3} · {4,5,6} · v | الـ vector بيكبر | 14-15, 17
+data buf vertices data | {1,2,3} {4,5,6} {7,8,9} | 3 أركان ورا بعض | -
+[Terminal (std::cout)] v zloop
+p0 out size at start | vertices.size() = 0 | قبل | 12
+p1 out size · [0].x · at(1).y | 3 · 1 · 5 | بعد | 19-21
+term out Terminal | $term | اللي اتطبع | -
+~ inc ty
+~ ty main
+~ main end
+> vec p0
+> v push
+> push data
+> data p1
+> p0 p1
+> p1 term
+
+@d2_v2
+[Setup] h none
+inc ctl #include × 2 | iostream · vector | المكتبات | 1-2
+ty vao struct Vertex | float x, y, z · 12 B | شكل الركن | 4-7
+main ctl main() | L9 | البداية | 9-10
+end ctl std::cin.get() | wait for Enter | استنى زرار | 23-24
+row
+[CPU · RAM] v zram
+vec ram std::vector<Vertex> vertices | {1,2,3} · {4,5,6} | ركنين | 11
+[3 kinds of loops] v zloop
+l1 m1 for (size_t i = 0; i < size) | vertices[i].x | لوب بالرقم | 13-14
+l2 m1 for (const Vertex& v) | read only | لوب بالقراية بس | 16-17
+l3 m2 for (Vertex& v : vertices) | v.x = v.x * 10 (writes) | لوب بيعدّل | 19-20
+[Terminal (std::cout)] v zloop
+pr out after x * 10 | vertices[0].x · vertices[1].x | النتيجة | 22
+term out Terminal | $term | اللي اتطبع | -
+~ inc ty
+~ ty main
+~ main end
+> vec l1
+> l3 vec writes
+> l1 pr
+> pr term
+
+@d2_v3
+[Setup] h none
+inc ctl #include × 2 | iostream · vector | المكتبات | 1-2
+ty vao struct Vertex | float x, y, z · 12 B | شكل الركن | 4-7
+op prg operator<< | prints x, y, z | طباعة ركن | 9-13
+main ctl main() | L15 | البداية | 15-16
+row
+[CPU · Heap (vector data)] v zram
+vec ram std::vector<Vertex> vertices | push_back {1,2,3} · {4,5,6} | إضافة | 17-19
+er buf erase(begin() + 1) | removes {4,5,6} | مسح الخانة رقم 1 | 24
+clr buf clear() | size 0 · capacity stays 2 | مسح الكل | 29
+[Loops] v zloop
+l1 m1 for: print each v | before erase | الطباعة قبل | 21-22
+l2 m1 for: print each v | after erase | الطباعة بعد | 25-27
+[Terminal (std::cout)] v zloop
+sz out size after clear | vertices.size() = 0 | الحجم | 30
+end ctl std::cin.get() | wait for Enter | استنى زرار | 31-32
+term out Terminal | $term | اللي اتطبع | -
+~ inc ty
+~ ty op
+~ op main
+> vec l1
+> er l2
+> clr sz
+> sz term
+
+@d2_v4
+[Setup] h none
+inc ctl #include × 2 | iostream · vector | المكتبات | 1-2
+ty vao struct Point | float x, y · 8 B | نقطة CAD | 4-7
+main ctl main() | L21 | البداية | 21-22
+end ctl std::cin.get() | wait for Enter | استنى زرار | 31-32
+row
+[main] v zram
+pts ram std::vector<Point> points | empty at start | الـ vector | 23
+add3 ram addPoint × 3 | (0, 0) · (100, 0) · (100, 50) | إضافة 3 نقط | 24-26
+pop ram points.pop_back() | removes (100, 50) | مسح آخر نقطة | 29
+[Our functions (by reference)] v zgpu
+ap prg addPoint(points&, x, y) | points.push_back({x, y}) | بتضيف في نفس الـ vector | 9-12
+pp prg printPoints(const points&) | size + each (x, y) | بتطبع من غير نسخ | 14-19
+[Terminal (std::cout)] v zloop
+c1 out printPoints(points) | 3 points | قبل المسح | 27
+c2 out printPoints(points) | 2 points | بعد المسح | 30
+term out Terminal | $term | اللي اتطبع | -
+~ inc ty
+~ ty main
+~ main end
+> add3 ap
+> ap pts writes
+> pts c1
+> pop c2
+> pp term
+> c1 c2
+> c2 term
+
+@d2_v5
+[Setup] h none
+inc ctl #include × 2 | iostream · vector | المكتبات | 1-2
+main ctl main() | L4 | البداية | 4-5
+end ctl std::cin.get() | wait for Enter | استنى زرار | 19-20
+row
+[CPU · RAM] v zram
+num ram std::vector<int> numbers | ends with 1 .. 9 · capacity 16 | الأرقام | 6
+last ram const int* lastAddress | nullptr at start | آخر عنوان شفناه | 7
+[Loop i = 1 .. 9] v zloop
+lp m1 for i = 1 .. 9 | 9 laps | كل لفة رقم جديد | 9-10, 18
+pb m1 push_back(i) · data() | address = numbers.data() | العنوان الحالي | 11-12
+cmp m2 address != lastAddress ? | if yes: "moved to a new place" | اتنقل؟ | 14-15, 17
+[Terminal (std::cout)] v zloop
+pr out size · capacity | numbers.size() · numbers.capacity() | الحجم والمساحة | 13, 16
+term out Terminal | $term | بيتنقل لما الـ capacity تتضاعف | -
+~ inc main
+~ main end
+> num lp
+> lp pb
+> pb cmp
+> last cmp
+> pb pr
+> pr term

@@ -1,0 +1,6 @@
+no_value_ptr/Camera.cpp: In member function 'void Camera::Matrix(float, float, float, Shader&, const char*)':
+no_value_ptr/Camera.cpp:18:90: error: cannot convert 'glm::mat<4, 4, float, glm::packed_highp>' to 'const GLfloat*' {aka 'const float*'} in argument passing
+   18 |     glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, projection * view);
+      |                                                                               ~~~~~~~~~~~^~~~~~
+      |                                                                                          |
+      |                                                                                          glm::mat<4, 4, float, glm::packed_highp>

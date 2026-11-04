@@ -1,0 +1,2 @@
+4 textures from one image: ids 1 to 4
+frame 0 drawn, glGetError() = 0

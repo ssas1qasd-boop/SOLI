@@ -1,0 +1,17 @@
+left click: polyline 0 has 1 points
+left click: polyline 0 has 2 points
+left click: polyline 0 has 3 points
+left click: polyline 0 has 4 points
+right click: polyline 0 finished
+left click: polyline 1 has 1 points
+left click: polyline 1 has 2 points
+left click: polyline 1 has 3 points
+right click: polyline 1 finished
+backspace: deleted a line of 3 points, 1 lines left
+left click: polyline 1 has 1 points
+left click: polyline 1 has 2 points
+left click: polyline 1 has 3 points
+backspace: deleted a line of 3 points, 1 lines left
+backspace: deleted a line of 4 points, 0 lines left
+left click: polyline 0 has 1 points
+left click: polyline 0 has 2 points

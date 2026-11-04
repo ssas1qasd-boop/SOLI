@@ -1,0 +1,7 @@
+1 -> 1   PASS
+3 -> Pling   PASS
+10 -> Plang   PASS
+14 -> Plong   PASS
+15 -> PlingPlang   PASS
+105 -> PlingPlangPlong   PASS
+34 -> 34   PASS

@@ -1,0 +1,11 @@
+const { chromium, devices } = require('playwright');
+(async () => { const b = await chromium.launch({args:['--use-gl=swiftshader']}); const ctx = await b.newContext({...devices['Pixel 7'], colorScheme:'dark'}); const p = await ctx.newPage(); const errs=[]; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => console.log('console', m.text()));
+  await p.route('**/three.min.js', r => r.fulfill({path:'/home/claude/sim/three.min.js', contentType:'application/javascript'})); await p.route(/fonts\.g/, r => r.abort());
+  await p.goto('file:///home/claude/bench2/offline/bench_day4.html#d4_v2'); await p.waitForTimeout(1000);
+  await p.fill('#goN','6'); await p.tap('#goStep button[type=submit]'); await p.waitForTimeout(1500);
+  await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(500);
+  const d = await p.evaluate(() => { const d=[...document.querySelectorAll('#live .lc')].find(d=>d.style.display!=='none'); const r=d.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2, sy:scrollY}; }); console.log('card', d);
+  await p.evaluate(() => { window._clk = 0; document.querySelectorAll('#live .lc').forEach(x => x.addEventListener('click', () => window._clk++)); });
+  await p.touchscreen.tap(d.x, d.y); await p.waitForTimeout(1200);
+  console.log('se', await p.evaluate(() => [document.scrollingElement.scrollTop, document.body.scrollTop, innerWidth, document.documentElement.scrollWidth, visualViewport.width, visualViewport.pageTop])); console.log('clicks', await p.evaluate(() => window._clk), 'scrollY', await p.evaluate(() => scrollY), 'fig top', await p.evaluate(() => Math.round(document.getElementById('codeFig').getBoundingClientRect().top)));
+  console.log(errs); await b.close(); })();

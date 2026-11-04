@@ -1,0 +1,6 @@
+clicks.Get() = 7
+&clicks = 0x7ffcc4d9ea30
+inside Where(): this = 0x7ffcc4d9ea30
+other.Get() = 1   clicks.Get() = 7
+&other = 0x7ffcc4d9ea34
+inside Where(): this = 0x7ffcc4d9ea34

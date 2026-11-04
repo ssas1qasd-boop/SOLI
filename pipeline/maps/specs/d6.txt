@@ -1,0 +1,306 @@
+@d6_p1
+[Setup] h none
+inc ctl // tiny compiler + #include × 4 | text → tokens → tree → bytecode → run ; iostream · string · vector · cctype | الفكرة والمكتبات | 1-5
+ty vao enum TokenType + struct Token | Var · Identifier · Number · = + * ; End ; Token = { type, text } | أنواع الكلمات | 7-13
+main ctl main() | L193 · return 0 | البداية | 193-194, 235-236
+row
+[main · the pipeline] v zram
+src ram std::string source | "var x = 1 + 2 * 3; x * 2;" | البرنامج اللي هنترجمه | 195-196
+tok ram tokens = Scan(source) | 14 tokens · printed in [ ] | الكلمات | 198-202
+pl m1 while (!Match(End)) | var → tree → Compile → STORE_VAR ; else → tree → Compile → PRINT | جملة جملة | 204-227
+bc ram print the bytecode | 10 instructions | الأوامر | 229-231
+rn ram Run() | "run:" | التشغيل | 233-234
+[1 · Scanner (characters → tokens)] v zgpu
+s1 prg Scan(): spaces and digits | skip spaces · digits → Number | الأرقام | 15-35
+s2 prg letters → word | "var" → Var · else Identifier | الكلمات | 36-44
+s3 prg symbols + End | = + * ; → their token · then End | الرموز | 45-53
+[2 · Parser (tokens → tree)] v zgpu
+nd vao struct Node | kind n · v · + · * ; value · name · left · right | عقدة في الشجرة | 55-63
+pa prg Parser: Advance · Match | tokens · pos | نمشي على الكلمات | 65-81
+pr prg Primary() | Number → 'n' · else 'v' | رقم أو متغير | 83-89
+ma prg Multiplication · Addition | * binds before + | الضرب قبل الجمع | 91-106
+pt out PrintTree(node, depth) | 4 spaces per level | طباعة الشجرة | 108-121
+row
+[3 · Compiler (tree → bytecode)] v zgpu
+ins vao struct Instruction + globals | { op, arg } ; code · variables | الأوامر والمتغيرات | 123-131
+vi prg VariableIndex(name) | "x" → 0 | رقم خانة المتغير | 133-140
+cp prg Compile(node) | n → LOAD_INT · v → LOAD_VAR ; + * → left, right, then ADD / MULTIPLY | من الشجرة لأوامر | 142-154
+[4 · Virtual machine (stack)] v zgpu
+vm prg Run(): stack + registers | registers(1) for x | الـ Stack والخانات | 156-160
+ld prg LOAD and STORE | push · push x · pop into x | حط وشيل | 161-171
+pp out PRINT | prints the top, pops it | النتيجة | 172-177
+op prg ADD · MULTIPLY | pop b, pop a, push a + b or a * b | العملية | 178-185
+st out print the stack | after every instruction | حالة الـ Stack | 186-191
+[Terminal (std::cout)] v zloop
+term out Terminal (key lines) | tree for x: [+] 1 ( [*] 2 3 ) ; bytecode: LOAD_INT 1 · LOAD_INT 2 ;   LOAD_INT 3 · MULTIPLY · ADD ;   STORE_VAR 0 · LOAD_VAR 0 ;   LOAD_INT 2 · MULTIPLY · PRINT ; run: stack [1] → [1, 2] → [1, 2, 3] ;   → [1, 6] → [7] → [] → [7] ;   → [7, 2] → [14] ; result: 14 ; $termnote | x = 7 والنتيجة 14 | -
+~ inc ty
+~ ty main
+> src tok
+> tok s1 Scan
+~ s1 s2
+~ s2 s3
+> tok pl
+> pl pa Parser
+~ pa pr
+~ pr ma
+> ma pt
+> pl cp Compile
+> cp vi
+> cp bc
+> rn vm Run()
+~ vm ld
+~ ld pp
+~ pp op
+~ op st
+> st term
+
+@d6_p2
+[Setup] h none
+inc ctl // exercism: Leap | #include <iostream> | المصدر والمكتبة | 1-2
+main ctl main() | 6 checks · return 0 | البداية | 19-20, 27-28
+row
+[main: 6 years] v zram
+y1 ram years 2015 · 1996 | check(2015, false) · check(1996, true) ; expected: not leap · leap | الحالات العادية | 21-22
+y2 ram years 2100 · 2000 | check(2100, false) · check(2000, true) ; ÷100 not leap · ÷400 leap | حالات القرن | 23-24
+y3 ram years 1900 · 2024 | check(1900, false) · check(2024, true) ; not leap · leap | حالتين كمان | 25-26
+[namespace leap + check()] v zgpu
+il prg leap::is_leap_year(year) | year % 4 == 0 && ; (year % 100 != 0 \|\| year % 400 == 0) | القاعدة في سطر واحد | 4-10
+ck prg check(year, expected) | got = is_leap_year(year) ; print leap / not leap + PASS / FAIL | بنقارن بالمتوقع | 12-17
+[Terminal (std::cout)] v zloop
+term out Terminal | $term | الستة PASS | -
+~ inc main
+> y1 ck
+> y2 ck
+> y3 ck
+> ck il
+> ck term
+
+@d6_p3
+[Setup] h none
+inc ctl // exercism: Raindrops | #include × 2 · iostream · string | المصدر والمكتبات | 1-3
+main ctl main() | 7 checks · return 0 | البداية | 29-30, 38-39
+row
+[main: 7 numbers] v zram
+n1 ram drops 1 · 3 | check(1, "1") · check(3, "Pling") ; no factor · ÷3 | مفيش قاسم · قاسم 3 | 31-32
+n2 ram drops 10 · 14 · 15 | Plang · Plong · PlingPlang | ÷5 ÷7 ÷15 | 33-35
+n3 ram drops 105 · 34 | PlingPlangPlong · "34" | الكل أو ولا حاجة | 36-37
+[namespace raindrops + check()] v zgpu
+cv prg raindrops::convert(drops) | ÷3 → Pling · ÷5 → Plang · ÷7 → Plong ; nothing → the number as text | بنجمع الأصوات | 5-20
+ck prg check(drops, expected) | got = convert(drops) ; print + PASS / FAIL | بنقارن بالمتوقع | 22-27
+[Terminal (std::cout)] v zloop
+term out Terminal | $term | السبعة PASS | -
+~ inc main
+> n1 ck
+> n2 ck
+> n3 ck
+> ck cv
+> ck term
+
+@d6_m1
+[Setup] h none
+imp ctl # review: dot and length by hand | import math · no NumPy | الفكرة والمكتبة | 1-2
+row
+[Python · lists] v zram
+ab ram a = [2, 5] · b = [7, 1] | 2D | متجهين 2D | 16-17
+cd ram c = [1, 2, 3] · d = [-2, 0, 5] | 3D | متجهين 3D | 20-21
+big ram big = [1] * 50 | 50 ones | متجه بـ 50 خانة | 28
+[Our functions] v zgpu
+dot prg def dot(a, b) | total += a[i] * b[i] for each i | الضرب النقطي | 5-9
+len prg def length(a) | math.sqrt(dot(a, a)) | الطول | 12-13
+[Terminal (print)] v zloop
+p1 out dot(a, b) · dot(c, d) | 19 · 13 | الضرب النقطي | 18, 22
+p2 out length(a) · sqrt(29) · squared | 5.3852 · 5.3852 · 29.0 = a · a | الطول = جذر الضرب في نفسه | 24-26
+p3 out length(big) · sqrt(50) | 7.0711 · 7.0711 | نفس القاعدة في 50 بُعد | 29
+term out Terminal | $term | اللي اتطبع | -
+~ imp ab
+> ab dot
+> cd dot
+> big len
+> dot len
+> dot p1
+> len p2
+> p1 p2
+> p2 p3
+> p3 term
+
+@d6_m2
+[Setup] h none
+imp ctl # review with NumPy | import numpy as np | الفكرة والمكتبة | 1-2
+row
+[Python · arrays] v zram
+ab ram a = [2, 5] · b = [7, 1] | np.array | 2D | 4-5
+cde ram c, d, e (3D) | c = [1, 2, 3] · d = [-2, 0, 5] ; e = [4, -1, 2] | 3D | 9-11
+u ram u = [3, 4] | np.array | متجه طوله 5 | 16
+[Properties checked] v zgpu
+p1 prg a · b and \|a\| | 19 · 5.3852 · \|a\|² = 29 = a · a | الطول | 6-7
+p2 prg c · d = d · c | 13 = 13 | الترتيب مش فارق | 12
+p3 prg c · (d + e) = c · d + c · e | 21 = 21 | التوزيع | 13
+p4 prg (3c) · d = 3 (c · d) | 39 = 39 | الضرب في رقم | 14
+p5 prg u / \|u\| | [0.6 0.8] · length 1.0 | متجه الوحدة | 17
+[Terminal (print)] v zloop
+term out Terminal | $term | كل خاصية اتأكدت | -
+~ imp ab
+> ab p1
+> cde p2
+> cde p3
+> cde p4
+> u p5
+> p1 term
+> p5 term
+
+@d6_r1
+[Setup (once)] h none
+main ctl main() | L50 | البداية | 50-51
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 52-65
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 67-68
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 132-133, 151
+row
+[CPU · RAM] v zram
+pos ram float positions[8] | 32 B · 4 corners × (x, y) | أركان المربع | 70-75
+idx ram unsigned indices[6] | 24 B ; 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 77-80
+src ram Shader text (2 strings) | fragment: color = u_Color | نص الـ Shaders | 99-119
+loc ram location = 0 (u_Color) | -1 → "not found" | خانة اللون | 124-126
+rv ram r · increment · frame | r = 0 · increment = 0.05 · frame = 0 ; changed every frame | الأحمر والعداد | 128-130
+[GPU · Buffers + VAO] v zgpu
+buf buf Buffer 1 · buffer | GL_ARRAY_BUFFER · 32 B | الأركان | 86-89
+ibo buf Buffer 2 · ibo (EBO) | GL_ELEMENT_ARRAY_BUFFER · 24 B | الترتيب | 94-97
+vao vao VAO 1 · vao | slot 0 ← Buffer 1 · stride 8 ; EBO = Buffer 2 | وصف الركن | 82-84, 91-92
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | Fragment: color = u_Color | CreateShader + glUseProgram | 121-122
+back out Back buffer · 640 × 480 | glClear L134 | اللوحة اللي ورا | 134
+win out Window "Animated Color" | $img | اللي بتشوفه | 149-150
+term out Terminal | $term | كل 10 فريمات سطر | -
+row
+[Render loop (each frame)] h zloop
+draw m2 Draw with the current r | L136 glUniform4f(location, r, 0.3, 0.8, 1) ; L137 glDrawElements(6) | اللون بياخد r | 136-137
+bump m1 Change r | r > 1 → -0.05 · r < 0 → +0.05 ; r += increment | r رايح جاي | 139-143
+log m1 Print every 10 frames | frame % 10 == 0 → cout ; frame++ | سطر كل 10 فريمات | 145-147
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · iostream · string | المكتبات | 1-4
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 6-31
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 33-48
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 153-156
+~ main glfw
+~ glfw glad
+~ glad loop
+> pos buf L89
+> idx ibo L97
+> buf vao
+> ibo vao
+> vao prog vertices
+> src prog L121
+> loc prog glUniform4f
+> prog back
+> back win swap · L149
+> rv draw r
+~ loop draw
+~ draw bump
+~ bump log
+> log term
+> cs cr
+
+@d6_r2
+[Setup (once)] h none
+main ctl main() | L50 | البداية | 50-51
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 52-65
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 67-68
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 136-137, 150
+row
+[CPU · RAM] v zram
+pos ram float positions[8] | 32 B · 4 corners × (x, y) | أركان المربع | 70-75
+idx ram unsigned indices[6] | 24 B ; 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 77-80
+vs ram std::string vertexShader | v_Position = position.xy → fragment | بيبعت المكان | 99-109
+fs ram std::string fragmentShader | r = 0.5 + 0.5 sin(u_Time + 3x) ; g = 0.5 + 0.5 sin(u_Time + 2) ; b = 0.5 + 0.5 sin(u_Time + 4 + 3y) | اللون من الوقت والمكان | 111-125
+loc ram timeLocation (u_Time) | -1 → "not found" · frame = 0 | خانة الوقت | 130-134
+[GPU · Buffers + VAO] v zgpu
+buf buf Buffer 1 · buffer | GL_ARRAY_BUFFER · 32 B | الأركان | 86-89
+ibo buf Buffer 2 · ibo (EBO) | GL_ELEMENT_ARRAY_BUFFER · 24 B | الترتيب | 94-97
+vao vao VAO 1 · vao | slot 0 ← Buffer 1 · stride 8 ; EBO = Buffer 2 | وصف الركن | 82-84, 91-92
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | u_Time: one float | CreateShader + glUseProgram | 127-128
+back out Back buffer · 640 × 480 | glClear L138 | اللوحة اللي ورا | 138
+win out Window "Time Colors" | $img | اللي بتشوفه | 148-149
+term out Terminal | $term | كل 30 فريم سطر | -
+row
+[Render loop (each frame)] h zloop
+tm m2 time = glfwGetTime() | L141 glUniform1f(timeLocation, time) | الثواني من أول التشغيل | 140-141
+draw m2 Draw | L142 glDrawElements(6) | كل بكسل بيحسب لونه | 142
+log m1 Print every 30 frames | frame % 30 == 0 → cout ; frame++ | سطر كل 30 فريم | 144-146
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · iostream · string | المكتبات | 1-4
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 6-31
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 33-48
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 152-155
+~ main glfw
+~ glfw glad
+~ glad loop
+> pos buf L89
+> idx ibo L97
+> buf vao
+> ibo vao
+> vao prog vertices
+> vs prog L127
+> fs prog
+> loc prog
+> prog back
+> back win swap · L148
+~ loop tm
+~ tm draw
+~ draw log
+> log term
+> cs cr
+
+@d6_c1
+[Setup (once)] h none
+main ctl main() | L178 | البداية | 178-179
+glfw ctl GLFW | window 640 × 480 (k-settings) | الشباك والـ Context | 180-193
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 195-196
+loop ctl while loop | DrawScene · swap · poll | كل لفة = فريم | 217-222
+row
+[Settings + data (globals)] v zram
+set ram settings in one place | kWindowWidth 640 · kWindowHeight 480 ; kPointSize 10 · struct Color | مفيش أرقام سحرية | 7-15
+col ram kLineColor · kPointColor | white (1, 1, 1) · orange (1, 0.5, 0.1) | الألوان | 17-18
+ty vao struct Polyline | int first · int count | بداية وعدد نقط كل خط | 65-70
+pts ram points · polylines · buffer | vector<float> · vector<Polyline> · id | كل النقط والخطوط | 72-74
+hlp ram 2 small counters | PointCount() = points / 2 ; FinishedLineCount() = lines − 1 | دوال صغيرة بأسماء واضحة | 76-84
+[The three user actions] v zgpu
+ap prg AddPoint(x, y) | push x, y · count++ · print ; UploadPoints() | نقطة جديدة | 97-105
+fl prg FinishLine() | print · StartNewLine() | خلصنا الخط | 107-111
+dl prg DeleteLastLine() | pop the empty one · pop last ; points.resize(size − count × 2) | مسح آخر خط | 113-133
+up prg Upload + StartNewLine | UploadPoints(): glBufferData ; StartNewLine(): push { PointCount(), 0 } | الرفع للكارت وخط جديد | 86-95
+[GLFW callbacks (only translate)] v zloop
+mcb m1 MouseButtonCallback() | right → FinishLine() ; left → pixel → AddPoint(x, y) | الماوس | 135-152
+kcb m2 KeyCallback() | Backspace → DeleteLastLine() | الكيبورد | 154-158
+row
+[GPU · Program → screen] v zgpu
+vao vao VAO 1 + Buffer 1 | slot 0 ← 2 floats · stride 8 | الوصف | 198-206
+prog prg Program 1 (shader) | location · glPointSize(10) ; StartNewLine · 2 callbacks | CreateShader + glUseProgram | 208-215
+win out Window "Refactored" | $img | اللي بتشوفه | -
+[Terminal] v zloop
+term out Terminal | $term | كل ضغطة | -
+row
+[Drawing (each frame)] h zloop
+sc m2 SetColor(location, c) | glUniform4f(c.r, c.g, c.b, c.a) | لون واحد | 160-164
+ds m2 DrawScene(location) | glClear · lines in kLineColor ; points in kPointColor | المشهد كله | 166-176
+row
+[Helpers + cleanup] h zloop
+inc ctl // refactoring + #include × 4 | glad · GLFW · iostream · vector | الفكرة والمكتبات | 1-5
+sh prg Shaders | text · CompileShader() ; CreateShader() | الـ Shaders | 20-63
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 224-227
+~ main glfw
+~ glfw glad
+~ glad loop
+~ mcb ap
+~ mcb fl
+~ kcb dl
+> ap pts
+> dl pts
+> ap up
+> fl up
+> pts vao
+> ap term
+~ loop ds
+> ds sc
+> col sc

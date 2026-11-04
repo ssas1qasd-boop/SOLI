@@ -1,0 +1,104 @@
+<title>بايتات البرامج</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: a byte ledger. One wide table, program column pinned on the right, column groups colour-coded,
+   day totals boxed in a heavy rule so a total can never be mistaken for a program row. */
+:root{
+  --bg:#f3f4f1; --surface:#fbfbf9; --fg:#1d2124; --muted:#5f676c; --rule:#c9cdc8; --strong:#1d2124;
+  --vao:#ece4fb; --vao-ink:#5b3fa8; --vbo:#fbeed6; --vbo-ink:#8a5a00; --ebo:#daf1ec; --ebo-ink:#0f6b5c;
+  --addg:#1f6fd1; --adde:#c2410c; --addg-bg:#cfe2fb; --adde-bg:#fde3d3;
+  --gpu:#dfeaf8; --gpu-ink:#1f4f8f; --exe:#eceeed; --day:#e4e7e3; --total:#fff7e0;
+  --sans:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15181a; --surface:#1c2023; --fg:#e7eae8; --muted:#9aa3a8; --rule:#3a4146; --strong:#f2f4f2;
+  --vao:#2c2543; --vao-ink:#c6b4ff; --vbo:#3a2f17; --vbo-ink:#ffcf73; --ebo:#143a34; --ebo-ink:#7fe0cc;
+  --gpu:#182c46; --gpu-ink:#9cc6ff; --exe:#23282b; --day:#252a2d; --total:#2e2a1b; --addg:#6aa9ff; --adde:#ff9b63; --addg-bg:#1d3556; --adde-bg:#4a2a18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15181a; --surface:#1c2023; --fg:#e7eae8; --muted:#9aa3a8; --rule:#3a4146; --strong:#f2f4f2;
+  --vao:#2c2543; --vao-ink:#c6b4ff; --vbo:#3a2f17; --vbo-ink:#ffcf73; --ebo:#143a34; --ebo-ink:#7fe0cc;
+  --gpu:#182c46; --gpu-ink:#9cc6ff; --exe:#23282b; --day:#252a2d; --total:#2e2a1b; --addg:#6aa9ff; --adde:#ff9b63; --addg-bg:#1d3556; --adde-bg:#4a2a18; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);direction:rtl;line-height:1.55;margin:0}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+h1{font-size:clamp(22px,3.4vw,32px);margin:0 0 6px;text-wrap:balance}
+.lede{margin:0 0 14px;max-width:70ch;color:var(--muted)}
+.keys{display:flex;flex-wrap:wrap;gap:8px 14px;margin:0 0 14px;font-size:13px}
+.keys span{display:inline-flex;align-items:center;gap:6px}
+.keys i{width:14px;height:14px;border:1px solid var(--rule);display:inline-block}
+.scroller{overflow-x:auto;border:1px solid var(--rule);background:var(--surface);-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;font-size:13px;min-width:max-content}
+th,td{border:1px solid var(--rule);padding:6px 9px;vertical-align:top;text-align:right}
+thead th{position:sticky;top:0;background:var(--surface);z-index:2;font-weight:600;white-space:nowrap}
+thead tr.cols th{top:35px;font-size:12px}
+thead tr.groups th{font-size:13px}
+th.corner{right:0;z-index:4}
+tbody th[scope="row"]{position:sticky;right:0;background:var(--surface);z-index:1;min-width:150px;max-width:190px;font-weight:600}
+td{min-width:72px;max-width:280px}
+td .why{color:var(--fg);font-size:13px;font-weight:500}
+td small,th small{color:var(--muted);font-size:11.5px}
+th small.src{display:block;font-weight:400;font-size:10.5px;color:var(--muted)}
+.calc{white-space:nowrap;font-size:11.5px;display:block}
+td.wide{max-width:none;white-space:nowrap}
+td small.f{display:block;margin-top:2px;font-family:var(--mono);font-size:10.5px;line-height:1.45;max-width:260px;overflow-wrap:anywhere}
+td b{font-family:var(--mono)}
+code{font-family:var(--mono);font-size:12px}
+bdi{font-family:var(--mono)}
+.n{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.n.big{font-size:14px}
+.vao{background:var(--vao)} th.vao{color:var(--vao-ink)}
+.vbo{background:var(--vbo)} th.vbo{color:var(--vbo-ink)}
+.ebo{background:var(--ebo)} th.ebo{color:var(--ebo-ink)}
+.gpu,.fb,.sh,.uni{background:var(--gpu)} th.gpu,th.fb,th.sh,th.uni{color:var(--gpu-ink)}
+.exe,.code{background:var(--exe)}
+thead th.vao,thead th.vbo,thead th.ebo{font-weight:700}
+tr.day th{background:var(--day);font-size:15px;padding:9px 12px;position:sticky;right:0}
+tr.day th span{font-weight:700}
+tr.day .dl{position:sticky;right:12px;display:inline-block}
+tr.total td,tr.total th{background:var(--total);border-top:3px solid var(--strong);border-bottom:3px solid var(--strong)}
+tr.total th{border-right:3px solid var(--strong);background:var(--total)}
+tr.total td:last-child{border-left:3px solid var(--strong)}
+tr.total .n{font-weight:700}
+tr.grand td,tr.grand th{border-width:4px;border-style:double}
+@media (max-width:600px){tbody th[scope="row"]{min-width:104px;max-width:120px;font-size:12px}}
+.bd{display:block;width:max-content;margin:0 0 3px;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700;color:#fff}
+.bd-gpu{background:var(--addg)} .bd-exe{background:var(--adde)}
+.bd.rs{border-radius:3px}
+td.add-gpu,th.add-gpu{background:var(--addg-bg);border-left:2px dashed var(--addg);border-right:2px dashed var(--addg)}
+td.add-exe,th.add-exe{background:var(--adde-bg);border-left:2px dashed var(--adde);border-right:2px dashed var(--adde)}
+td.res-gpu,th.res-gpu{border:3px solid var(--addg);background:var(--addg-bg)}
+td.res-exe,th.res-exe{border:3px solid var(--adde);background:var(--adde-bg)}
+tr.total td.add-gpu,tr.total td.add-exe{background:var(--total)}
+.notes{margin-top:18px;display:grid;gap:10px;max-width:80ch;font-size:14px}
+.notes h2{font-size:16px;margin:8px 0 0}
+.notes p{margin:0}
+.notes code{background:var(--exe);padding:0 4px}
+</style>
+<div class="wrap">
+  <h1>بايتات برامج الأسبوع التاني والتالت</h1>
+  <p class="lede">كل بايت في 26 برنامج رسم و CAD من الأسبوع 2 (الأيام 1–7) وأول يومين في الأسبوع 3: الداتا اللي اتبعتت للكارت، واللي قاعد على الكارت، وملف البرنامج نفسه. كل صف: مجموع خانات «على الكارت» = الإجمالي بتاعها، ومجموع خانات «ملف البرنامج» = حجم الملف بالظبط. اسحب الجدول يمين وشمال.</p>
+  <div class="keys" aria-label="ألوان الأعمدة">
+    <span><i style="background:var(--vao)"></i>الـ VAO</span><span><i style="background:var(--vbo)"></i>الـ VBO</span><span><i style="background:var(--ebo)"></i>الـ EBO</span>
+    <span><i style="background:var(--gpu)"></i>على الكارت</span><span><i style="background:var(--exe)"></i>ملف البرنامج</span>
+    <span><i style="background:var(--total);border:3px solid var(--strong)"></i>إجمالي (مستطيل خطه تقيل)</span>
+    <span><i style="background:var(--addg-bg);border:2px dashed var(--addg)"></i><b style="color:var(--addg)">اجمع الأعمدة دي ➕</b> تطلع «على الكارت»</span>
+    <span><i style="background:var(--adde-bg);border:2px dashed var(--adde)"></i><b style="color:var(--adde)">اجمع الأعمدة دي ➕</b> تطلع «ملف الـ exe»</span>
+  </div>
+  <div class="scroller" tabindex="0" aria-label="جدول البايتات">
+    <table><thead>%%HEAD%%</thead><tbody>
+%%BODY%%
+    </tbody></table>
+  </div>
+  <div class="notes">
+    <h2>الأرقام جت منين</h2>
+    <p><b>الـ VBO والـ EBO والـ Uniforms:</b> من التشغيل الحقيقي (الرقم اللي اتبعت في <code>glBufferData</code> و <code>glUniform…</code>). كل رقم float أو int = 4 بايت.</p>
+    <p><b>الـ VAO = 0:</b> الـ VAO ورقة تعليمات جوه الدرايفر مش داتا بتتبعت، و OpenGL مافيهوش أمر يقول حجمها.</p>
+    <p><b>لوحات الرسم:</b> الدرايفر أكد إن كل لوحة 4 بايت للبكسل: Back و Front (أحمر وأخضر وأزرق وشفافية) و Depth + Stencil (24 + 8 بت). GLFW بيعمل الـ Depth لكل شباك حتى لو البرنامج مش بيستخدمها.</p>
+    <p><b>Program المترجم:</b> متقاس من الدرايفر بـ <code>GL_PROGRAM_BINARY_LENGTH</code>. التشغيل كان على llvmpipe (Mesa بيعمل شغل الكارت على المعالج)، فعلى كارت حقيقي الرقم ده هيختلف، واللوحات هتفضل بنفس الحجم تقريباً.</p>
+    <p><b>ملف البرنامج:</b> اتبنى <code>-O2 -s</code> (من غير معلومات الـ debug)، وكل بايت في الملف اتحسب في خانة واحدة من خريطة الـ linker. GLAD لوحدها 183,996 بايت في كل برنامج. <code>CreateShader</code> مش ظاهرة لوحدها لأن المترجم حطها جوه <code>main</code>.</p>
+    <p><b>الـ Textures (الأسبوع 3):</b> كل بكسل في الصورة 4 بايت (أحمر وأخضر وأزرق وشفافية) لأننا طلبنا <code>GL_RGBA8</code>، فـ logo.png (128 × 128) = 65,536 بايت على الكارت. وملف <code>texture.cpp</code> أكبر بحوالي 98 كيلو لأن كود stb_image كله جوه البرنامج. وفي <code>pixel_cat.cpp</code> الصورة 16 × 16 = 1,024 بايت، والنسخ المصغّرة (Mipmaps) اللي <code>glGenerateMipmap</code> عملها زوّدت 256 + 64 + 16 + 4 = 340 بايت، والإجمالي 1,364.</p>
+    <p><b>الإجمالي الكلي في «على الكارت»:</b> مجموع البرامج لو اشتغلوا مع بعض. في الحقيقة كل برنامج بيشتغل لوحده.</p>
+  </div>
+</div>

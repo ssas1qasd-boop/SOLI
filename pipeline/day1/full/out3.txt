@@ -1,0 +1,5 @@
+[1,2] . [3,4] = 11
+[6,2,8,3] . [1,8,5,3] = 71
+same direction: 7
+perpendicular:  0
+opposite:       -7

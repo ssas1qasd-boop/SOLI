@@ -1,0 +1,13 @@
+V = 2, E = 3, F = 3
+edge 0: circle z = 2, from v0 to v0
+edge 1: line (seam), from v0 to v1
+edge 2: circle z = 0, from v1 to v1
+face 0: plane z = 2 (top), loop: e0+
+face 1: cylinder r = 1 (side), loop: e0- e1+ e2+ e1-
+face 2: plane z = 0 (bottom), loop: e2-
+edge 0 is used 2 times  (ok: manifold)
+edge 1 is used 2 times  (ok: manifold)
+edge 2 is used 2 times  (ok: manifold)
+V - E + F = 2
+C(t = pi/2) on edge 0 = (-4.37114e-08, 1, 2)
+S(u = pi/2, v = 1) on face 1 = (-4.37114e-08, 1, 1)

@@ -1,0 +1,273 @@
+@d9_p1
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L39 · return 0 | البداية | 39-40, 58-59
+row
+[Types] v zgpu
+ps vao struct PlayerS | x, y, speed · Move(xa, ya) ; members public by default | struct | 3-13
+pc vao class PlayerC | public: x, y, speed · Move() ; (without public: they'd be private) | class | 15-26
+v2 vao struct Vec2 | float x, y · Add(const Vec2&) | متجه صغير | 28-37
+[Objects (main)] v zram
+s ram PlayerS s | 0, 0, speed 2 · Move(1, -1) | من الـ struct | 41-43
+c ram PlayerC c | 0, 0, speed 2 · Move(1, -1) | من الـ class | 45-47
+pv ram position, velocity | (1, 2) · (0.5, -1) ; Add × 2 → (2, 0) | جمع متجهات | 52-55
+[Terminal (std::cout)] v zloop
+p1 out s and c | x = 2, y = -2 · sizeof 12 (both) | نفس النتيجة ونفس الحجم | 49-50
+p2 out position · sizeof(Vec2) | (2, 0) · 8 bytes | 2 float = 8 بايت | 56-57
+term out Terminal | $term | الفرق بس في الـ default | -
+~ inc main
+> s ps
+> c pc
+> pv v2
+> ps p1
+> pc p1
+> v2 p2
+> p1 p2
+> p2 term
+
+@d9_p2
+[Setup] h none
+inc ctl #include × 2 | iostream · cstddef (offsetof) | المكتبات | 1-2
+main ctl main() | L10 · return 0 | البداية | 10-11, 32-33
+row
+[The vertex] v zgpu
+vt vao struct Vertex | float x, y · float u, v | ركن واحد = 16 بايت | 4-8
+[CPU · RAM] v zram
+sq ram Vertex square[4] | 4 × 16 = 64 bytes ; x y u v · x y u v · and so on | المربع | 12-17
+nm ram float* numbers = &square[0].x | the same 64 bytes as 16 floats | نفس البايتات كأرقام | 24
+ch ram square[2].u = 2 | = numbers[10] | تعديل من الطريقين | 30
+[Terminal (std::cout)] v zloop
+sz out sizeof · offsetof | 16 (stride) · x at 0 · u at 8 ; square = 64 bytes | الـ stride والـ offset | 19-22
+fl out read as floats | 16 numbers | الأرقام ورا بعض | 25-28
+af out after the change | numbers[10] = 2 | نفس الخانة | 31
+term out Terminal | $term | ده اللي glVertexAttribPointer محتاجه | -
+~ inc main
+> vt sq
+> sq nm
+> nm fl
+> ch af
+> vt sz
+> sz fl
+> fl af
+> af term
+
+@d9_m1
+[Setup] h none
+cm ctl transformations by hand | plain Python | من غير مكتبات | -
+row
+[Functions] v zgpu
+T prg def T(v) | (x1 + 2·x2, 3·x3) | من ℝ³ لـ ℝ² | 1-3
+tm prg def times(A, v) | row · v for each row | ضرب مصفوفة في متجه | 14-15
+S prg def S(v) | (x1², x2 + 1) | تحويل مش خطي | 22-24
+[Data] v zram
+A ram A = [[1, 2, 0], [0, 0, 3]] | 2 rows · 3 columns | مصفوفة T | 10-11
+vs ram 3 test vectors | (1, 1, 1) · (2, 4, 1) · (0, 0, 0) | اللي هنجرب عليه | 18
+[Results (print)] v zloop
+r1 out T(1, 1, 1) · T(2, 4, 1) | (3, 3) · (10, 3) · 3 in, 2 out | ℝ³ → ℝ² | 6-8
+r2 out T(v) = A times v | for each test vector | نفس النتيجة | 19
+r3 out S(0, 0, 0) · S(2, 0, 0) | (0, 1) moved · (4, 1) ≠ (2, 2) | S مش خطي | 27-28
+term out Terminal | $term | اللي اتطبع | -
+~ cm T
+> T r1
+> A tm
+> vs r2
+> tm r2
+> T r2
+> S r3
+> r1 r2
+> r2 r3
+> r3 term
+
+@d9_m2
+[Setup] h none
+imp ctl import numpy + matplotlib | backend "Agg" (save to file) | المكتبات | 1-4
+row
+[Python · arrays] v zram
+P ram P (2 × 3) | [[0.9, 0.45, 0], [0, 0.35, 0.9]] | الإسقاط: ℝ³ → ℝ² | 6-8
+cb ram cube: 8 corners · centered | cube − 0.5 | المكعب | 10-12
+ed ram edges: 12 pairs | (0, 1) (1, 2) and the rest | الحروف | 23
+[NumPy] v zgpu
+sc prg screen = (P @ centered.T).T | corner 5 → [0.225 0.275] | كل الأركان مرة واحدة | 13-14
+bh prg yesterday's formula by hand | [0.225 0.275] | نفس الرقم | 16-18
+ln prg T(a + b) vs T(a) + T(b) | [0, -0.9] both | خطي | 20-21
+pl out plot → projection.png | lines + blue corners + numbers | الصورة | 24-34
+[Terminal (print)] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ imp P
+> P sc
+> cb sc
+> sc bh
+> P ln
+> sc pl
+> ed pl
+> bh term
+> pl term
+
+@d9_c1
+[Setup] h none
+inc ctl #include × 4 | iostream · vector · set · utility | المكتبات | 1-4
+ty vao Vec3 · Triangle | x, y, z · a, b, c (corner numbers) | الأنواع | 6-14
+main ctl main() | L40 · return 0 | البداية | 40-41, 71-72
+row
+[The cube as triangles] v zram
+vx ram 8 vertices | from (0, 0, 0) to (1, 1, 1) | الأركان | 42-43
+tr ram 12 triangles | 2 per face · numbers into vertices | المثلثات | 44-46
+sz ram face list vs indexed | list: 36 × 12 = 432 B ; indexed: 8 × 12 + 12 × 12 = 240 B | الترقيم بيوفر | 48-52
+eg ram std::set edges | each triangle gives 3 ; the set drops repeats | 18 حرف | 54-65
+[Barycentric (triangle 0,0 · 4,0 · 0,4)] v zgpu
+a2 prg Area2(a, b, c) | (b − a) × (c − a) in 2D | ضعف المساحة | 16-19
+bc prg Barycentric(px, py) | alpha, beta, gamma = area ratios | وزن كل ركن | 21-27
+wh prg where is P? | negative → outside ; zeros: 1 → edge · 2 → vertex | فين النقطة | 28-38
+calls ram 4 points | (1, 1) · (2, 2) · (4, 0) · (3, 3) | التجارب | 67-70
+[Terminal (std::cout)] v zloop
+term out Terminal | $term | V − E + F = 2 | -
+~ inc ty
+~ ty main
+> vx sz
+> tr sz
+> tr eg
+> calls bc
+> a2 bc
+> bc wh
+> sz term
+> eg term
+> wh term
+
+@d9_t1
+[Setup (once)] h none
+main ctl main() | L51 | البداية | 51-52
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 53-66
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 68-69
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 148-150, 163
+row
+[Disk + CPU · RAM] v zram
+png ram res/pixel_cat.png | stbi_load, flipped ; 16 × 16 · 4 channels | صورة القطة | 119-122
+vtx ram GLfloat vertices[20] | 4 corners × (x y z + u v) · stride 20 B | المربع ومكان الصورة | 71-76
+idx ram GLuint indices[6] | 0, 2, 1,  (triangle 1) ; 0, 3, 2  (triangle 2) | ترتيب المثلثين | 77-80
+src ram Shader text (2 strings) | vertex: texCoord = aTex ; fragment: texture(tex0, texCoord) | نص الـ Shaders | 96-115
+[GPU · Texture + VAO] v zgpu
+tex buf Texture 1 (slot 0) | NEAREST_MIPMAP · NEAREST · REPEAT ; glTexImage2D RGBA + mipmaps | البكسلات حادة | 124-138
+vao vao VAO 1 + vbo + ebo | slot 0 ← xyz · slot 1 ← uv · stride 20 | الوصف | 82-94
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | tex0 = slot 0 · blending on ; clear (0.07, 0.13, 0.17) | CreateShader + glUseProgram | 117, 140-146
+win out Window "Pixel Cat" | $img | اللي بتشوفه | 161-162
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+draw m2 Bind + draw | L152 glUseProgram · L153 bind texture ; L154 bind vao · L155 glDrawElements(6) ; frame 0 → glGetError() | القطة على المربع | 151-159
+row
+[Helpers (called from main) + cleanup] g3 zloop
+inc ctl #include × 5 | glad · GLFW · iostream ; string · stb_image.h | المكتبات | f0:1-5
+stb ctl stb.cpp | #define STB_IMAGE_IMPLEMENTATION ; #include "stb_image.h" | كود المكتبة نفسه | f1:1-2
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 7-32
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 34-49
+cl ctl Cleanup | glDeleteTextures · glDeleteProgram ; glfwTerminate | التنضيف والخروج | 165-169
+~ main glfw
+~ glfw glad
+~ glad loop
+> png tex L134
+> vtx vao L87
+> idx vao
+> tex prog slot 0
+> src prog L117
+> vao prog
+> prog win
+> png term L122
+~ loop draw
+> cs cr
+
+@d9_t2
+[Setup (once)] h none
+main ctl main() | L51 | البداية | 51-52
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 53-66
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 68-69
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 147-149, 164
+row
+[Disk + CPU · RAM] v zram
+png ram res/logo.png | stbi_load, flipped | الصورة | 121-123
+vtx ram GLfloat vertices[16] | 4 corners × (x y + u v) · stride 16 B | المربع | 71-76
+idx ram GLuint indices[6] | 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 77
+arr ram modes · offsets · border | REPEAT · MIRRORED · CLAMP_TO_EDGE ; CLAMP_TO_BORDER · 4 corners · red border | إعدادات الأربعة | 125-127
+src ram Shader text (2 strings) | vertex: + offset · uv × 2 − 0.5 ; fragment: texture(tex0, uv) | uv من −0.5 لـ 1.5 | 93-113
+[GPU · 4 textures + VAO] v zgpu
+tx buf Textures 1 to 4 | for i < 4: LINEAR · WRAP = modes[i] ; border color · glTexImage2D | نفس الصورة بـ 4 إعدادات | 128-141
+vao vao VAO 1 + vbo + ebo | slot 0 ← xy · slot 1 ← uv · stride 16 | الوصف | 79-91
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | tex0 = slot 0 · offset uniform ; blending · clear (0.07, 0.13, 0.17) | CreateShader + glUseProgram | 115-119, 143-145
+win out Window "Wrap Modes" | $img | اللي بتشوفه | 162-163
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+lp m2 for i = 0 .. 3 | L153 bind textures[i] ; L154 offset = offsets[i] ; L155 glDrawElements(6) | 4 مربعات بـ 4 أنواع تكرار | 150-156
+log m1 check once | frame 0 → glGetError() = 0 | التأكد | 158-160
+row
+[Helpers (called from main) + cleanup] g3 zloop
+inc ctl #include × 5 | glad · GLFW · iostream ; string · stb_image.h | المكتبات | f0:1-5
+stb ctl stb.cpp | #define STB_IMAGE_IMPLEMENTATION ; #include "stb_image.h" | كود المكتبة نفسه | f1:1-2
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 7-32
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 34-49
+cl ctl Cleanup | glDeleteTextures(4) ; glDeleteProgram · glfwTerminate | التنضيف والخروج | 166-170
+~ main glfw
+~ glfw glad
+~ glad loop
+> png tx
+> arr tx
+> vtx vao L84
+> idx vao
+> tx prog
+> src prog L115
+> vao prog
+> prog win
+> tx term L141
+~ loop lp
+~ lp log
+> cs cr
+
+@d9_c2
+[Setup (once)] h none
+main ctl main() | L78 | البداية | 78-79
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 80-93
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 95-96
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 138-140, 155
+row
+[CPU · RAM] v zram
+ty vao struct Corner | x, y · r, g, b · 20 bytes | ركن بلونه | 50-54
+tri ram Corner triangle[3] | red (-0.8, -0.8) · green (0.8, -0.8) ; blue (0, 0.8) | المثلث | 98-102
+src ram Shader text (2 strings) | vertex: color = aColor ; fragment: FragColor = color | نص الـ Shaders | 115-133
+[GPU · Buffer + VAO] v zgpu
+vao vao VAO 1 + vbo | slot 0 ← xy · slot 1 ← rgb ; stride sizeof(Corner) = 20 | الوصف | 104-113
+ras prg Rasterizer | mixes the 3 colors by barycentric weights | الكارت بيخلط | -
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | passes the color through | CreateShader + glUseProgram | 135-136
+win out Window "Barycentric" | $img | اللي بتشوفه | 153-154
+term out Terminal | $term | الكارت والـ CPU نفس الرقم | -
+row
+[Render loop (each frame)] h zloop
+draw m2 Draw | L141 glClear · L142 glDrawArrays(3) | المثلث الملون | 141-142
+chk m1 frame 0: check 3 pixels | (320, 240) · (200, 100) · (60, 400) ; then glGetError() | نقارن بالحساب | 144-151
+row
+[CheckPixel(t, px, py) on the CPU] h zgpu
+ndc prg pixel → OpenGL | x = (px + 0.5) / 640 · 2 − 1 ; y the same with 480 | مكان البكسل | 56-59
+abg prg alpha · beta · gamma | area ratios · gamma = 1 − alpha − beta ; color = alpha·red + beta·green + gamma·blue | الأوزان واللون | 60-66
+rd prg glReadPixels + compare | outside if a weight < 0 ; else CPU color vs GPU color | نقرا من الكارت | 68-76
+row
+[Helpers + cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · iostream · string | المكتبات | 1-4
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 6-31
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 33-48
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 157-160
+~ main glfw
+~ glfw glad
+~ glad loop
+> tri vao L109
+> vao ras
+> src prog L135
+> ras prog
+> prog win
+~ loop draw
+~ draw chk
+> chk ndc
+~ ndc abg
+~ abg rd
+> rd term
+> cs cr

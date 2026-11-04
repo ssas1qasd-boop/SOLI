@@ -1,0 +1,927 @@
+Day 1: 276 lines marked * need a word-by-word breakdown
+
+===== program d1_p1 · file p1.cpp  (/home/claude/day1/full/p/p1.cpp)
+*   1| #include <iostream>
+      ↳ الشرح الموجود: مكتبة الطباعة على الشاشة (std::cout) والقراءة من الكيبورد.
+*   2| #include <cstddef>
+      ↳ الشرح الموجود: مكتبة فيها تعريف NULL.
+    3| 
+*   4| int main()
+      ↳ الشرح الموجود: نقطة البداية: البرنامج بيبدأ يشتغل من هنا.
+    5| {
+*   6|     void* a = 0;
+      ↳ الشرح الموجود: Pointer قيمته صفر = مش بيشاور على حاجة.
+*   7|     void* b = NULL;
+      ↳ الشرح الموجود: نفس الكلام بالاسم القديم NULL.
+*   8|     void* c = nullptr;
+      ↳ الشرح الموجود: نفس الكلام بالطريقة الحديثة. دي اللي تستخدمها.
+*   9|     std::cout << "a = " << a << std::endl;
+      ↳ الشرح الموجود: اطبع a.
+*  10|     std::cout << "b = " << b << std::endl;
+      ↳ الشرح الموجود: اطبع b.
+*  11|     std::cout << "c = " << c << std::endl;
+      ↳ الشرح الموجود: اطبع c. التلاتة هيطلعوا صفر.
+*  12|     std::cin.get();
+      ↳ الشرح الموجود: استنى لحد ما تدوس Enter، عشان الشباك الأسود ما يقفلش على طول.
+*  13| }
+      ↳ الشرح الموجود: قوس نهاية.
+
+===== program d1_p2 · file p2.cpp  (/home/claude/day1/full/p/p2.cpp)
+    1| #include <iostream>
+    2| 
+    3| int main()
+    4| {
+*   5|     int var = 8;
+      ↳ الشرح الموجود: بيت في الذاكرة اسمه var وجواه 8.
+*   6|     void* ptr = &var;
+      ↳ الشرح الموجود: علامة &amp; = «هات العنوان». فـ ptr شايل عنوان var.
+*   7|     std::cout << "var  = " << var << std::endl;
+      ↳ الشرح الموجود: اطبع القيمة: 8.
+*   8|     std::cout << "&var = " << &var << std::endl;
+      ↳ الشرح الموجود: اطبع العنوان: رقم طويل.
+*   9|     std::cout << "ptr  = " << ptr << std::endl;
+      ↳ الشرح الموجود: اطبع ptr: نفس العنوان بالظبط.
+   10|     std::cin.get();
+   11| }
+
+===== program d1_p3 · file p3.cpp  (/home/claude/day1/full/p/p3.cpp)
+    1| #include <iostream>
+    2| 
+    3| int main()
+    4| {
+    5|     int var = 8;
+*   6|     int* ptr = &var;
+      ↳ الشرح الموجود: الـ Pointer شايل عنوان var.
+*   7|     double* ptr2 = (double*)&var;
+      ↳ الشرح الموجود: نفس العنوان، بس قلنا «اللي هناك double» (غيّرنا النوع بالعافية).
+*   8|     std::cout << "int*    : " << ptr << std::endl;
+      ↳ الشرح الموجود: اطبع العنوان من الـ int*.
+*   9|     std::cout << "double* : " << ptr2 << std::endl;
+      ↳ الشرح الموجود: واطبعه من الـ double*: هيطلع نفس الرقم.
+*  10|     std::cout << "int size    = " << sizeof(int) << " bytes" << std::endl;
+      ↳ الشرح الموجود: حجم int: 4 بايت.
+*  11|     std::cout << "double size = " << sizeof(double) << " bytes" << std::endl;
+      ↳ الشرح الموجود: حجم double: 8 بايت.
+   12|     std::cin.get();
+   13| }
+
+===== program d1_p4 · file p4.cpp  (/home/claude/day1/full/p/p4.cpp)
+    1| #include <iostream>
+    2| 
+    3| int main()
+    4| {
+    5|     int var = 8;
+    6|     int* ptr = &var;
+*   7|     std::cout << "before: var = " << var << std::endl;
+      ↳ الشرح الموجود: اطبع القيمة قبل: 8.
+*   8|     *ptr = 10;
+      ↳ الشرح الموجود: روح للعنوان وحط 10. كده var بقى 10.
+*   9|     std::cout << "after:  var = " << var << std::endl;
+      ↳ الشرح الموجود: اطبعها بعد: 10، مع إننا ما لمسناش var نفسه.
+   10|     std::cin.get();
+   11| }
+
+===== program d1_p5 · file p5.cpp  (/home/claude/day1/full/p/p5.cpp)
+    1| #include <iostream>
+*   2| #include <cstring>
+      ↳ الشرح الموجود: مكتبة فيها memset.
+    3| 
+    4| int main()
+    5| {
+*   6|     char* buffer = new char[8];
+      ↳ الشرح الموجود: احجز 8 بايت جداد، واحفظ عنوانهم في buffer.
+*   7|     memset(buffer, 0, 8);
+      ↳ الشرح الموجود: املا الـ 8 بايت أصفار.
+*   8|     std::cout << "buffer = " << (void*)buffer << std::endl;
+      ↳ الشرح الموجود: …وهو هو اللي جوه buffer.
+*   9|     for (int i = 0; i < 8; i++)
+      ↳ الشرح الموجود: لف على الـ 8 بايت…
+*  10|         std::cout << (int)buffer[i] << " ";
+      ↳ الشرح الموجود: …واطبع كل واحد كرقم.
+*  11|     std::cout << std::endl;
+      ↳ الشرح الموجود: انزل سطر.
+*  12|     delete[] buffer;
+      ↳ الشرح الموجود: رجّع الـ 8 بايت للنظام.
+   13|     std::cin.get();
+   14| }
+
+===== program d1_p6 · file p6.cpp  (/home/claude/day1/full/p/p6.cpp)
+    1| #include <iostream>
+    2| #include <cstring>
+    3| 
+    4| int main()
+    5| {
+    6|     char* buffer = new char[8];
+    7|     memset(buffer, 0, 8);
+*   8|     char** ptr = &buffer;
+      ↳ الشرح الموجود: نجمتين = «عنوان لعنوان». شايل عنوان buffer نفسه.
+*   9|     std::cout << "ptr      = " << (void*)ptr << std::endl;
+      ↳ الشرح الموجود: اطبع اللي جوه ptr…
+*  10|     std::cout << "&buffer  = " << (void*)&buffer << std::endl;
+      ↳ الشرح الموجود: …وهو هو عنوان buffer.
+*  11|     std::cout << "*ptr     = " << (void*)*ptr << std::endl;
+      ↳ الشرح الموجود: روح لـ ptr مرة: تلاقي عنوان البيانات…
+   12|     std::cout << "buffer   = " << (void*)buffer << std::endl;
+*  13|     std::cout << "(*ptr)[0] = " << (int)(*ptr)[0] << std::endl;
+      ↳ الشرح الموجود: روح مرتين: توصل للبيانات نفسها (0).
+   14|     delete[] buffer;
+   15|     std::cin.get();
+   16| }
+
+===== program d1_dot · file dot.cpp  (/home/claude/day1/full/3_dot/main.cpp)
+    1| #include <iostream>
+*   2| #include <glm/glm.hpp>
+      ↳ الشرح الموجود: مكتبة GLM للمتجهات.
+    3| 
+*   4| float dot(const float* v, const float* w, int n)
+      ↳ الشرح الموجود: دالة الضرب النقطي: بتاخد عنوان أول رقم في كل متجه، وعدد الأرقام.
+    5| {
+*   6|     float sum = 0.0f;
+      ↳ الشرح الموجود: المجموع يبدأ صفر.
+*   7|     for (int i = 0; i < n; i++)
+      ↳ الشرح الموجود: لف على الأرقام واحد واحد.
+*   8|         sum += v[i] * w[i];
+      ↳ الشرح الموجود: اضرب الرقمين اللي قصاد بعض وزوّد على المجموع.
+*   9|     return sum;
+      ↳ الشرح الموجود: رجّع النتيجة.
+   10| }
+   11| 
+   12| int main()
+   13| {
+*  14|     float a[] = { 1, 2 };
+      ↳ الشرح الموجود: المتجه الأول [1, 2].
+*  15|     float b[] = { 3, 4 };
+      ↳ الشرح الموجود: المتجه التاني [3, 4].
+*  16|     std::cout << "[1,2] . [3,4] = " << dot(a, b, 2) << std::endl;
+      ↳ الشرح الموجود: احسب واطبع ← 11.
+   17| 
+*  18|     float c[] = { 6, 2, 8, 3 };
+      ↳ الشرح الموجود: متجه فيه 4 أرقام.
+*  19|     float d[] = { 1, 8, 5, 3 };
+      ↳ الشرح الموجود: متجه تاني فيه 4 أرقام.
+*  20|     std::cout << "[6,2,8,3] . [1,8,5,3] = " << dot(c, d, 4) << std::endl;
+      ↳ الشرح الموجود: احسب واطبع ← 71.
+   21| 
+*  22|     glm::vec2 v(2, 1);
+      ↳ الشرح الموجود: متجه بـ GLM: (2, 1).
+*  23|     std::cout << "same direction: " << glm::dot(v, glm::vec2(3, 1)) << std::endl;
+      ↳ الشرح الموجود: مع متجه في نفس الاتجاه تقريباً ← موجب (7).
+*  24|     std::cout << "perpendicular:  " << glm::dot(v, glm::vec2(-1, 2)) << std::endl;
+      ↳ الشرح الموجود: مع متجه عمودي عليه ← صفر.
+*  25|     std::cout << "opposite:       " << glm::dot(v, glm::vec2(-3, -1)) << std::endl;
+      ↳ الشرح الموجود: مع متجه عكسه ← سالب (‎-7).
+   26| 
+   27|     std::cin.get();
+   28| }
+
+===== program d1_u1 · file uniform_fixed.cpp  (/home/claude/day1/full/u/u1.cpp)
+*   1| #include <glad/glad.h>
+      ↳ الشرح الموجود: مكتبة GLAD: بتجيب دوال OpenGL. لازم تيجي قبل GLFW.
+*   2| #include <GLFW/glfw3.h>
+      ↳ الشرح الموجود: مكتبة GLFW: الشباك والكيبورد والماوس.
+    3| #include <iostream>
+    4| 
+    5| static const char* vertexShaderSrc = R"(#version 330 core
+    6| layout(location = 0) in vec4 position;
+    7| void main()
+    8| {
+    9|     gl_Position = position;
+   10| })";
+   11| 
+   12| static const char* fragmentShaderSrc = R"(#version 330 core
+   13| layout(location = 0) out vec4 color;
+   14| uniform vec4 u_Color;
+   15| void main()
+   16| {
+   17|     color = u_Color;
+   18| })";
+   19| 
+*  20| static unsigned int CompileShader(unsigned int type, const char* source)
+      ↳ الشرح الموجود: دالة بتحوّل نص Shader لبرنامج صغير يفهمه كارت الشاشة. بتاخد النوع (vertex أو fragment) والنص.
+   21| {
+*  22|     unsigned int id = glCreateShader(type);
+      ↳ الشرح الموجود: اعمل Shader فاضي من النوع ده، وخد رقمه.
+*  23|     glShaderSource(id, 1, &source, nullptr);
+      ↳ الشرح الموجود: حط النص جواه. (بنبعت &amp;source = عنوان الـ Pointer، لأن الدالة عايزة «عنوان لعنوان»)
+*  24|     glCompileShader(id);
+      ↳ الشرح الموجود: ترجمه (compile).
+*  25|     int result;
+      ↳ الشرح الموجود: متغير هنعرف فيه الترجمة نجحت ولا لأ.
+*  26|     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+      ↳ الشرح الموجود: اسأل: الترجمة نجحت؟ والإجابة تتكتب في result.
+*  27|     if (result == GL_FALSE)
+      ↳ الشرح الموجود: لو فشلت…
+   28|     {
+*  29|         char message[512];
+      ↳ الشرح الموجود: …جهّز مكان للرسالة…
+*  30|         glGetShaderInfoLog(id, 512, nullptr, message);
+      ↳ الشرح الموجود: …هات رسالة الخطأ…
+*  31|         std::cout << "Shader error: " << message << std::endl;
+      ↳ الشرح الموجود: …واطبعها عشان تعرف الغلطة فين.
+   32|     }
+*  33|     return id;
+      ↳ الشرح الموجود: رجّع رقم الـ Shader.
+   34| }
+   35| 
+*  36| static unsigned int CreateShader(const char* vertexSrc, const char* fragmentSrc)
+      ↳ الشرح الموجود: دالة بتجمع الـ Shaderين في «برنامج» واحد.
+   37| {
+*  38|     unsigned int program = glCreateProgram();
+      ↳ الشرح الموجود: اعمل برنامج فاضي.
+*  39|     unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexSrc);
+      ↳ الشرح الموجود: ترجم الـ Vertex Shader.
+*  40|     unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc);
+      ↳ الشرح الموجود: ترجم الـ Fragment Shader.
+*  41|     glAttachShader(program, vs);
+      ↳ الشرح الموجود: حط الأول في البرنامج.
+*  42|     glAttachShader(program, fs);
+      ↳ الشرح الموجود: وحط التاني.
+*  43|     glLinkProgram(program);
+      ↳ الشرح الموجود: اربطهم ببعض (link).
+*  44|     glDeleteShader(vs);
+      ↳ الشرح الموجود: امسح النسخة المنفصلة، خلاص بقت جوه البرنامج.
+*  45|     glDeleteShader(fs);
+      ↳ الشرح الموجود: ونفس الكلام للتانية.
+*  46|     return program;
+      ↳ الشرح الموجود: رجّع رقم البرنامج.
+   47| }
+   48| 
+   49| int main()
+   50| {
+*  51|     if (!glfwInit())
+      ↳ الشرح الموجود: شغّل GLFW. لو فشل…
+*  52|         return -1;
+      ↳ الشرح الموجود: اخرج من البرنامج ومعاك رقم خطأ.
+*  53|     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+      ↳ الشرح الموجود: عايزين OpenGL نسخة 3…
+*  54|     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+      ↳ الشرح الموجود: …‎.3 (يعني 3.3).
+*  55|     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+      ↳ الشرح الموجود: النسخة الحديثة (Core) بس، من غير الدوال القديمة.
+   56| 
+*  57|     GLFWwindow* window = glfwCreateWindow(640, 480, "Uniforms", nullptr, nullptr);
+      ↳ الشرح الموجود: اعمل شباك 640×480 اسمه Uniforms. وبيرجعلنا Pointer للشباك.
+*  58|     if (!window)
+      ↳ الشرح الموجود: لو الشباك ما اتعملش…
+   59|     {
+*  60|         glfwTerminate();
+      ↳ الشرح الموجود: اقفل GLFW ونضّف كل حاجة.
+   61|         return -1;
+   62|     }
+*  63|     glfwMakeContextCurrent(window);
+      ↳ الشرح الموجود: خلي الرسم يروح للشباك ده.
+*  64|     glfwSwapInterval(1);
+      ↳ الشرح الموجود: ارسم فريم واحد مع كل تحديث للشاشة (عادة 60 في الثانية). من غيره الـ animation هتبقى سريعة جداً.
+   65| 
+*  66|     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+      ↳ الشرح الموجود: خلي GLAD يجيب دوال OpenGL. لو فشل اخرج. (لازم بعد عمل الشباك)
+   67|         return -1;
+   68| 
+*  69|     float positions[] = {
+      ↳ الشرح الموجود: أماكن 4 أركان المربع (x, y):
+*  70|         -0.5f, -0.5f,
+      ↳ الشرح الموجود: ركن تحت شمال.
+*  71|          0.5f, -0.5f,
+      ↳ الشرح الموجود: ركن تحت يمين.
+*  72|          0.5f,  0.5f,
+      ↳ الشرح الموجود: ركن فوق يمين.
+*  73|         -0.5f,  0.5f
+      ↳ الشرح الموجود: ركن فوق شمال.
+*  74|     };
+      ↳ الشرح الموجود: قوس نهاية (والـ ; بعده لازمة بعد الكلاس أو المصفوفة).
+*  75|     unsigned int indices[] = {
+      ↳ الشرح الموجود: ترتيب رسم المثلثين (أرقام الأركان):
+*  76|         0, 1, 2,
+      ↳ الشرح الموجود: أول مثلث: الأركان 0 و 1 و 2.
+*  77|         2, 3, 0
+      ↳ الشرح الموجود: المثلث التاني: 2 و 3 و 0. مع بعض = مربع.
+   78|     };
+   79| 
+*  80|     unsigned int vao;
+      ↳ الشرح الموجود: رقم الـ VAO (بيفتكر إعدادات الـ buffers).
+*  81|     glGenVertexArrays(1, &vao);
+      ↳ الشرح الموجود: اعمل VAO واحد، واكتب رقمه في vao (لاحظ الـ &amp;).
+*  82|     glBindVertexArray(vao);
+      ↳ الشرح الموجود: شغّله: كل الإعدادات الجاية تتسجل فيه.
+   83| 
+*  84|     unsigned int vbo;
+      ↳ الشرح الموجود: رقم الـ VBO (مكان النقط في ذاكرة كارت الشاشة).
+*  85|     glGenBuffers(1, &vbo);
+      ↳ الشرح الموجود: اعمل buffer واحد.
+*  86|     glBindBuffer(GL_ARRAY_BUFFER, vbo);
+      ↳ الشرح الموجود: شغّله كـ buffer للنقط.
+*  87|     glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+      ↳ الشرح الموجود: انسخ الأركان لكارت الشاشة. STATIC = مش هتتغير.
+   88| 
+*  89|     glEnableVertexAttribArray(0);
+      ↳ الشرح الموجود: فعّلها.
+*  90|     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+      ↳ الشرح الموجود: اشرح شكل البيانات: كل نقطة = رقمين float، والنقطة اللي بعدها على بعد رقمين.
+   91| 
+*  92|     unsigned int ibo;
+      ↳ الشرح الموجود: رقم الـ Index Buffer (ترتيب الرسم).
+*  93|     glGenBuffers(1, &ibo);
+      ↳ الشرح الموجود: اعمله.
+*  94|     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+      ↳ الشرح الموجود: شغّله كـ buffer للترتيب.
+*  95|     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+      ↳ الشرح الموجود: انسخ الترتيب.
+   96| 
+*  97|     unsigned int shader = CreateShader(vertexShaderSrc, fragmentShaderSrc);
+      ↳ الشرح الموجود: اعمل برنامج الـ Shader من النصين.
+*  98|     glUseProgram(shader);
+      ↳ الشرح الموجود: شغّله. (لازم قبل ما نبعت الـ Uniform)
+   99| 
+* 100|     int location = glGetUniformLocation(shader, "u_Color");
+      ↳ الشرح الموجود: هات رقم خانة u_Color.
+* 101|     std::cout << "u_Color location = " << location << std::endl;
+      ↳ الشرح الموجود: اطبع الرقم عشان نتأكد إنه مش ‎-1.
+  102| 
+* 103|     int wrong = glGetUniformLocation(shader, "u_Colour");
+      ↳ الشرح الموجود: جرّب اسم فيه غلطة (Colour بدل Color).
+* 104|     std::cout << "u_Colour location = " << wrong << std::endl;
+      ↳ الشرح الموجود: اطبعه: هيطلع ‎-1 = «مش لاقيها».
+  105| 
+* 106|     while (!glfwWindowShouldClose(window))
+      ↳ الشرح الموجود: كرر طول ما الشباك مفتوح. كل لفة = فريم.
+  107|     {
+* 108|         glClear(GL_COLOR_BUFFER_BIT);
+      ↳ الشرح الموجود: امسح الشاشة.
+* 109|         glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f);
+      ↳ الشرح الموجود: ابعت اللون: أحمر قليل، أخضر قليل، أزرق كتير، مش شفاف = أزرق.
+  110|         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+  111| 
+* 112|         glfwSwapBuffers(window);
+      ↳ الشرح الموجود: اعرض الفريم على الشاشة.
+* 113|         glfwPollEvents();
+      ↳ الشرح الموجود: اقرا الكيبورد والماوس وزرار القفل.
+  114|     }
+  115| 
+* 116|     glDeleteProgram(shader);
+      ↳ الشرح الموجود: بعد ما الشباك يتقفل: امسح الـ Shader.
+  117|     glfwTerminate();
+* 118|     return 0;
+      ↳ الشرح الموجود: اخرج من البرنامج: كله تمام.
+  119| }
+
+===== program d1_u2 · file uniform_animation.cpp  (/home/claude/day1/full/u/u2.cpp)
+    1| #include <glad/glad.h>
+    2| #include <GLFW/glfw3.h>
+    3| #include <iostream>
+    4| 
+    5| static const char* vertexShaderSrc = R"(#version 330 core
+    6| layout(location = 0) in vec4 position;
+    7| void main()
+    8| {
+    9|     gl_Position = position;
+   10| })";
+   11| 
+   12| static const char* fragmentShaderSrc = R"(#version 330 core
+   13| layout(location = 0) out vec4 color;
+   14| uniform vec4 u_Color;
+   15| void main()
+   16| {
+   17|     color = u_Color;
+   18| })";
+   19| 
+   20| static unsigned int CompileShader(unsigned int type, const char* source)
+   21| {
+   22|     unsigned int id = glCreateShader(type);
+   23|     glShaderSource(id, 1, &source, nullptr);
+   24|     glCompileShader(id);
+   25|     int result;
+   26|     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+   27|     if (result == GL_FALSE)
+   28|     {
+   29|         char message[512];
+   30|         glGetShaderInfoLog(id, 512, nullptr, message);
+   31|         std::cout << "Shader error: " << message << std::endl;
+   32|     }
+   33|     return id;
+   34| }
+   35| 
+   36| static unsigned int CreateShader(const char* vertexSrc, const char* fragmentSrc)
+   37| {
+   38|     unsigned int program = glCreateProgram();
+   39|     unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexSrc);
+   40|     unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc);
+   41|     glAttachShader(program, vs);
+   42|     glAttachShader(program, fs);
+   43|     glLinkProgram(program);
+   44|     glDeleteShader(vs);
+   45|     glDeleteShader(fs);
+   46|     return program;
+   47| }
+   48| 
+   49| int main()
+   50| {
+   51|     if (!glfwInit())
+   52|         return -1;
+   53|     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+   54|     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+   55|     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+   56| 
+   57|     GLFWwindow* window = glfwCreateWindow(640, 480, "Uniforms", nullptr, nullptr);
+   58|     if (!window)
+   59|     {
+   60|         glfwTerminate();
+   61|         return -1;
+   62|     }
+   63|     glfwMakeContextCurrent(window);
+   64|     glfwSwapInterval(1);
+   65| 
+   66|     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+   67|         return -1;
+   68| 
+   69|     float positions[] = {
+   70|         -0.5f, -0.5f,
+   71|          0.5f, -0.5f,
+   72|          0.5f,  0.5f,
+   73|         -0.5f,  0.5f
+   74|     };
+   75|     unsigned int indices[] = {
+   76|         0, 1, 2,
+   77|         2, 3, 0
+   78|     };
+   79| 
+   80|     unsigned int vao;
+   81|     glGenVertexArrays(1, &vao);
+   82|     glBindVertexArray(vao);
+   83| 
+   84|     unsigned int vbo;
+   85|     glGenBuffers(1, &vbo);
+   86|     glBindBuffer(GL_ARRAY_BUFFER, vbo);
+   87|     glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+   88| 
+   89|     glEnableVertexAttribArray(0);
+   90|     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+   91| 
+   92|     unsigned int ibo;
+   93|     glGenBuffers(1, &ibo);
+   94|     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+   95|     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+   96| 
+   97|     unsigned int shader = CreateShader(vertexShaderSrc, fragmentShaderSrc);
+   98|     glUseProgram(shader);
+   99| 
+  100|     int location = glGetUniformLocation(shader, "u_Color");
+  101|     std::cout << "u_Color location = " << location << std::endl;
+  102| 
+* 103|     float r = 0.0f;
+      ↳ الشرح الموجود: كمية الأحمر، تبدأ صفر.
+* 104|     float increment = 0.05f;
+      ↳ الشرح الموجود: نزوّد قد إيه كل فريم.
+  105| 
+  106|     while (!glfwWindowShouldClose(window))
+  107|     {
+  108|         glClear(GL_COLOR_BUFFER_BIT);
+* 109|         glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
+      ↳ الشرح الموجود: ابعت اللون بالأحمر الحالي.
+  110|         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+  111| 
+* 112|         if (r > 1.0f)
+      ↳ الشرح الموجود: لو الأحمر عدّى 1…
+* 113|             increment = -0.05f;
+      ↳ الشرح الموجود: …ابدأ نقّص.
+* 114|         else if (r < 0.0f)
+      ↳ الشرح الموجود: ولو نزل تحت 0…
+* 115|             increment = 0.05f;
+      ↳ الشرح الموجود: …ارجع زوّد.
+* 116|         r += increment;
+      ↳ الشرح الموجود: غيّر الأحمر خطوة.
+  117| 
+  118|         glfwSwapBuffers(window);
+  119|         glfwPollEvents();
+  120|     }
+  121| 
+  122|     glDeleteProgram(shader);
+  123|     glfwTerminate();
+  124|     return 0;
+  125| }
+
+===== program d1_cam · file shaderClass.h  (/home/claude/day1/full/4_camera/shaderClass.h)
+*   1| #ifndef SHADER_CLASS_H
+      ↳ الشرح الموجود: حماية: لو الملف اتضم قبل كده اتخطاه.
+*   2| #define SHADER_CLASS_H
+      ↳ الشرح الموجود: علّم إنه اتضم.
+    3| 
+    4| #include <glad/glad.h>
+    5| 
+*   6| class Shader
+      ↳ الشرح الموجود: كلاس اسمه Shader: بيلم كل شغل الـ Shader في حتة واحدة.
+    7| {
+*   8| public:
+      ↳ الشرح الموجود: اللي جاي ينفع نستخدمه من برا.
+*   9|     GLuint ID;
+      ↳ الشرح الموجود: رقم برنامج الـ Shader عند كارت الشاشة.
+*  10|     Shader(const char* vertexSource, const char* fragmentSource);
+      ↳ الشرح الموجود: الـ Constructor: بياخد نصين الـ Shader ويبني البرنامج.
+*  11|     void Activate();
+      ↳ الشرح الموجود: دالة تشغيل الـ Shader.
+*  12|     void Delete();
+      ↳ الشرح الموجود: دالة مسحه.
+   13| };
+   14| 
+*  15| #endif
+      ↳ الشرح الموجود: نهاية الحماية.
+
+===== program d1_cam · file shaderClass.cpp  (/home/claude/day1/full/4_camera/shaderClass.cpp)
+*   1| #include "shaderClass.h"
+      ↳ الشرح الموجود: ضم تعريف الكلاس.
+    2| 
+*   3| Shader::Shader(const char* vertexSource, const char* fragmentSource)
+      ↳ الشرح الموجود: تعريف الـ Constructor.
+    4| {
+*   5|     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+      ↳ الشرح الموجود: اعمل Vertex Shader فاضي.
+*   6|     glShaderSource(vertexShader, 1, &vertexSource, nullptr);
+      ↳ الشرح الموجود: حط النص جواه.
+*   7|     glCompileShader(vertexShader);
+      ↳ الشرح الموجود: ترجمه.
+    8| 
+*   9|     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+      ↳ الشرح الموجود: اعمل Fragment Shader فاضي.
+*  10|     glShaderSource(fragmentShader, 1, &fragmentSource, nullptr);
+      ↳ الشرح الموجود: حط النص جواه.
+*  11|     glCompileShader(fragmentShader);
+      ↳ الشرح الموجود: ترجمه.
+   12| 
+*  13|     ID = glCreateProgram();
+      ↳ الشرح الموجود: اعمل برنامج فاضي واحفظ رقمه في ID.
+*  14|     glAttachShader(ID, vertexShader);
+      ↳ الشرح الموجود: حط الأول.
+*  15|     glAttachShader(ID, fragmentShader);
+      ↳ الشرح الموجود: حط التاني.
+*  16|     glLinkProgram(ID);
+      ↳ الشرح الموجود: اربطهم.
+   17| 
+*  18|     glDeleteShader(vertexShader);
+      ↳ الشرح الموجود: امسح النسخة المنفصلة.
+*  19|     glDeleteShader(fragmentShader);
+      ↳ الشرح الموجود: ونفس الكلام.
+   20| }
+   21| 
+*  22| void Shader::Activate()
+      ↳ الشرح الموجود: تعريف دالة التشغيل.
+   23| {
+*  24|     glUseProgram(ID);
+      ↳ الشرح الموجود: شغّل البرنامج ده.
+   25| }
+   26| 
+*  27| void Shader::Delete()
+      ↳ الشرح الموجود: تعريف دالة المسح.
+   28| {
+*  29|     glDeleteProgram(ID);
+      ↳ الشرح الموجود: امسح البرنامج.
+   30| }
+
+===== program d1_cam · file Camera.h  (/home/claude/day1/full/4_camera/Camera.h)
+*   1| #ifndef CAMERA_CLASS_H
+      ↳ الشرح الموجود: حماية: لو الملف اتضم قبل كده اتخطاه.
+*   2| #define CAMERA_CLASS_H
+      ↳ الشرح الموجود: علّم إنه اتضم.
+    3| 
+    4| #include <glad/glad.h>
+    5| #include <GLFW/glfw3.h>
+    6| #include <glm/glm.hpp>
+*   7| #include <glm/gtc/matrix_transform.hpp>
+      ↳ الشرح الموجود: فيها lookAt و perspective.
+*   8| #include <glm/gtc/type_ptr.hpp>
+      ↳ الشرح الموجود: فيها value_ptr.
+*   9| #define GLM_ENABLE_EXPERIMENTAL
+      ↳ الشرح الموجود: لازم قبل ملفات gtx في نسخ GLM الجديدة، وإلا مش هيترجم.
+*  10| #include <glm/gtx/rotate_vector.hpp>
+      ↳ الشرح الموجود: فيها rotate.
+*  11| #include <glm/gtx/vector_angle.hpp>
+      ↳ الشرح الموجود: فيها angle.
+   12| 
+   13| #include "shaderClass.h"
+   14| 
+*  15| class Camera
+      ↳ الشرح الموجود: كلاس الكاميرا.
+   16| {
+   17| public:
+*  18|     glm::vec3 Position;
+      ↳ الشرح الموجود: إنت فين.
+*  19|     glm::vec3 Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
+      ↳ الشرح الموجود: بتبص فين: لقدام (سالب z).
+*  20|     glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
+      ↳ الشرح الموجود: فين فوق: محور y.
+   21| 
+*  22|     int width;
+      ↳ الشرح الموجود: عرض الشباك.
+*  23|     int height;
+      ↳ الشرح الموجود: طوله.
+   24| 
+*  25|     float speed = 0.1f;
+      ↳ الشرح الموجود: المسافة اللي بتتحركها كل فريم.
+*  26|     float sensitivity = 100.0f;
+      ↳ الشرح الموجود: قد إيه الماوس بيلف.
+   27| 
+*  28|     bool firstClick = true;
+      ↳ الشرح الموجود: أول ضغطة ماوس؟
+   29| 
+*  30|     Camera(int width, int height, glm::vec3 position);
+      ↳ الشرح الموجود: الـ Constructor.
+   31| 
+*  32|     void Matrix(float FOVdeg, float nearPlane, float farPlane, Shader& shader, const char* uniform);
+      ↳ الشرح الموجود: دالة المصفوفة.
+*  33|     void Inputs(GLFWwindow* window);
+      ↳ الشرح الموجود: دالة الأزرار.
+   34| };
+   35| 
+   36| #endif
+
+===== program d1_cam · file Camera.cpp  (/home/claude/day1/full/4_camera/Camera.cpp)
+*   1| #include "Camera.h"
+      ↳ الشرح الموجود: ضم تعريف الكاميرا.
+    2| 
+*   3| Camera::Camera(int width, int height, glm::vec3 position)
+      ↳ الشرح الموجود: تعريف الـ Constructor.
+    4| {
+*   5|     Camera::width = width;
+      ↳ الشرح الموجود: احفظ العرض.
+*   6|     Camera::height = height;
+      ↳ الشرح الموجود: احفظ الطول.
+*   7|     Position = position;
+      ↳ الشرح الموجود: حط الكاميرا في مكان البداية.
+    8| }
+    9| 
+*  10| void Camera::Matrix(float FOVdeg, float nearPlane, float farPlane, Shader& shader, const char* uniform)
+      ↳ الشرح الموجود: تعريف دالة المصفوفة.
+   11| {
+*  12|     glm::mat4 view = glm::mat4(1.0f);
+      ↳ الشرح الموجود: مصفوفة محايدة للـ View.
+*  13|     glm::mat4 projection = glm::mat4(1.0f);
+      ↳ الشرح الموجود: مصفوفة محايدة للـ Projection.
+   14| 
+*  15|     view = glm::lookAt(Position, Position + Orientation, Up);
+      ↳ الشرح الموجود: «واقف هنا، باصص قدامي، وراسي لفوق».
+*  16|     projection = glm::perspective(glm::radians(FOVdeg), (float)width / height, nearPlane, farPlane);
+      ↳ الشرح الموجود: خلي البعيد يبان صغير.
+   17| 
+*  18|     glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(projection * view));
+      ↳ الشرح الموجود: اضربهم وابعتهم لخانة الـ Shader.
+   19| }
+   20| 
+*  21| void Camera::Inputs(GLFWwindow* window)
+      ↳ الشرح الموجود: تعريف دالة الأزرار.
+   22| {
+*  23|     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+      ↳ الشرح الموجود: W مضغوط؟
+*  24|         Position += speed * Orientation;
+      ↳ الشرح الموجود: لقدام.
+*  25|     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+      ↳ الشرح الموجود: A مضغوط؟
+*  26|         Position += speed * -glm::normalize(glm::cross(Orientation, Up));
+      ↳ الشرح الموجود: شمال.
+*  27|     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+      ↳ الشرح الموجود: S مضغوط؟
+*  28|         Position += speed * -Orientation;
+      ↳ الشرح الموجود: لورا.
+*  29|     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+      ↳ الشرح الموجود: D مضغوط؟
+*  30|         Position += speed * glm::normalize(glm::cross(Orientation, Up));
+      ↳ الشرح الموجود: يمين.
+*  31|     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+      ↳ الشرح الموجود: Space مضغوط؟
+*  32|         Position += speed * Up;
+      ↳ الشرح الموجود: لفوق.
+*  33|     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+      ↳ الشرح الموجود: Ctrl مضغوط؟
+*  34|         Position += speed * -Up;
+      ↳ الشرح الموجود: لتحت.
+*  35|     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+      ↳ الشرح الموجود: Shift مضغوط؟
+*  36|         speed = 0.4f;
+      ↳ الشرح الموجود: أسرع.
+*  37|     else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+      ↳ الشرح الموجود: لو اتساب…
+*  38|         speed = 0.1f;
+      ↳ الشرح الموجود: …السرعة العادية.
+   39| 
+*  40|     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+      ↳ الشرح الموجود: زرار الماوس الشمال مضغوط؟
+   41|     {
+*  42|         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+      ↳ الشرح الموجود: اخفي السهم.
+   43| 
+*  44|         if (firstClick)
+      ↳ الشرح الموجود: أول ضغطة؟
+   45|         {
+*  46|             glfwSetCursorPos(window, (width / 2), (height / 2));
+      ↳ الشرح الموجود: حط الماوس في نص الشاشة.
+*  47|             firstClick = false;
+      ↳ الشرح الموجود: أول ضغطة خلصت.
+   48|         }
+   49| 
+*  50|         double mouseX;
+      ↳ الشرح الموجود: مكان الماوس الأفقي.
+*  51|         double mouseY;
+      ↳ الشرح الموجود: مكانه الرأسي.
+*  52|         glfwGetCursorPos(window, &mouseX, &mouseY);
+      ↳ الشرح الموجود: هات مكان الماوس (عن طريق العناوين).
+   53| 
+*  54|         float rotX = sensitivity * (float)(mouseY - (height / 2)) / height;
+      ↳ الشرح الموجود: هنبص لفوق/تحت قد إيه.
+*  55|         float rotY = sensitivity * (float)(mouseX - (width / 2)) / width;
+      ↳ الشرح الموجود: هنبص يمين/شمال قد إيه.
+   56| 
+*  57|         glm::vec3 newOrientation = glm::rotate(Orientation, glm::radians(-rotX), glm::normalize(glm::cross(Orientation, Up)));
+      ↳ الشرح الموجود: جرّب اللفة لفوق/تحت.
+   58| 
+*  59|         if (!(glm::angle(newOrientation, Up) <= glm::radians(5.0f) || glm::angle(newOrientation, -Up) <= glm::radians(5.0f)))
+      ↳ الشرح الموجود: لو مش قريبة أوي من فوق أو تحت خالص…
+*  60|             Orientation = newOrientation;
+      ↳ الشرح الموجود: …اقبلها.
+   61| 
+*  62|         Orientation = glm::rotate(Orientation, glm::radians(-rotY), Up);
+      ↳ الشرح الموجود: لف يمين/شمال.
+   63| 
+   64|         glfwSetCursorPos(window, (width / 2), (height / 2));
+   65|     }
+*  66|     else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+      ↳ الشرح الموجود: لو سبت الماوس…
+   67|     {
+*  68|         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      ↳ الشرح الموجود: رجّع السهم.
+*  69|         firstClick = true;
+      ↳ الشرح الموجود: جهّز «أول ضغطة».
+   70|     }
+   71| }
+
+===== program d1_cam · file main.cpp  (/home/claude/day1/full/4_camera/main.cpp)
+    1| #include <glad/glad.h>
+    2| #include <GLFW/glfw3.h>
+    3| #include "shaderClass.h"
+    4| #include "Camera.h"
+    5| 
+*   6| const unsigned int width = 800;
+      ↳ الشرح الموجود: عرض الشباك 800.
+*   7| const unsigned int height = 800;
+      ↳ الشرح الموجود: وطوله 800.
+    8| 
+    9| const char* vertexSrc = R"(#version 330 core
+   10| layout (location = 0) in vec3 aPos;
+   11| layout (location = 1) in vec3 aColor;
+   12| out vec3 color;
+   13| uniform mat4 camMatrix;
+   14| void main()
+   15| {
+   16|     gl_Position = camMatrix * vec4(aPos, 1.0);
+   17|     color = aColor;
+   18| })";
+   19| 
+   20| const char* fragmentSrc = R"(#version 330 core
+   21| in vec3 color;
+   22| out vec4 FragColor;
+   23| void main()
+   24| {
+   25|     FragColor = vec4(color, 1.0);
+   26| })";
+   27| 
+*  28| GLfloat vertices[] =
+      ↳ الشرح الموجود: النقط: كل سطر = مكان (x, y, z) + لون (أحمر، أخضر، أزرق).
+   29| {
+*  30|     -0.5f, -0.5f,  0.5f,   0.55f, 0.45f, 0.35f,
+      ↳ الشرح الموجود: القاعدة (بني): ركن قدام شمال.
+*  31|     -0.5f, -0.5f, -0.5f,   0.55f, 0.45f, 0.35f,
+      ↳ الشرح الموجود: القاعدة: ركن ورا شمال.
+*  32|      0.5f, -0.5f, -0.5f,   0.55f, 0.45f, 0.35f,
+      ↳ الشرح الموجود: القاعدة: ركن ورا يمين.
+*  33|      0.5f, -0.5f,  0.5f,   0.55f, 0.45f, 0.35f,
+      ↳ الشرح الموجود: القاعدة: ركن قدام يمين.
+*  34|      0.5f, -0.5f,  0.5f,   0.95f, 0.62f, 0.25f,
+      ↳ الشرح الموجود: الوش القدامي (برتقاني): ركن يمين.
+*  35|     -0.5f, -0.5f,  0.5f,   0.95f, 0.62f, 0.25f,
+      ↳ الشرح الموجود: الوش القدامي: ركن شمال.
+*  36|      0.0f,  0.3f,  0.0f,   0.95f, 0.62f, 0.25f,
+      ↳ الشرح الموجود: الوش القدامي: القمة.
+*  37|      0.5f, -0.5f, -0.5f,   0.30f, 0.62f, 0.95f,
+      ↳ الشرح الموجود: الوش اليمين (أزرق): ركن ورا.
+*  38|      0.5f, -0.5f,  0.5f,   0.30f, 0.62f, 0.95f,
+      ↳ الشرح الموجود: الوش اليمين: ركن قدام.
+*  39|      0.0f,  0.3f,  0.0f,   0.30f, 0.62f, 0.95f,
+      ↳ الشرح الموجود: الوش اليمين: القمة.
+*  40|     -0.5f, -0.5f, -0.5f,   0.45f, 0.82f, 0.45f,
+      ↳ الشرح الموجود: الوش الورّاني (أخضر): ركن شمال.
+*  41|      0.5f, -0.5f, -0.5f,   0.45f, 0.82f, 0.45f,
+      ↳ الشرح الموجود: الوش الورّاني: ركن يمين.
+*  42|      0.0f,  0.3f,  0.0f,   0.45f, 0.82f, 0.45f,
+      ↳ الشرح الموجود: الوش الورّاني: القمة.
+*  43|     -0.5f, -0.5f,  0.5f,   0.88f, 0.38f, 0.55f,
+      ↳ الشرح الموجود: الوش الشمال (بمبي): ركن قدام.
+*  44|     -0.5f, -0.5f, -0.5f,   0.88f, 0.38f, 0.55f,
+      ↳ الشرح الموجود: الوش الشمال: ركن ورا.
+*  45|      0.0f,  0.3f,  0.0f,   0.88f, 0.38f, 0.55f
+      ↳ الشرح الموجود: الوش الشمال: القمة.
+   46| };
+   47| 
+*  48| GLuint indices[] =
+      ↳ الشرح الموجود: ترتيب الرسم: كل 3 أرقام = مثلث.
+   49| {
+   50|     0, 1, 2,
+*  51|     0, 2, 3,
+      ↳ الشرح الموجود: مثلث القاعدة التاني.
+*  52|     4, 5, 6,
+      ↳ الشرح الموجود: الوش القدامي.
+*  53|     7, 8, 9,
+      ↳ الشرح الموجود: الوش اليمين.
+*  54|     10, 11, 12,
+      ↳ الشرح الموجود: الوش الورّاني.
+*  55|     13, 14, 15
+      ↳ الشرح الموجود: الوش الشمال.
+   56| };
+   57| 
+   58| int main()
+   59| {
+*  60|     glfwInit();
+      ↳ الشرح الموجود: شغّل GLFW.
+   61|     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+   62|     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+   63|     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+   64| 
+*  65|     GLFWwindow* window = glfwCreateWindow(width, height, "Camera", nullptr, nullptr);
+      ↳ الشرح الموجود: اعمل شباك 800×800 اسمه Camera.
+*  66|     if (window == nullptr)
+      ↳ الشرح الموجود: لو الشباك ما اتعملش…
+   67|     {
+   68|         glfwTerminate();
+   69|         return -1;
+   70|     }
+   71|     glfwMakeContextCurrent(window);
+*  72|     gladLoadGL();
+      ↳ الشرح الموجود: هات دوال OpenGL.
+*  73|     glViewport(0, 0, width, height);
+      ↳ الشرح الموجود: ارسم على الشباك كله.
+   74| 
+*  75|     Shader shaderProgram(vertexSrc, fragmentSrc);
+      ↳ الشرح الموجود: اعمل الـ Shader بالكلاس بتاعنا.
+   76| 
+*  77|     GLuint VAO, VBO, EBO;
+      ↳ الشرح الموجود: أرقام الـ 3 buffers.
+*  78|     glGenVertexArrays(1, &VAO);
+      ↳ الشرح الموجود: اعمل VAO.
+*  79|     glGenBuffers(1, &VBO);
+      ↳ الشرح الموجود: اعمل VBO (للنقط).
+*  80|     glGenBuffers(1, &EBO);
+      ↳ الشرح الموجود: اعمل EBO (للترتيب).
+   81| 
+*  82|     glBindVertexArray(VAO);
+      ↳ الشرح الموجود: اختار الهرم.
+*  83|     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+      ↳ الشرح الموجود: شغّل الـ VBO.
+*  84|     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+      ↳ الشرح الموجود: انسخ النقط لكارت الشاشة.
+*  85|     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+      ↳ الشرح الموجود: شغّل الـ EBO.
+   86|     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+   87| 
+*  88|     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+      ↳ الشرح الموجود: خانة 0 (المكان): 3 أرقام، من أول السطر، والسطر كله 6 أرقام.
+   89|     glEnableVertexAttribArray(0);
+*  90|     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+      ↳ الشرح الموجود: خانة 1 (اللون): 3 أرقام، بتبدأ بعد أول 3.
+   91|     glEnableVertexAttribArray(1);
+   92| 
+*  93|     glEnable(GL_DEPTH_TEST);
+      ↳ الشرح الموجود: اللي قدام يغطي اللي ورا.
+   94| 
+*  95|     Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
+      ↳ الشرح الموجود: اعمل الكاميرا في (0, 0, 2).
+   96| 
+   97|     while (!glfwWindowShouldClose(window))
+   98|     {
+*  99|         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+      ↳ الشرح الموجود: لون الخلفية كحلي.
+* 100|         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      ↳ الشرح الموجود: امسح الألوان والعمق.
+* 101|         shaderProgram.Activate();
+      ↳ الشرح الموجود: شغّل الـ Shader.
+  102| 
+* 103|         camera.Inputs(window);
+      ↳ الشرح الموجود: اقرا الأزرار وحرّك الكاميرا.
+* 104|         camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
+      ↳ الشرح الموجود: ابعت مصفوفة الكاميرا.
+  105| 
+  106|         glBindVertexArray(VAO);
+* 107|         glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
+      ↳ الشرح الموجود: ارسمه. عدد الأرقام = حجم المصفوفة ÷ حجم الرقم = 18.
+  108| 
+  109|         glfwSwapBuffers(window);
+  110|         glfwPollEvents();
+  111|     }
+  112| 
+* 113|     glDeleteVertexArrays(1, &VAO);
+      ↳ الشرح الموجود: بعد القفل: امسح الـ VAO…
+* 114|     glDeleteBuffers(1, &VBO);
+      ↳ الشرح الموجود: …والـ VBO…
+* 115|     glDeleteBuffers(1, &EBO);
+      ↳ الشرح الموجود: …والـ EBO…
+* 116|     shaderProgram.Delete();
+      ↳ الشرح الموجود: …والـ Shader.
+* 117|     glfwDestroyWindow(window);
+      ↳ الشرح الموجود: امسح الشباك.
+  118|     glfwTerminate();
+  119|     return 0;
+  120| }

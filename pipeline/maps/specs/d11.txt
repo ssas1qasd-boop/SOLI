@@ -1,0 +1,257 @@
+@d11_p1
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L18 · return 0 | البداية | 18-19, 43-44
+row
+[Types + helper] v zgpu
+v3 vao struct Vector3 | float x, y, z ; Vector3() : x(10), y(11), z(12) | 12 بايت | 3-11
+ds prg Distance(a, b) | (const char*)a - (const char*)b ; bytes between 2 addresses | المسافة | 13-16
+[Stack (0x7ff...)] v zram
+sv ram value · array[5] | 5 ; 2 2 2 2 2 | 4 + 20 بايت | 20-23
+sx ram Vector3 vector | 10, 11, 12 | لازق في array | 24
+[Heap (0x5...)] v zram
+hv ram new int · new int[5] | *hvalue = 5 ; harray[i] = 2 | بـ new | 26-30
+hx ram new Vector3() | hvector → 10, 11, 12 | 32 بايت لكل حتة | 31
+fr ram delete × 3 | the heap gets its memory back | الرجوع | 40-42
+[Terminal (std::cout)] v zloop
+o1 out sizeof · addresses | 4, 20, 12 ; stack 0x7ff... · heap 0x5... | الأحجام والعناوين | 33-35
+o2 out gaps | array - &vector = 12 ; heap: 32 · 32 | لازق ولا متفرق | 36-37
+o3 out same values | 5 = 5 · 2 = 2 · 12 = 12 | نفس القيم | 38
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> v3 sx
+> v3 hx
+> sv o1
+> hv o1
+> ds o2
+> sx o2
+> hx o2
+> o1 o2
+> o2 o3
+> hv fr
+> o3 term
+
+@d11_p2
+[Setup] h none
+inc ctl #include × 2 | iostream · chrono | المكتبات | 1-2
+main ctl main() | L29 · return 0 | البداية | 29-30, 57-58
+row
+[Types + helpers] v zgpu
+v3 vao struct Vector3 · const int N = 100 | Vector3() : x(10), y(11), z(12) | 12 بايت | 4-14
+nw prg Now() | steady_clock → ns (double) | الساعة | 16-19
+lt prg LoadTexture(w, h) | new unsigned char[w × h × 4] ; returns the address | 16 MB على الـ Heap | 21-27
+[Timing loops] v zram
+ls ram stack loop × N | Vector3 v; sum += v.x | بيتعمل ويموت كل لفة | 33-39
+lh ram heap loop × N | new Vector3() · sum += v->x · delete v | new + delete | 40-46
+tx ram texture = LoadTexture(2048, 2048) | alive in main ; delete[] texture | بيعيش بعد الدالة | 53-55
+[Terminal (std::cout)] v zloop
+o1 out ns each · heap / stack | stack · new + delete ; slow in the bench (step by step) | السرعة | 48-51
+o2 out 16 MB | LoadTexture · texture[0] = 200 ; delete[] texture | الصورة | 25, 54, 56
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> v3 ls
+> v3 lh
+> nw ls
+> nw lh
+> ls o1
+> lh o1
+> lt tx
+> tx o2
+> o1 o2
+> o2 term
+
+@d11_t1
+[Setup (once)] h none
+main ctl main() | L92 | البداية | 92-93
+glfw ctl GLFW | glfwInit · window 960×480 | الشباك والـ Context | 94-107
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 109-110
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 180-183, 203
+row
+[Disk + CPU · RAM] v zram
+png ram res/letter.png | stbi_load in the constructor ; 8 × 8 · 3 channels (letter F) | الحرف | f0:60
+vtx ram GLfloat vertices[16] | 4 corners × (x y + u v) ; u, v from -1 to 2 | 3 نسخ في كل اتجاه | 112-117
+idx ram GLuint indices[6] | 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 118-121
+src ram Shader text (2 strings) | fragment: uniform mode ; Wrap(uv): floor · mod · clamp | التكرار بالحساب | 137-167
+[GPU · Texture class + VAO] v zgpu
+cls vao class Texture | Texture(path) · ~Texture() ; Bind(unit) · SetWrap(mode) | SetWrap جديدة | 51-90
+tex buf Texture letter (ID 1, unit 0) | NEAREST · bound once before the loop | الحرف F | 177-178
+vao vao VAO 1 + vbo + ebo | slot 0 ← xy · slot 1 ← uv | الوصف | 123-135
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | tex0 = 0 · modeLoc ; cardModes: REPEAT · MIRRORED · CLAMP | glUniform | 169-174
+win out Window "Wrap by hand" | $img | اللي بتشوفه | 201-202
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+top m2 top row: the card | L190 glViewport · L191 SetWrap(cardModes[i]) ; L192 mode = 0 · L193 glDrawElements | الكارت بيكرر | 188-193
+bot m2 bottom row: Wrap() | L195 glViewport · L196 SetWrap(CLAMP) ; L197 mode = i + 1 · L198 glDrawElements | إحنا بنكرر | 195-198
+row
+[Helpers (called from main) + cleanup] g3 zloop
+inc ctl #include × 5 | glad · GLFW · iostream ; string · stb_image.h | المكتبات | 1-5
+stb ctl stb.cpp | #define STB_IMAGE_IMPLEMENTATION ; #include "stb_image.h" | كود المكتبة نفسه | f1:1-2
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 7-32
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 34-49
+cl ctl Cleanup | } → ~Texture · glDeleteProgram ; glfwTerminate | التنضيف والخروج | 204-210
+~ main glfw
+~ glfw glad
+~ glad loop
+> png cls
+> cls tex
+> vtx vao L128
+> idx vao
+> tex prog unit 0
+> src prog L169
+> vao prog
+> prog win
+> tex term
+~ loop top
+~ top bot
+> cs cr
+
+@d11_t2
+[Setup (once)] h none
+main ctl main() | L50 | البداية | 50-51
+glfw ctl GLFW | glfwInit · window 640×320 | الشباك والـ Context | 52-65
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 67-68
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 159-162, 178
+row
+[Card limits + CPU · RAM] v zram
+lim ram glGetIntegerv × 3 | units 32 · vertex units 32 ; max size 16384 | حدود الكارت | 70-77
+vtx ram GLfloat vertices[16] | 4 corners × (x y + u v) ; u, v from 0 to 4 | 4 تكرارات | 79-84
+pix ram unsigned char pixels[12] | red blue ; blue red (2 × 2, RGB) | صورة من غير ملف | 104-107
+src ram Shader text (2 strings) | checkerboard(uv): uv - floor(uv) ; useTexture ? texture : function | دالة Cem Yuksel | 120-151
+[GPU · Texture + VAO] v zgpu
+tex buf Texture tex (unit 0) | NEAREST · REPEAT ; glPixelStorei(UNPACK_ALIGNMENT, 1) | 12 بايت | 108-117
+vao vao VAO 1 + vbo + ebo | slot 0 ← xy · slot 1 ← uv | الوصف | 90-102
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | tex0 = 0 · useLoc | glUniform | 153-157
+win out Window "Procedural" | $img | اللي بتشوفه | 176-177
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+lf m2 left: the function | L168 glViewport(4, 4) ; L169 useTexture = 0 · L170 glDrawElements | 0 بايت | 168-170
+rt m2 right: the 2 × 2 image | L172 glViewport(324, 4) ; L173 useTexture = 1 · L174 glDrawElements | 12 بايت | 172-174
+row
+[Helpers (called from main) + cleanup] g3 zloop
+inc ctl #include × 4 | glad · GLFW ; iostream · string | المكتبات | 1-4
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 6-31
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 33-48
+cl ctl Cleanup | glDeleteTextures · glDeleteProgram ; glfwTerminate | التنضيف والخروج | 180-184
+~ main glfw
+~ glfw glad
+~ glad loop
+> lim term
+> pix tex
+> vtx vao L95
+> tex prog unit 0
+> src prog L153
+> vao prog
+> prog win
+~ loop lf
+~ lf rt
+> cs cr
+
+@d11_m1
+[Setup] h none
+np ctl import numpy as np | np.array · np.array_equal · np.zeros | NumPy | 1
+row
+[Khan's matrices] v zram
+ab ram A · B (2 × 3) | [[1, -7, 5], [0, 3, -10]] ; [[5, 0, 3], [11, -1, 7]] | الجمع | 3-4
+cd ram C · D (2 × 2) | [[0, 1], [3, 2]] ; [[-1, 3], [0, 5]] | الطرح | 9-10
+ef ram E (3 × 2) · F (2 × 2) | different sizes | Undefined | 31-32
+[By hand] v zgpu
+ad prg def add(X, Y) | shapes differ → "undefined" ; out[i, j] = X[i, j] + Y[i, j] | خانة خانة | 19-26
+[Results (print)] v zloop
+r1 out A + B · B + A | [[6, -7, 8], [11, 2, -3]] ; equal: True | Commutative | 5-7
+r2 out C - D · C + (-1) D · D - C | [[1, -2], [3, -3]] ; D - C = -(C - D) | الطرح | 11-16
+r3 out add(A, B) · add(E, F) · E + F | same as A + B ; undefined · ValueError | المقاسات | 29-37
+term out Terminal | $term | اللي اتطبع | -
+~ np ab
+> ab r1
+> cd r2
+> ab ad
+> ad r3
+> ef r3
+> r1 r2
+> r2 r3
+> r3 term
+
+@d11_m2
+[Setup] h none
+np ctl numpy + matplotlib | Agg: draw into a file | المكتبات | 1-4
+row
+[Data] v zram
+hs ram house (6 × 2) | 6 corners, the last = the first | الشكل | 6
+mv ram move (6 × 2) | every row (3, 1) | مصفوفة النقل | 7
+sq ram squash (6 × 2) | zeros · row 3 = (0, -1.5) | صف واحد | 14-15
+[Adding] v zgpu
+ad prg moved = house + move | moved - move = house | جمع وطرح | 8-12
+fl prg flat = house + squash | only the roof moves | السقف بس | 16-17
+fm prg frames (4) | house + k × move / 3 | Animation | 19-21
+[Picture + print] v zloop
+r1 out roof · check | (1, 3) → (4, 4) ; moved - house = (3, 1) | النقل | 9-12
+r2 out frames · corner 0 | (0, 0) → (3, 1) | 4 فريمات | 21
+img out moves.png | orange frames · blue squashed | الصورة | 23-30
+term out Terminal | $term | اللي اتطبع | -
+~ np hs
+> hs ad
+> mv ad
+> sq fl
+> hs fm
+> ad r1
+> fm r2
+> fl img
+> fm img
+> r1 r2
+> r2 term
+
+@d11_c1
+[Setup] h none
+inc ctl #include × 7 | iostream · fstream · sstream ; string · vector · set · algorithm | المكتبات | 1-7
+main ctl main() | L29 · return 0 | البداية | 29-30, 86-87
+row
+[Types + math] v zgpu
+v3 vao struct Vec3 | float x, y, z | نقطة أو متجه | 9-12
+mt prg Sub · Cross · Dot | a - b ; normal = cross(b - a, c - a) ; dot > 0 → same side | الحسابات | 14-27
+[File cube.obj] v zram
+wr ram std::ofstream obj | 8 × "v x y z" ; 6 × "f a b c d" (from 1) | نكتب الملف | 31-36
+rd ram read: getline + istringstream | tag v → push_back ; tag f → index - 1 | نقرا الملف | 38-61
+[Checks (print)] v zloop
+o1 out read cube.obj | 8 vertices, 6 faces | العدد | 62
+o2 out normal per face | (0, 0, -4) · (0, 0, 4) ... ; all 6 outward | الـ Normal | 64-78
+o3 out edges · Euler | V = 8, E = 12, F = 6 ; V - E + F = 2 | أويلر | 80-85
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> wr rd
+> v3 rd
+> rd o1
+> mt o2
+> rd o2
+> rd o3
+> o1 o2
+> o2 o3
+> o3 term
+
+@d11_c2
+[Setup] h none
+inc ctl #include × 5 | iostream · cmath · vector ; set · algorithm | المكتبات | 1-5
+main ctl main() | L39 · return 0 | البداية | 39-40, 68-69
+row
+[Types + builder] v zgpu
+ms vao struct Mesh · PI, R, H | xyz (floats) ; tris (3 ints each) | Face-Vertex Mesh | 7-15
+cy prg Cylinder(n) | 2 rings of n corners ; side: 2 triangles each · caps: fans | بنبني | 17-37
+[Mesh n = 8] v zram
+mm ram Mesh m = Cylinder(8) | 16 corners · 28 triangles | في الرام | 41
+ed ram edges (std::set) | every triangle side once | العد | 42-49
+[Terminal (std::cout)] v zloop
+o1 out mesh vs B-Rep | V 16, E 42, F 28 · Euler 2 ; B-Rep: 2, 3, 3 | العدد | 50-51
+o2 out table n | 8 · 32 · 128 · 512 ; error = R (1 - cos(pi / n)) | الغلط | 53-60
+o3 out tolerance | R = 50 mm, 0.01 mm ; n = 256 · 1020 triangles | الدقة | 62-67
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ms cy
+> cy mm
+> mm ed
+> ed o1
+> o1 o2
+> o2 o3
+> o3 term

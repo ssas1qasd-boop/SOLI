@@ -1,0 +1,12 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch({args:['--use-gl=swiftshader']}); const p = await b.newPage({viewport:{width:412,height:915}});
+  const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+  await p.addInitScript(() => { window.claude = {use: async n => n === 'sample' ? (async (prompt, o) => { const t = 'الـ Rasterizer بيحوّل كل مثلث لبكسلات. في البرنامج ده بيحصل بعد أمر الرسم في خطوة 76 و 79.'; o.onText({text: t, delta: t}); return {text: t, truncated: false}; }) : null}; });
+  await p.route('**/three.min.js', r => r.fulfill({path:'/home/claude/sim/three.min.js', contentType:'application/javascript'})); await p.route(/fonts\.g/, r => r.abort());
+  await p.goto('file:///home/claude/bench2/bench_day7.html'); await p.waitForTimeout(1500); await p.evaluate(() => __bench.load('d7_r2'));
+  await p.click('#agFab'); await p.fill('#agQ', 'المثلث بيتحول لبكسلات ازاي'); await p.press('#agQ', 'Enter'); await p.waitForTimeout(600);
+  await p.click('.agmore'); await p.waitForTimeout(500);
+  console.log('claude:', (await p.innerText('.agmsg.claude')).replace(/\s+/g, ' '));
+  await p.fill('#agQ', 'الكارت بيحول المثلث بكسلات ازاي'); await p.press('#agQ', 'Enter'); await p.waitForTimeout(600);
+  const all = await p.$$eval('.agmsg.bot', els => els.map(e => e.innerText.replace(/\s+/g,' ').slice(0, 260)));
+  console.log('again:', all[all.length - 1]); console.log(errs); await b.close(); })();

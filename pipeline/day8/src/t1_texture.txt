@@ -1,0 +1,2 @@
+loaded res/logo.png: 128 x 128, channels in file = 4, texture id = 1
+frame 0 drawn, glGetError() = 0

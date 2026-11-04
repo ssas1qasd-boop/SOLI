@@ -1,0 +1,10 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1300,height:950}});
+const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.setContent('<!doctype html><html><head><meta charset=utf-8></head><body>'+require('fs').readFileSync('gpu_sim.html','utf8')+'</body></html>');
+await p.evaluate(()=>{const s=document.getElementById('seek');s.value=131;s.dispatchEvent(new Event('input'))});
+await p.waitForTimeout(800);
+await p.locator('#cback').scrollIntoViewIfNeeded(); const bb=await p.locator('#cback').boundingBox(); await p.locator('#cback').click({position:{x:bb.width*0.30,y:bb.height*0.40}});
+await p.waitForTimeout(300); await p.locator('#p-scr').screenshot({path:'c_probe.png'});
+console.log(errs, await p.textContent('#probe'));
+await b.close();})();

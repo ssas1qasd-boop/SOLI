@@ -1,0 +1,4 @@
+Texture(res/crate.png): 64 x 64, channels = 3, ID = 1
+loop ended (Escape)
+~Texture(): deleted ID = 1
+glfwTerminate() done

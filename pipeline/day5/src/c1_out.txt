@@ -1,0 +1,5 @@
+Please enter the names, press Q to quit:
+You have entered 3 names:
+Braden
+Jeff
+Katie

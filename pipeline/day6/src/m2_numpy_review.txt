@@ -1,0 +1,6 @@
+a . b = 19   |a| = 5.385164807134504
+|a| squared = 29.0   a . a = 29
+c . d = 13   d . c = 13
+c . (d + e) = 21   c . d + c . e = 21
+(3c) . d = 39   3 (c . d) = 39
+|u| = 5.0   unit vector = [0.6 0.8]   its length = 1.0

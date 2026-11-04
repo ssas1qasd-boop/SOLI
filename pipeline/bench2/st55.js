@@ -1,0 +1,11 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch({args:['--use-gl=swiftshader']}); const p = await b.newPage({viewport:{width:412,height:915}});
+  const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+  await p.addInitScript(() => { window.__prompts = []; window.claude = {use: async n => n === 'sample' ? (async (prompt, o) => { window.__prompts.push(prompt); const t = 'الـ **EBO** ده صندوق الترتيب: عدد 6 أرقام.\n- اتعمل في خطوة 15\n- واترسم بيه في خطوة 76 بـ `glDrawElements`'; await new Promise(r => setTimeout(r, 100)); o.onText({text: t, delta: t}); return {text: t, truncated: false}; }) : null}; });
+  await p.route('**/three.min.js', r => r.fulfill({path:'/home/claude/sim/three.min.js', contentType:'application/javascript'})); await p.route(/fonts\.g/, r => r.abort());
+  await p.goto('file:///home/claude/bench2/bench_day7.html'); await p.waitForTimeout(1500); await p.evaluate(() => __bench.load('d7_r2'));
+  await p.click('#agFab'); await p.fill('#agQ', 'ايه ال EBO'); await p.press('#agQ', 'Enter'); await p.waitForTimeout(700);
+  await p.click('.agmore'); await p.waitForTimeout(600);
+  console.log((await p.innerText('.agmsg.claude')).replace(/\s+/g, ' '));
+  console.log('ERR', errs); const pr = await p.evaluate(() => window.__prompts[0] || ''); console.log('prompt chars', pr.length); console.log(pr.slice(0, 1600));
+  await p.screenshot({path:'/tmp/claude-0/cl.png'}); console.log(errs); await b.close(); })();

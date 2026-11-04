@@ -1,0 +1,12 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch({args:['--use-gl=swiftshader']});
+  const p = await b.newPage({viewport:{width:412, height:900}, colorScheme:'dark', deviceScaleFactor:2});
+  const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.route('**/three.min.js', r => r.fulfill({path:'/home/claude/sim/three.min.js', contentType:'application/javascript'})); await p.route(/fonts\.g/, r => r.abort());
+  await p.goto('file:///home/claude/bench2/bench_day1.html#d1_u1'); await p.waitForTimeout(1000);
+  await p.evaluate(k => { const s = document.getElementById('seek'); s.value = k; s.dispatchEvent(new Event('input')); }, 10); await p.waitForTimeout(300);
+  await p.evaluate(() => document.getElementById('story').scrollIntoView({block:'center'})); await p.waitForTimeout(300); await p.screenshot({path:'/tmp/claude-0/s7a.png'});
+  await p.click('#stoBtn'); await p.waitForTimeout(400);
+  const y = await p.evaluate(() => { const r = [...document.querySelectorAll('.cl li')].find(l => /positions/.test(l.innerText)); return r.offsetTop; });
+  await p.evaluate(y => document.getElementById('story2').scrollTop = y - 220, y); await p.waitForTimeout(200);
+  await p.screenshot({path:'/tmp/claude-0/s7b.png'}); console.log('ERR', errs); await b.close(); })();

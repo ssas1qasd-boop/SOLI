@@ -1,0 +1,6 @@
+sizeof: int = 4, int[5] = 20, Vector3 = 12
+stack: &value = 0x7ffe6afc104c, array = 0x7ffe6afc1080, &vector = 0x7ffe6afc1074
+heap:  hvalue = 0x558f4be5a2b0, harray = 0x558f4be5a2d0, hvector = 0x558f4be5a2f0
+stack gaps: &value - array = -52, array - &vector = 12 bytes
+heap gaps: harray - hvalue = 32, hvector - harray = 32 bytes
+same values: 5 = 5, 2 = 2, 12 = 12

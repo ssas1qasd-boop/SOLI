@@ -1,0 +1,524 @@
+<title>جوه الـ GPU: ملف الـ Shader</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a machine-room console. Code tape on one side, the live state of CPU, file, GPU and screen on the other. */
+:root{
+  --bg:#eef1f5; --panel:#ffffff; --ink:#152033; --muted:#5d6a7e; --line:#d6dce6;
+  --code-bg:#121a28; --code-ink:#c9d3e3; --code-dim:#5f6d84; --cur:#2a3a57;
+  --cpu:#b45309; --cpu-soft:#fdf0dd; --gpu:#0f766e; --gpu-soft:#dcf3ef; --both:#6d4fc2;
+  --flash:#ffe9a8; --term-bg:#0d121c; --term-ink:#b9f0c9;
+  --f-ui:"IBM Plex Sans Arabic",system-ui,sans-serif; --f-code:"JetBrains Mono","DejaVu Sans Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1019; --panel:#131b29; --ink:#e3e9f3; --muted:#91a0b8; --line:#253248;
+  --code-bg:#0e1522; --code-ink:#c9d3e3; --code-dim:#56647a; --cur:#24375a;
+  --cpu:#f5a524; --cpu-soft:#3a2a10; --gpu:#37d2be; --gpu-soft:#0f3430; --both:#a58bff;
+  --flash:#4d4115; --term-bg:#070a10; --term-ink:#9fe8b6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1019; --panel:#131b29; --ink:#e3e9f3; --muted:#91a0b8; --line:#253248;
+  --code-bg:#0e1522; --code-ink:#c9d3e3; --code-dim:#56647a; --cur:#24375a;
+  --cpu:#f5a524; --cpu-soft:#3a2a10; --gpu:#37d2be; --gpu-soft:#0f3430; --both:#a58bff;
+  --flash:#4d4115; --term-bg:#070a10; --term-ink:#9fe8b6; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:15px;line-height:1.6;direction:rtl}
+code,.mono{font-family:var(--f-code);font-size:.88em;direction:ltr;unicode-bidi:isolate}
+.wrap{max-width:1380px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px}
+header h1{font-size:1.45rem;margin:0;text-wrap:balance;letter-spacing:-.01em}
+header p{margin:.15rem 0 0;color:var(--muted);font-size:.92rem}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--line);margin-bottom:12px}
+.bar button,.bar select{font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;min-height:38px}
+.bar button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);min-width:92px}
+.bar button:focus-visible,.bar select:focus-visible,.bar input:focus-visible{outline:2px solid var(--both);outline-offset:2px}
+.bar input[type=range]{flex:1 1 180px;min-width:120px;accent-color:var(--both)}
+.count{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem;white-space:nowrap}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:14px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;transition:background .5s}
+.panel.flash{background:var(--flash)}
+.ph{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.9rem;margin-bottom:6px}
+.ph .tag{font-family:var(--f-code);font-size:.72rem;letter-spacing:.06em;padding:1px 7px;border-radius:5px;color:#fff}
+.t-cpu{background:var(--cpu)} .t-gpu{background:var(--gpu)} .t-both{background:var(--both)}
+.codebox{direction:ltr;background:var(--code-bg);border-radius:10px;overflow:auto;max-height:calc(100vh - 150px);position:sticky;top:calc(env(safe-area-inset-top,0px) + 70px)}
+@media (max-width:900px){.codebox{position:relative;top:0;max-height:42vh}}
+.code{direction:ltr;font-family:var(--f-code);font-size:12.5px;line-height:1.55;color:var(--code-ink);padding:8px 0;min-width:max-content}
+.code div{white-space:pre;padding:0 12px 0 0;border-left:3px solid transparent}
+.code div i{display:inline-block;width:3.2em;text-align:right;padding-right:1em;color:var(--code-dim);font-style:normal;user-select:none}
+.code div.cur{background:var(--cur);border-left-color:var(--cpu)}
+.code div.cur.g{border-left-color:var(--gpu)}
+.code div.run{color:#fff}
+.k{color:#8fb8ff}.s{color:#f7c58b}.n{color:#c3a6ff}.c{color:var(--code-dim)}
+.now{border-width:2px}
+.now .unit{font-family:var(--f-code);font-weight:600;font-size:.78rem;padding:2px 9px;border-radius:6px;color:#fff;white-space:nowrap}
+.now h2{font-size:1.12rem;margin:0;text-wrap:balance}
+.now .txt{margin-top:4px}
+.now .txt code{background:var(--bg);padding:0 4px;border-radius:4px}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+@media (max-width:620px){.cols{grid-template-columns:minmax(0,1fr)}}
+.span2{grid-column:1/-1}
+.frame{border:1px solid var(--line);border-radius:8px;margin-top:6px;overflow:hidden}
+.frame .fn{font-family:var(--f-code);font-size:.78rem;background:var(--cpu-soft);padding:3px 8px;direction:ltr;text-align:left;overflow-wrap:anywhere}
+.frame.top .fn{font-weight:600}
+.vars{width:100%;border-collapse:collapse;font-size:.82rem}
+.vars td{padding:2px 8px;border-top:1px solid var(--line);vertical-align:top}
+.vars td:first-child{font-family:var(--f-code);direction:ltr;text-align:left;white-space:nowrap;color:var(--cpu)}
+.vars td.ty{font-family:var(--f-code);font-size:.72rem;color:var(--muted);direction:ltr;text-align:left;white-space:nowrap}
+.vars td.v{overflow-wrap:anywhere;unicode-bidi:plaintext;text-align:start}
+.empty{color:var(--muted);font-size:.85rem;padding:4px 0}
+.bytes{display:flex;flex-wrap:wrap;gap:4px;direction:ltr;margin-top:6px}
+.bytes span{font-family:var(--f-code);font-size:.72rem;padding:2px 5px;border-radius:4px;background:var(--bg);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+.bytes span.v0{border-color:#d9822b}.bytes span.v1{border-color:#2b8ad9}.bytes span.v2{border-color:#9b4fd9}
+.bytes.fly span{animation:fly .9s ease}
+@keyframes fly{from{transform:translateX(40px);opacity:.1}to{transform:none;opacity:1}}
+.file{direction:ltr;font-family:var(--f-code);font-size:11.5px;line-height:1.5;background:var(--code-bg);color:var(--code-ink);border-radius:8px;padding:6px 0;overflow:auto}
+.file div{white-space:pre;padding:0 10px 0 0}
+.file div i{display:inline-block;width:2.4em;text-align:right;padding-right:.8em;color:var(--code-dim);font-style:normal}
+.file div.read{color:var(--code-dim)}
+.file div.cur{background:var(--cur);color:#fff}
+.ssbox{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:8px}
+.ssbox pre{margin:0;font-family:var(--f-code);font-size:10.5px;line-height:1.45;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 7px;min-height:60px;direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}
+.ssbox b{font-size:.75rem;font-family:var(--f-code)}
+.gl{display:grid;gap:6px}
+.obj{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:.83rem;background:var(--gpu-soft)}
+.obj .on{font-family:var(--f-code);font-weight:600;color:var(--gpu)}
+.obj.off{background:transparent;color:var(--muted)}
+.obj small{color:var(--muted)}
+.pill{display:inline-block;font-size:.72rem;padding:0 7px;border-radius:999px;border:1px solid currentColor;margin-inline-start:4px}
+.ok{color:var(--gpu)} .warn{color:var(--cpu)}
+.screens{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.scr{min-width:0}
+@media (max-width:620px){.screens{grid-template-columns:minmax(0,1fr)}}
+.actl input{direction:ltr}
+.scr canvas{width:100%;max-width:100%;aspect-ratio:4/3;display:block;border-radius:6px;border:1px solid var(--line);background:#1b2433;image-rendering:pixelated}
+.scr .lbl{font-size:.78rem;color:var(--muted);margin-top:3px}
+.pipe{list-style:none;margin:0 0 10px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;counter-reset:st}
+@media (max-width:620px){.pipe{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pipe li{counter-increment:st;border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-size:.74rem;line-height:1.35;display:flex;flex-direction:column;gap:2px;min-width:0;opacity:.45;transition:opacity .3s,background .3s,border-color .3s}
+.pipe li b{font-size:.78rem}
+.pipe li b::before{content:counter(st) ". ";color:var(--muted);font-weight:400}
+.pipe li code{font-size:.66rem;direction:ltr;text-align:left;overflow-wrap:anywhere;color:var(--muted)}
+.pipe li span{color:var(--muted)}
+.pipe li.used{opacity:1;background:var(--gpu-soft);border-color:color-mix(in srgb,var(--gpu) 45%,var(--line))}
+.pipe li.now{opacity:1;background:var(--gpu-soft);border-color:#ffd166;box-shadow:0 0 0 3px #ffd166 inset}
+.pipe li.now code{color:var(--ink)}
+.bytes span.hot{background:#ffd166;color:#111;border-color:#ffd166}
+.stat{font-family:var(--f-ui);font-size:.86rem;white-space:normal;overflow-wrap:anywhere;margin-top:6px;color:var(--ink);min-height:1.4em;font-variant-numeric:tabular-nums}
+.stat code{color:var(--gpu)}
+.actl[hidden]{display:none}
+.actl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
+.actl button{font:inherit;font-size:.9rem;border:1px solid var(--gpu);background:var(--gpu-soft);color:var(--ink);border-radius:8px;padding:5px 12px;cursor:pointer;min-height:36px}
+.actl input{flex:1 1 160px;min-width:0;accent-color:var(--gpu)}
+.ahint{font-size:.78rem;color:var(--muted)}
+.why{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px;display:grid;gap:8px}
+.why h3{font-size:.9rem;margin:0}
+.wi{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:start;font-size:.86rem}
+.sw{width:16px;height:16px;border-radius:4px;border:1px solid var(--line);margin-top:4px}
+.cl{font:inherit;font-family:var(--f-code);font-size:.74rem;direction:ltr;unicode-bidi:isolate;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:5px;padding:0 6px;margin:2px 2px 0 0;cursor:pointer;white-space:nowrap}
+.cl:hover,.cl:focus-visible{border-color:var(--both);outline:none}
+.code div.ping,.file div.ping{background:#6d4fc2 !important;color:#fff !important;transition:background .2s}
+.term{background:var(--term-bg);color:var(--term-ink);font-family:var(--f-code);font-size:11.5px;line-height:1.45;border-radius:8px;padding:8px 10px;min-height:70px;max-height:260px;overflow:auto;direction:ltr;text-align:left;white-space:pre}
+.who{width:100%;border-collapse:collapse;font-size:.84rem;margin:4px 0 8px}
+.who th{text-align:start;vertical-align:top;padding:5px 8px 5px 0;white-space:nowrap;color:var(--gpu);font-weight:600;width:1%}
+.who td{padding:5px 0;border-top:1px solid var(--line);vertical-align:top}
+.who tr:first-child td{border-top:0}
+@media (max-width:620px){.who th{white-space:normal}}
+.cv{position:relative}
+.cv .ov{position:absolute;inset:0;pointer-events:none;background:transparent;border-color:transparent}
+.cv canvas:not(.ov){cursor:crosshair}
+.fbx{border:2px solid var(--line);border-radius:10px;padding:6px;transition:border-color .3s}
+.fbx.back{border-color:var(--gpu)} .fbx.front{border-color:var(--both)}
+.fbl{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:.82rem;margin-bottom:4px;flex-wrap:wrap}
+.fbl .role{font-family:var(--f-code);font-weight:600;font-size:.74rem;padding:1px 8px;border-radius:6px;color:#fff;background:var(--muted)}
+.fbx.back .role{background:var(--gpu)} .fbx.front .role{background:var(--both)}
+.hw{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.hw h3{font-size:1rem;margin:0 0 4px}
+.hw p{margin:4px 0;font-size:.88rem}
+.hwnote{color:var(--muted)}
+.hwcode{direction:ltr;text-align:left;background:var(--code-bg);color:var(--code-ink);font-family:var(--f-code);font-size:12px;line-height:1.55;border-radius:8px;padding:8px 0;overflow-x:auto}
+.hwcode{min-width:0}
+.hwcode .hl{display:grid;grid-template-columns:minmax(19em,auto) minmax(14em,1fr);gap:14px;padding:1px 12px;border-left:3px solid transparent;min-width:max-content}
+.hwcode .hc{white-space:pre}
+.hwcode .hn{direction:rtl;text-align:right;font-family:var(--f-ui);color:#8fa3c0;font-size:11.5px;white-space:nowrap}
+.hwcode .hl.on .hn{color:#e6edf7}
+.hwcode .hl.on{background:var(--cur);border-left-color:var(--gpu);color:#fff}
+.hwcode .c{color:var(--code-dim)}
+.probe{margin-top:8px;font-size:.86rem;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg)}
+.probe table{border-collapse:collapse;direction:ltr;font-family:var(--f-code);font-size:.8rem;margin:6px 0}
+.probe td{padding:2px 10px 2px 0;font-variant-numeric:tabular-nums}
+.probe .in{color:var(--gpu);font-weight:700}.probe .out{color:var(--cpu);font-weight:700}
+.why .wi>div,.who td{min-width:0;overflow-wrap:anywhere}
+.why .cl{white-space:normal;max-width:100%;text-align:start}
+.legend{font-size:.82rem;color:var(--muted);margin-top:10px}
+@media (prefers-reduced-motion:reduce){.panel{transition:none}.bytes.fly span{animation:none}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>جوه الـ CPU والـ GPU: برنامج «Shader من ملف»</h1>
+  <p>كل خطوة = سطر بيتنفذ. شوف الرام والملف وكارت الشاشة والشاشة بيتغيروا إزاي. كل القيم من تشغيل حقيقي للبرنامج.</p>
+</header>
+<div class="bar" role="toolbar" aria-label="التحكم">
+  <button id="prev" type="button" title="الخطوة اللي قبلها">→ رجوع</button>
+  <button id="play" class="primary" type="button">▶ تشغيل</button>
+  <button id="next" type="button" title="الخطوة الجاية">التالي ←</button>
+  <select id="speed" aria-label="السرعة"><option value="2600">بطيء</option><option value="1500" selected>عادي</option><option value="700">سريع</option></select>
+  <input id="seek" type="range" min="0" value="0" aria-label="روح لخطوة">
+  <span class="count" id="count"></span>
+</div>
+
+<div class="grid">
+  <div class="codebox" id="codebox"><div class="code" id="code"></div></div>
+  <div>
+    <div class="panel now" id="now">
+      <div class="ph" style="justify-content:space-between"><span id="where" class="mono" style="color:var(--muted);font-weight:400"></span><span class="unit" id="unit"></span></div>
+      <h2 id="title"></h2>
+      <div class="txt" id="text"></div>
+    </div>
+    <div class="cols">
+      <div class="panel" id="p-cpu"><div class="ph"><span class="tag t-cpu">CPU</span> الرام: الـ Stack</div><div id="stack"></div></div>
+      <div class="panel" id="p-gpu"><div class="ph"><span class="tag t-gpu">GPU</span> كارت الشاشة (VRAM)</div><div class="gl" id="gpu"></div></div>
+      <div class="panel span2" id="p-file"><div class="ph"><span class="tag t-cpu">FILE</span> <span class="mono">res/shaders/Basic.shader</span> <span id="fstate" style="font-weight:400;color:var(--muted);font-size:.8rem"></span></div>
+        <div class="file" id="file"></div>
+        <div class="ssbox"><div><b>ss[0] · Vertex</b><pre id="ss0"></pre></div><div><b>ss[1] · Fragment</b><pre id="ss1"></pre></div></div>
+      </div>
+      <div class="panel span2" id="p-scr"><div class="ph"><span class="tag t-gpu">FRAMEBUFFER</span> 640 × 480</div>
+        <ol class="pipe" id="pipe" aria-label="الطريق من الكود للشاشة">
+          <li data-k="pos"><b>positions[6]</b><code>float positions[6]</code><span>الأرقام في الرام (CPU)</span></li>
+          <li data-k="buf"><b>Buffer 1</b><code>glBufferData(…, positions, …)</code><span>نسخة الـ 24 بايت على الكارت</span></li>
+          <li data-k="vao"><b>VAO 1 (خانة 0)</b><code>glVertexAttribPointer(0, 2, GL_FLOAT, …, 8, 0)</code><span>إزاي تتقري: كل نقطة 2 float</span></li>
+          <li data-k="vs"><b>Vertex Shader (Shader 2)</b><code>gl_Position = position;</code><span>بيشتغل مرة لكل ركن (3)</span></li>
+          <li data-k="ras"><b>Rasterizer</b><code>glDrawArrays(GL_TRIANGLES, 0, 3)</code><span>مين البكسلات اللي جوه المثلث</span></li>
+          <li data-k="fs"><b>Fragment Shader (Shader 3)</b><code>color = vec4(0.2, 0.3, 0.8, 1.0);</code><span>بيشتغل مرة لكل بكسل (38,400)</span></li>
+          <li data-k="back"><b>Back buffer</b><code>glClear(GL_COLOR_BUFFER_BIT)</code><span>الصورة اللي بتترسم في الخفا</span></li>
+          <li data-k="front"><b>Front buffer = الشاشة</b><code>glfwSwapBuffers(window)</code><span>اللي إنت شايفه</span></li>
+        </ol>
+        <div class="screens">
+          <div class="scr fbx" id="fbA"><div class="fbl"><b>Framebuffer A</b><span class="role" id="roleA">BACK</span></div><div class="cv"><canvas id="cA" width="640" height="480"></canvas><canvas id="coverA" class="ov" width="640" height="480" aria-hidden="true"></canvas></div><div class="lbl" id="lblA"></div></div>
+          <div class="scr fbx" id="fbB"><div class="fbl"><b>Framebuffer B</b><span class="role" id="roleB">FRONT</span></div><div class="cv"><canvas id="cB" width="640" height="480"></canvas><canvas id="coverB" class="ov" width="640" height="480" aria-hidden="true"></canvas></div><div class="lbl" id="lblB"></div></div>
+        </div>
+        <div class="actl" id="actl" hidden>
+          <button id="apause" type="button">⏸ وقّف الحركة</button>
+          <input id="aseek" type="range" min="0" max="1000" value="0" aria-label="حرّك الرسم بإيدك">
+          <span class="ahint">اسحب عشان تمشي فيها بإيدك</span>
+        </div>
+        <div class="stat" id="stat"></div>
+        <section class="hw" id="hw">
+          <h3>مين اللي بيقرر البكسل ده يتلوّن ولا لأ؟</h3>
+          <p><b>مش كود في برنامجك.</b> برنامجك قال 3 حاجات بس: <b>الأركان فين</b> (السطور 108–110)، و<b>ارسمهم مثلث</b> (<code>GL_TRIANGLES</code> في سطر 137)، و<b>كل بكسل لونه إيه</b> (Basic.shader سطر 18). إيجاد الحدود وملا اللي جواها بس بيعمله جزء مبني جوه كارت الشاشة اسمه <b>Rasterizer</b>، وده كوده جوه الكارت نفسه (Hardware) ومحدش بيكتبه. ده هو بيعمل إيه، مكتوب كأنه C++:</p>
+          <div class="hwcode" id="hwcode"></div>
+          <p class="hwnote">الحسبة دي هي نفسها <code>cross2D</code> اللي كتبناها في محاضرة الرياضيات النهاردة: إشارة الضرب الاتجاهي بتقول البكسل على يمين الخط ولا على شماله. لو البكسل على «الجنب الجوّاني» من التلات خطوط مع بعض يبقى جوه المثلث. والكارت بيعمل الحسبة دي لكل البكسلات في نفس الوقت، مش بكسل بكسل. الطريقة دي طلّعت 38,400 بكسل بالظبط، وده نفس العدد اللي قريناه من الشاشة الحقيقية.</p>
+          <div class="probe" id="probe"></div>
+        </section>
+        <div class="why" id="why"></div>
+      </div>
+      <div class="panel span2" id="p-term"><div class="ph"><span class="tag t-cpu">TERMINAL</span> اللي اتطبع</div><div class="term" id="term"></div></div>
+    </div>
+    <p class="legend">الأرقام (VAO 1، Buffer 1، Program 1، Shaders 2 و 3، الـ 38,400 بكسل، واللون 51, 76, 204) طلعت من تشغيل حقيقي على OpenGL 4.5 (Mesa). على كارت تاني أرقام الـ IDs ممكن تختلف، والباقي هو هو.</p>
+  </div>
+</div>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const S = D.steps; let i = 0, timer = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+// ---- code with light highlighting
+function hl(l){
+  if (/^\s*#include/.test(l)) return `<span class="c">${esc(l)}</span>`;
+  const re = /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?f?\b)|\b(static|const|unsigned|int|float|char|void|return|if|else|while|struct|enum|class|nullptr|std|string|ifstream|stringstream)\b/g;
+  let out = '', last = 0, m;
+  while ((m = re.exec(l))){ out += esc(l.slice(last, m.index));
+    out += m[1] ? `<span class="s">${esc(m[1])}</span>` : m[2] ? `<span class="n">${m[2]}</span>` : `<span class="k">${m[3]}</span>`;
+    last = re.lastIndex; }
+  return out + esc(l.slice(last));
+}
+$('code').innerHTML = D.cpp.map((l, k) => `<div id="L${k+1}"><i>${k+1}</i>${hl(l)}</div>`).join('');
+$('file').innerHTML = D.shader.map((l, k) => `<div id="F${k+1}"><i>${k+1}</i>${esc(l) || ' '}</div>`).join('');
+$('seek').max = S.length - 1;
+
+// ---- rasterizer (same result as the real run: 38,400 pixels, x 160–479, y 120–358)
+function rasterize(W, H){
+  const v = [[160,120],[320,360],[480,120]];
+  const m = new Uint8Array(W*H); let n = 0;
+  const e = (a,b,px,py) => (b[0]-a[0])*(py-a[1]) - (b[1]-a[1])*(px-a[0]);
+  const s = e(v[0],v[1],v[2][0],v[2][1]) < 0 ? -1 : 1;
+  const tl = (a,b) => { const dy=(b[1]-a[1])*s, dx=(b[0]-a[0])*s; return (dy===0 && dx<0) || dy>0; };
+  const E = [[v[0],v[1]],[v[1],v[2]],[v[2],v[0]]];
+  for (let y=0; y<H; y++) for (let x=0; x<W; x++){
+    const px=x+.5, py=y+.5; let ok=true;
+    for (const [a,b] of E){ const w=e(a,b,px,py)*s; if (w<0 || (w===0 && !tl(a,b))){ ok=false; break; } }
+    if (ok){ m[(H-1-y)*W+x]=1; n++; }
+  }
+  return {m, n};
+}
+const R = rasterize(640, 480);
+const SWAPS = []; { let n = 0; for (const st of S){ SWAPS.push(n); if (st.anim === 'swap') n++; } }  // swaps done BEFORE each step
+let backId = 'A'; const frontId = () => backId === 'A' ? 'B' : 'A';
+const COL = [51, 76, 204];
+const VERTS = [{ndc:'(-0.5, -0.5)', px:[160,360]}, {ndc:'(0.0, 0.5)', px:[320,120]}, {ndc:'(0.5, -0.5)', px:[480,360]}];
+
+function paint(cv, mode, upto){ // upto: rows of canvas filled (for animation)
+  const g = cv.getContext('2d');
+  if (mode === 'none'){ g.fillStyle = '#1b2433'; g.fillRect(0,0,640,480);
+    g.strokeStyle = '#2a3548'; g.lineWidth = 2;
+    for (let k=-480; k<640; k+=40){ g.beginPath(); g.moveTo(k,480); g.lineTo(k+480,0); g.stroke(); }
+    return; }
+  const img = g.createImageData(640, 480), d = img.data, rows = upto == null ? 480 : upto;
+  for (let p=0; p<640*480; p++){
+    const y = Math.floor(p/640), inT = mode === 'tri' && R.m[p] && y < rows;
+    d[p*4] = inT ? COL[0] : 0; d[p*4+1] = inT ? COL[1] : 0; d[p*4+2] = inT ? COL[2] : 0; d[p*4+3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  if (mode === 'tri' && (upto == null || upto >= 480) && cv.dataset.note !== 'off') labelTri(g);
+}
+function vertexTags(g){
+  g.direction = 'ltr'; g.textAlign = 'center'; g.font = 'bold 15px JetBrains Mono, monospace';
+  const T = [['line 108', 160, 384], ['line 109', 320, 104], ['line 110', 480, 384]];
+  for (const [t, x, y] of T){ g.fillStyle = '#ffd166'; g.beginPath(); g.arc(x, y > 240 ? 360 : 120, 6, 0, 7); g.fill(); g.fillText(t, x, y); }
+}
+function labelTri(g){
+  g.direction = 'ltr'; g.textAlign = 'center'; g.font = 'bold 17px JetBrains Mono, monospace';
+  const L = [['positions[0], [1]', 160, 392], ['positions[2], [3]', 320, 100], ['positions[4], [5]', 480, 392]];
+  for (const [t, x, y] of L){ g.fillStyle = '#ffd166'; g.fillText(t, x, y); }
+  g.fillStyle = '#ffffff'; g.font = 'bold 15px JetBrains Mono, monospace';
+  g.fillText('color = vec4(0.2, 0.3, 0.8, 1.0)', 320, 300); g.fillText('Basic.shader : 18', 320, 322);
+  g.fillStyle = '#8a96aa'; g.font = '14px JetBrains Mono, monospace'; g.fillText('black = glClear (136)', 320, 465);
+}
+let anim = null;
+const A = {kind: null, p: 0, paused: false, last: 0};
+const DUR = {vs: 6000, raster: 12000, fs: 12000};
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const speedK = () => ({'2600': 1.7, '1500': 1, '700': 0.5})[$('speed').value] || 1;
+
+function drawAnim(kind, p){
+  const cb = $('c' + backId), g = cb.getContext('2d');
+  g.direction = 'ltr';
+  if (kind === 'vs'){
+    const k = p >= 1 ? 3 : Math.min(3, Math.floor(p * 3) + 1);
+    paint(cb, 'black'); g.textAlign = 'center';
+    for (let j=0; j<k; j++){ const [x,y] = VERTS[j].px, top = y < 240;
+      g.fillStyle = '#ffd166'; g.beginPath(); g.arc(x, y, 9, 0, 7); g.fill();
+      g.fillStyle = '#e6edf7'; g.font = 'bold 19px JetBrains Mono, monospace';
+      g.fillText(VERTS[j].ndc, x, top ? y - 46 : y + 34);
+      g.fillStyle = '#ffd166'; g.fillText(`→ (${x}, ${y})`, x, top ? y - 22 : y + 58);
+      g.fillStyle = '#8a96aa'; g.font = '14px JetBrains Mono, monospace'; g.fillText(`line ${108 + j}`, x, top ? y - 70 : y + 80); }
+    const v = VERTS[k-1], b0 = (k-1)*8;
+    $('stat').innerHTML = `<b>تشغيلة ${k} من 3 للـ Vertex Shader (Shader 2):</b> الكارت قرا البايتات ${b0}–${b0+7} من <code>Buffer 1</code> ` +
+      `(يعني <code>positions[${(k-1)*2}]</code> و <code>positions[${(k-1)*2+1}]</code>) بالطريقة اللي في <code>VAO 1</code> خانة 0 ← ` +
+      `<code>position = vec4${v.ndc.replace(')', ', 0.0, 1.0)')}</code> ← <code>gl_Position</code> نفس القيمة ← بكسل <code>(${v.px[0]}, ${v.px[1]})</code> في الشباك.`;
+    document.querySelectorAll('#gpu .bytes span').forEach((e, j) => e.classList.toggle('hot', Math.floor(j/2) === k-1));
+  } else {
+    const rows = Math.floor(p * 480), fsMode = kind === 'fs';
+    paint(cb, fsMode ? 'tri' : 'black', fsMode ? rows : undefined);
+    const img = g.getImageData(0,0,640,480), d = img.data; let n = 0;
+    for (let q=0; q < rows*640; q++) if (R.m[q]){ n++; if (!fsMode){ d[q*4]=70; d[q*4+1]=78; d[q*4+2]=96; } }
+    if (!fsMode) g.putImageData(img, 0, 0);
+    g.strokeStyle = '#ffd166'; g.lineWidth = 2; g.beginPath(); g.moveTo(160,360); g.lineTo(320,120); g.lineTo(480,360); g.closePath(); g.stroke();
+    if (rows < 480){ g.fillStyle = 'rgba(255,209,102,.75)'; g.fillRect(0, rows, 640, 3);
+      g.direction = 'rtl'; g.textAlign = 'right'; g.font = 'bold 15px "IBM Plex Sans Arabic", sans-serif'; g.fillStyle = '#ffd166';
+      g.fillText('خط المسح: توضيح بس، مش كود', 632, rows > 30 ? rows - 8 : rows + 22); g.direction = 'ltr'; }
+    if (!fsMode) vertexTags(g);
+    if (fsMode && rows >= 480){ g.strokeStyle = '#ffd166'; g.lineWidth = 3; g.strokeRect(312, 232, 16, 16);
+      g.fillStyle = '#e6edf7'; g.font = 'bold 18px JetBrains Mono, monospace'; g.textAlign = 'center';
+      g.fillText('pixel (320, 240) = 51, 76, 204, 255', 320, 420); }
+    const row = Math.min(rows, 480), nn = n.toLocaleString('en');
+    $('stat').innerHTML = fsMode
+      ? `<b>Fragment Shader (Shader 3):</b> الصف ${row} من 480 · اشتغل <b>${nn}</b> مرة من 38,400. كل مرة <code>color = vec4(0.2, 0.3, 0.8, 1.0)</code> ← بيتكتب في الـ <b>Back buffer</b> كبايتات <code>(51, 76, 204, 255)</code>.`
+      : `<b>Rasterizer</b> (عشان <code>GL_TRIANGLES</code> في <code>glDrawArrays</code>): الصف ${row} من 480 · البكسلات اللي مركزها جوه المثلث لحد دلوقتي: <b>${nn}</b> من 38,400. الخط الأصفر = حدود المثلث من الـ 3 أركان.`;
+  }
+  $('aseek').value = Math.round(p * 1000);
+  $('apause').textContent = p >= 1 ? '⟲ شغّلها تاني' : A.paused ? '▶ كمّل الحركة' : '⏸ وقّف الحركة';
+}
+function tick(t){
+  if (!A.kind){ anim = null; return; }
+  if (!A.paused) A.p = Math.max(0, Math.min(1, A.p + Math.max(0, t - A.last) / (DUR[A.kind] * speedK())));
+  A.last = t; drawAnim(A.kind, A.p);
+  anim = (A.p < 1 && !A.paused) ? requestAnimationFrame(tick) : null;
+}
+function loop(){ if (!anim){ A.last = performance.now(); anim = requestAnimationFrame(tick); } }
+function stopAnim(){ if (anim){ cancelAnimationFrame(anim); anim = null; } A.kind = null; $('actl').hidden = true; }
+function runAnim(kind){ stopAnim(); Object.assign(A, {kind, p: reduce ? 1 : 0, paused: false}); $('actl').hidden = false; drawAnim(kind, A.p); loop(); }
+$('apause').onclick = () => {
+  if (!A.kind) return;
+  if (A.p >= 1){ A.p = 0; A.paused = false; loop(); }
+  else { A.paused = !A.paused; if (A.paused){ play(false); drawAnim(A.kind, A.p); } else loop(); }
+};
+$('aseek').oninput = e => { if (!A.kind) return; play(false); A.paused = true; A.p = +e.target.value / 1000; drawAnim(A.kind, A.p); };
+
+const C = (n, t) => `<button type="button" class="cl" data-l="${n}">${n}: ${esc(t)}</button>`;
+const F = (n, t) => `<button type="button" class="cl" data-f="${n}">Basic.shader ${n}: ${esc(t)}</button>`;
+const BLUE = 'rgb(51,76,204)', BLACK = '#000', GREY = 'rgb(70,78,96)', YEL = '#ffd166';
+function item(color, html){ return `<div class="wi"><span class="sw" style="background:${color}"></span><div>${html}</div></div>`; }
+function triItems(){ return item(BLUE, `<b>المثلث الأزرق</b><br>شكله = الـ 6 أرقام اللي في <code>positions</code>: كل رقمين ركن (الكلام الأصفر على كل ركن بيقولك رقميه).<br>${C(107,'float positions[6]')} ${C(120,'glBufferData')} ${C(123,'glVertexAttribPointer')}<br>اللي رسمه = <code>glDrawArrays(GL_TRIANGLES, 0, 3)</code>: «ارسم مثلثات، ابدأ من النقطة 0، وخد 3 نقط».<br>${C(137,'glDrawArrays')}<br>لونه = <code>color</code> في الـ Fragment Shader = (0.2, 0.3, 0.8) ← بالبايتات (51, 76, 204).<br>${F(18,'color = vec4(0.2, 0.3, 0.8, 1.0);')}`)
+  + item(BLACK, `<b>الأسود اللي حواليه</b> = <code>glClear</code> مسحت الصورة. مافيش <code>glClearColor</code> في الكود، فاللون الافتراضي (0, 0, 0) = أسود.<br>${C(136,'glClear')}`); }
+function explain(s, st){
+  if (!st.win) return '<h3>على الشاشة إيه؟</h3>' + item('#1b2433', `مفيش شباك لسه. هيتعمل هنا:<br>${C(95,'glfwCreateWindow(640, 480, ...)')}`);
+  let h = '<h3>اللي في الـ Back buffer جه منين؟</h3>';
+  if (s.anim === 'vs') h += item(YEL, `<b>النقط الصفرا</b> = الـ 3 أركان. الكارت قراهم من Buffer 1 (كل ركن 8 بايت)، والـ Vertex Shader حط كل واحد مكانه في الشباك.<br>${C(108,'-0.5f, -0.5f')} ${C(109,'0.0f, 0.5f')} ${C(110,'0.5f, -0.5f')}<br>${C(123,'stride 8')} ${F(8,'gl_Position = position;')}`)
+      + item(BLACK, `الأسود = ${C(136,'glClear')}`);
+  else if (s.anim === 'raster') h += item(GREY, `<b>الرمادي</b> = البكسلات اللي مركزها جوه المثلث. ده شغل الـ Rasterizer: جزء ثابت جوه كارت الشاشة، مش كود إحنا كتبناه. اللي قاله يعمل مثلثات هو <code>GL_TRIANGLES</code>.<br>${C(137,'glDrawArrays(GL_TRIANGLES, 0, 3)')}`)
+      + item(YEL, `<b>الخط الأصفر اللي بينزل (خط المسح)</b> = <b>مفيش سطر كود بيحركه.</b> ده رسم توضيحي في الصفحة دي بس، عشان تشوف البكسلات وهي بتتعد. الكارت الحقيقي بيفحص الـ 307,200 بكسل (640 × 480) في نفس الوقت تقريباً، في أقل من جزء من الألف من الثانية، ومن غير أي خط. إحنا اللي بطّأناه ورتّبناه صف صف.`)
+      + item(YEL, `<b>حدود المثلث الصفرا</b> = خطوط بين الأركان التلاتة. كل ركن جاي من سطر في الكود (مكتوب على الصورة): ${C(108,'-0.5f, -0.5f')} ${C(109,'0.0f, 0.5f')} ${C(110,'0.5f, -0.5f')}. واللي بيقول «وصّل التلاتة دول بمثلث» هو <code>GL_TRIANGLES</code> والرقم <code>3</code> في ${C(137,'glDrawArrays')}. الخط نفسه توضيح، مش بيترسم على الشاشة الحقيقية.`);
+  else if (st.back === 'tri' || s.anim === 'fs') h += triItems();
+  else if (st.back === 'black') h += item(BLACK, `<b>أسود</b> = ${C(136,'glClear(GL_COLOR_BUFFER_BIT)')} مسحته. لسه مارسمناش فيه.`);
+  else if (st.front === 'tri') h += item(BLACK, `ده الـ Front القديم بعد التبديل (كان فاضي). هيتمسح أسود في اللفة الجاية بـ ${C(136,'glClear')}، والمثلث هيترسم فيه تاني.`);
+  else h += item(BLACK, `فاضي: لسه محدش رسم فيه. (بنوريه أسود.)`);
+  if (st.gpu.prog && st.gpu.prog.inuse) h += '<h3>كل حاجة في الكود عملت إيه في الصورة؟</h3>' + `<table class="who"><tbody>
+    <tr><th>مكان الأركان</th><td>الأرقام ${C(108,'-0.5f, -0.5f')} ${C(109,'0.0f, 0.5f')} ${C(110,'0.5f, -0.5f')} ← اتنسخت في <b>Buffer 1</b> ${C(120,'glBufferData')}</td></tr>
+    <tr><th>VAO 1</th><td><b>مش بيبان في الصورة.</b> هو الورقة اللي مكتوب فيها «اقرا Buffer 1 كل 8 بايت = ركن من رقمين». من غيره الكارت مش هيعرف يفهم الـ 24 بايت. ${C(123,'glVertexAttribPointer')}</td></tr>
+    <tr><th>Vertex Shader (Shader 2)</th><td><b>مش بيبان كحاجة لوحده.</b> بياخد كل ركن ويقول مكانه على الشاشة (النقط الصفرا في خطوة Vertex Shader). ${F(8,'gl_Position = position;')}</td></tr>
+    <tr><th>الشكل مثلث</th><td><code>GL_TRIANGLES</code> و <code>3</code> نقط، والـ Rasterizer (جوه الكارت) حدد البكسلات. ${C(137,'glDrawArrays')}</td></tr>
+    <tr><th>Fragment Shader (Shader 3)</th><td><b>اللون الأزرق</b> نفسه: (0.2, 0.3, 0.8) ← (51, 76, 204). ${F(18,'color = vec4(...)')}</td></tr>
+    <tr><th>الخلفية السودا</th><td>${C(136,'glClear')}</td></tr>
+    <tr><th>ظهوره على الشاشة</th><td>${C(138,'glfwSwapBuffers')}</td></tr></tbody></table>`;
+  h += '<h3>والشاشة (Front buffer)؟</h3>';
+  if (st.front === 'tri') h += item(BLUE, `نفس المثلث، وصل للشاشة بـ ${C(138,'glfwSwapBuffers(window)')}: بدّل الـ Back والـ Front.`);
+  else h += item(BLACK, `لسه أسود: مفيش حاجة وصلت لها. هتوصل لما يتنفذ ${C(138,'glfwSwapBuffers')}.`);
+  return h;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.cl'); if (!b) return;
+  const el = b.dataset.l ? $('L' + b.dataset.l) : $('F' + b.dataset.f);
+  const box = b.dataset.l ? $('codebox') : $('file');
+  if (b.dataset.f) box.scrollIntoView({block: 'nearest', behavior: reduce ? 'auto' : 'smooth'});
+  box.scrollTop = Math.max(0, el.offsetTop - box.clientHeight / 2);
+  if (b.dataset.l && innerWidth <= 900) box.scrollIntoView({block: 'nearest', behavior: reduce ? 'auto' : 'smooth'});
+  el.classList.add('ping'); setTimeout(() => el.classList.remove('ping'), 1600);
+});
+
+const HW = [
+ ['', 'ده بيحصل جوه كارت الشاشة لكل بكسل (x, y) في الشباك 640 × 480', 'c'],
+ ['A = (160,120); B = (320,360); C = (480,120);', 'الأركان التلاتة بعد الـ Vertex Shader (من السطور 108–110)', 'c'],
+ ['for (each pixel x, y)', 'لكل بكسل. في الحقيقة كلهم مع بعض، مش واحد واحد', 'loop'],
+ ['{', '', ''],
+ ['    P  = (x + 0.5, y + 0.5);', 'نص البكسل', 'p'],
+ ['    e1 = cross2D(B - A, P - A);', 'البكسل على أنهي جنب من الضلع A→B؟', 'e'],
+ ['    e2 = cross2D(C - B, P - B);', 'ومن الضلع B→C؟', 'e'],
+ ['    e3 = cross2D(A - C, P - C);', 'ومن الضلع C→A؟', 'e'],
+ ['    if (e1 <= 0 && e2 <= 0 && e3 <= 0)', 'على الجنب الجوّاني من التلاتة = جوه المثلث', 'if'],
+ ['        color = FragmentShader();', 'يشغّل Shader 3 بتاعك ← vec4(0.2, 0.3, 0.8, 1.0)', 'fs'],
+ ['        backBuffer[x][y] = color;', 'يكتب (51, 76, 204, 255) في البكسل', 'fs'],
+ ['}', 'غير كده: البكسل مايتلمسش، ويفضل أسود من glClear', '']];
+$('hwcode').innerHTML = HW.map(([t, n, k]) => `<div class="hl" data-k="${k}"><span class="hc">${esc(t) || ' '}</span><span class="hn">${esc(n)}</span></div>`).join('');
+const AV = [160,120], BV = [320,360], CV = [480,120];
+const cr = (a, b, p) => (b[0]-a[0])*(p[1]-a[1]) - (b[1]-a[1])*(p[0]-a[0]);
+let probeAt = [320, 240];
+function probe(cx, cy){
+  probeAt = [cx, cy];
+  const gx = cx, gy = 479 - cy, P = [gx + .5, gy + .5];
+  const e = [cr(AV, BV, P), cr(BV, CV, P), cr(CV, AV, P)];
+  const inside = R.m[cy*640 + cx] === 1;
+  const sgn = v => v <= 0 ? '≤ 0 ✓' : '> 0 ✗';
+  $('probe').innerHTML = `<b>البكسل (${cx}, ${cy})</b> <span style="color:var(--muted)">(في حسبة OpenGL: y = ${gy}، لأن y بيبدأ من تحت)</span>
+    <table><tr><td>P</td><td>(${P[0]}, ${P[1]})</td></tr>
+    <tr><td>e1</td><td>${e[0].toLocaleString('en')}</td><td>${sgn(e[0])}</td></tr>
+    <tr><td>e2</td><td>${e[1].toLocaleString('en')}</td><td>${sgn(e[1])}</td></tr>
+    <tr><td>e3</td><td>${e[2].toLocaleString('en')}</td><td>${sgn(e[2])}</td></tr></table>` +
+    (inside ? `<span class="in">جوه المثلث</span>: الـ Fragment Shader بتاعك (Shader 3) اشتغل للبكسل ده، ورجّع (0.2, 0.3, 0.8, 1.0)، فاتكتب (51, 76, 204, 255).`
+            : `<span class="out">برّه المثلث</span>: ولا حاجة اتنفذت للبكسل ده. الـ Fragment Shader ما اشتغلش له أصلاً، فلونه فضل اللي <code>glClear</code> حطته: أسود.`);
+  document.querySelectorAll('#hwcode div').forEach(d => d.classList.toggle('on', d.dataset.k === 'e' || d.dataset.k === 'if' || (inside && d.dataset.k === 'fs')));
+  $('cover' + frontId()).getContext('2d').clearRect(0, 0, 640, 480);
+  const o = $('cover' + backId).getContext('2d'); o.clearRect(0, 0, 640, 480);
+  o.strokeStyle = inside ? '#37d2be' : '#f5a524'; o.lineWidth = 3;
+  o.beginPath(); o.moveTo(cx - 18, cy); o.lineTo(cx + 18, cy); o.moveTo(cx, cy - 18); o.lineTo(cx, cy + 18); o.stroke();
+  o.strokeRect(cx - 6, cy - 6, 12, 12);
+}
+['cA', 'cB'].forEach(id => $(id).addEventListener('click', ev => {
+  const r = ev.target.getBoundingClientRect();
+  const cx = Math.min(639, Math.max(0, Math.floor((ev.clientX - r.left) / r.width * 640)));
+  const cy = Math.min(479, Math.max(0, Math.floor((ev.clientY - r.top) / r.height * 480)));
+  probe(cx, cy);
+}));
+
+function flash(id){ const el = $(id); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 700); }
+
+function render(){
+  const s = S[i], st = s.state;
+  $('count').textContent = `خطوة ${i+1} / ${S.length}`; $('seek').value = i;
+  $('where').textContent = `s1_shader_file.cpp : ${s.line}` + (s.sline ? `   ·   Basic.shader : ${s.sline}` : '');
+  const u = $('unit'); u.textContent = s.unit;
+  u.style.background = s.unit === 'CPU' ? 'var(--cpu)' : s.unit === 'GPU' ? 'var(--gpu)' : 'var(--both)';
+  $('now').style.borderColor = u.style.background;
+  $('title').textContent = s.title; $('text').innerHTML = s.text;
+  // code
+  document.querySelectorAll('.code div.cur').forEach(e => e.classList.remove('cur', 'g'));
+  const L = $('L' + s.line); L.classList.add('cur'); if (s.unit !== 'CPU') L.classList.add('g');
+  const box = $('codebox'); box.scrollTop = Math.max(0, L.offsetTop - box.clientHeight / 2);
+  // stack
+  $('stack').innerHTML = st.stack.length ? st.stack.slice().reverse().map((f, k) =>
+    `<div class="frame${k===0?' top':''}"><div class="fn">${esc(f.fn)}</div>` +
+    (f.vars.length ? `<table class="vars">${f.vars.map(v => `<tr><td>${esc(v[0])}</td><td class="ty">${esc(v[1])}</td><td class="v" dir="auto">${esc(v[2])}</td></tr>`).join('')}</table>` : '<div class="empty" style="padding:3px 8px">لسه مفيش متغيرات</div>') +
+    (f.vars.some(v => v[0]==='positions') ? `<div class="bytes" style="padding:0 8px 6px">${D.cpuBytes.map((b,j)=>`<span class="v${Math.floor(j/2)}" title="${D.pos[j]}">${b}</span>`).join('')}</div>` : '') +
+    `</div>`).join('') : '<div class="empty">البرنامج مش شغال.</div>';
+  // gpu
+  const G = st.gpu; let h = '';
+  h += G.ctx ? `<div class="obj"><span class="on">Context</span> ${G.ctx}${G.vsync ? `<br><small>VSync = ${G.vsync}</small>` : ''}${G.glad ? '<br><small>GLAD: عناوين دوال الدرايفر جاهزة</small>' : ''}</div>` : '<div class="obj off">مفيش Context: الكارت مستني.</div>';
+  if (G.vao){ const a = G.vao.attr0; h += `<div class="obj"><span class="on">VAO ${G.vao.id}</span>${G.vao.bound ? '<span class="pill ok">شغال</span>' : ''}` +
+    (a ? `<br><small>خانة 0: ${a.size ? `${a.size} × ${a.type}، stride ${a.stride} بايت، offset ${a.offset}، من Buffer ${a.buffer}` : 'شغالة، لسه من غير وصف'}</small>` : '') + `</div>`; }
+  if (G.buf){ h += `<div class="obj"><span class="on">Buffer ${G.buf.id}</span>${G.buf.bound ? '<span class="pill ok">GL_ARRAY_BUFFER</span>' : ''}` +
+    (G.buf.bytes ? `<small> · 24 بايت</small><div class="bytes${s.anim==='upload'?' fly':''}">${G.buf.bytes.map((b,j)=>`<span class="v${Math.floor(j/2)}">${b}</span>`).join('')}</div>` : '<br><small>فاضي: 0 بايت</small>') + `</div>`; }
+  for (const [id, sh] of Object.entries(G.shaders)) h += `<div class="obj"><span class="on">Shader ${id}</span> · ${sh.type}` +
+    `<br><small>${sh.src ? sh.src.length + ' حرف GLSL' : 'من غير شفرة'}${sh.compiled ? ' · اتترجم' : ''}</small>` +
+    (sh.status === 1 ? '<span class="pill ok">COMPILE_STATUS = 1</span>' : '') + (sh.del ? '<span class="pill warn">متعلّم للمسح</span>' : '') + `</div>`;
+  if (G.prog){ const p = G.prog; h += `<div class="obj"><span class="on">Program ${p.id}</span>` +
+    `<br><small>متركب فيه: ${p.attached.length ? p.attached.map(x => 'Shader ' + x).join(' + ') : 'ولا حاجة'}</small>` +
+    (p.linked ? '<span class="pill ok">LINK = 1</span>' : '') + (p.validated ? '<span class="pill ok">Validated</span>' : '') + (p.inuse ? '<span class="pill ok">مستخدم دلوقتي</span>' : '') + `</div>`; }
+  $('gpu').innerHTML = h;
+  // file
+  const f = st.file;
+  $('fstate').textContent = !f.open ? (f.eof ? '(اتقفل)' : '(مقفول)') : f.eof ? '(وصلنا لآخره)' : `(اتقرا لحد السطر ${f.cursor})`;
+  D.shader.forEach((_, k) => { const el = $('F' + (k+1)); el.classList.toggle('read', f.cursor > k+1 || (f.eof && !s.sline)); el.classList.toggle('cur', s.sline === k+1); });
+  $('ss0').textContent = st.ss[0] || '(فاضي)'; $('ss1').textContent = st.ss[1] || '(فاضي)';
+  // screens
+  stopAnim(); $('stat').textContent = '';
+  // the two framebuffers keep their identity (A, B); glfwSwapBuffers only swaps which one is BACK and which is FRONT
+  backId = (SWAPS[i] + (s.anim === 'swap' ? 1 : 0)) % 2 === 0 ? 'A' : 'B';
+  for (const id of ['A', 'B']){ const isB = id === backId;
+    $('fb' + id).className = 'scr fbx ' + (st.win ? (isB ? 'back' : 'front') : '');
+    $('role' + id).textContent = !st.win ? '—' : isB ? 'BACK' : 'FRONT';
+    $('lbl' + id).innerHTML = !st.win ? 'لسه مفيش شباك' : isB ? 'الـ GPU بيرسم هنا في الخفا · <b>دوس على أي بكسل</b> تشوف حسبته' : 'ده اللي معروض على الشاشة دلوقتي'; }
+  paint($('c' + frontId()), st.win ? (st.front === 'none' ? 'black' : st.front) : 'none');
+  if (s.anim === 'vs' || s.anim === 'raster' || s.anim === 'fs') runAnim(s.anim);
+  else { paint($('c' + backId), st.win ? (st.back === 'none' ? 'black' : st.back) : 'none');
+    if (s.anim === 'swap') $('stat').innerHTML = `<code>glfwSwapBuffers(window)</code>: مفيش صورة اتنقلت. Framebuffer ${frontId()} (اللي فيه المثلث) بقى <b>FRONT</b> واتعرض، و Framebuffer ${backId} بقى <b>BACK</b> عشان نرسم فيه اللفة الجاية.`;
+    else if (!st.win) $('stat').textContent = 'لسه مفيش شباك.';
+    else if (st.back === 'black' && s.line === 136) $('stat').innerHTML = '<code>glClear(GL_COLOR_BUFFER_BIT)</code>: الـ Back buffer اتملا أسود (0, 0, 0).';
+  }
+  $('why').innerHTML = explain(s, st);
+  $('hw').hidden = !(st.gpu.prog && st.gpu.prog.inuse); if (!$('hw').hidden) probe(probeAt[0], probeAt[1]); else { $('coverA').getContext('2d').clearRect(0,0,640,480); $('coverB').getContext('2d').clearRect(0,0,640,480); }
+  // pipeline strip
+  const G2 = st.gpu, P = {pos: st.stack.some(f => f.vars.some(v => v[0] === 'positions')), buf: !!(G2.buf && G2.buf.bytes), vao: !!(G2.vao && G2.vao.attr0 && G2.vao.attr0.size),
+    vs: !!(G2.shaders[2] && G2.shaders[2].compiled) || !!(G2.prog && G2.prog.inuse), ras: !!(G2.prog && G2.prog.inuse), fs: !!(G2.shaders[3] && G2.shaders[3].compiled) || !!(G2.prog && G2.prog.inuse), back: st.win, front: st.win};
+  const everDraw = S.slice(0, i + 1).some(x => x.anim === 'vs') && !!(G2.prog && G2.prog.inuse);
+  const NOW = {vs: ['vs'], raster: ['ras'], fs: ['fs', 'back'], swap: ['front'], upload: ['buf'], stride: ['vao'], bytes: ['pos']}[s.anim] || (s.line === 136 && st.back === 'black' ? ['back'] : []);
+  const USED = {vs: ['pos', 'buf', 'vao'], raster: ['pos', 'buf', 'vao', 'vs'], fs: ['pos', 'buf', 'vao', 'vs', 'ras'], swap: ['pos', 'buf', 'vao', 'vs', 'ras', 'fs', 'back']}[s.anim] || [];
+  document.querySelectorAll('#pipe li').forEach(li => { const k = li.dataset.k;
+    li.className = NOW.includes(k) ? 'now' : (USED.includes(k) || P[k] || (everDraw && ['vs', 'ras', 'fs'].includes(k))) ? 'used' : ''; });
+  // terminal
+  $('term').textContent = st.term.join('\n'); $('term').scrollTop = 1e6;
+  // flashes
+  const map = {stack:'p-cpu', ss:'p-file', file:'p-file', win:'p-scr', back:'p-scr', front:'p-scr', term:'p-term', ctx:'p-gpu', vao:'p-gpu', buf:'p-gpu', shaders:'p-gpu', prog:'p-gpu'};
+  if (!reduce) new Set(s.changed.map(c => map[c])).forEach(id => id && flash(id));
+}
+function go(k){ i = Math.max(0, Math.min(S.length - 1, k)); render(); }
+function play(on){
+  clearInterval(timer); timer = null; $('play').textContent = on ? '⏸ إيقاف' : '▶ تشغيل';
+  if (on){ if (A.kind && A.paused && A.p < 1){ A.paused = false; loop(); }
+    timer = setInterval(() => { if (A.kind && A.p < 1) return; if (i >= S.length - 1) play(false); else go(i + 1); }, +$('speed').value); }
+}
+$('next').onclick = () => { play(false); go(i + 1); };
+$('prev').onclick = () => { play(false); go(i - 1); };
+$('play').onclick = () => play(!timer);
+$('speed').onchange = () => { if (timer) play(true); };
+$('seek').oninput = e => { play(false); go(+e.target.value); };
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'ArrowLeft'){ play(false); go(i + 1); } else if (e.key === 'ArrowRight'){ play(false); go(i - 1); } else if (e.key === ' '){ e.preventDefault(); play(!timer); }
+});
+go(0);
+</script>

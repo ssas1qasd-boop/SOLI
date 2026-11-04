@@ -1,0 +1,230 @@
+<title>حكاية المثلث الأزرق</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one idea per scene. A big picture, two or three short lines, the one line of code it belongs to. */
+:root{
+  --bg:#f3f0ea; --card:#fffdf8; --ink:#1d2433; --muted:#667085; --line:#e2dccf;
+  --cpu:#c2410c; --cpu-soft:#fdebd9; --gpu:#0f766e; --gpu-soft:#d7f0eb; --blue:#334ccc; --gold:#d99a00;
+  --code-bg:#1b2130; --code-ink:#e6e9ef;
+  --f-ui:"IBM Plex Sans Arabic",system-ui,sans-serif; --f-code:"JetBrains Mono","DejaVu Sans Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11141b; --card:#181d27; --ink:#e8ebf2; --muted:#98a2b3; --line:#2a3140;
+  --cpu:#f59e57; --cpu-soft:#3a2416; --gpu:#3fd0bb; --gpu-soft:#11322e; --blue:#6f86ff; --gold:#ffc94d;
+  --code-bg:#0c1018; --code-ink:#e6e9ef; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11141b; --card:#181d27; --ink:#e8ebf2; --muted:#98a2b3; --line:#2a3140;
+  --cpu:#f59e57; --cpu-soft:#3a2416; --gpu:#3fd0bb; --gpu-soft:#11322e; --blue:#6f86ff; --gold:#ffc94d;
+  --code-bg:#0c1018; --code-ink:#e6e9ef; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:17px;line-height:1.75;direction:rtl}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+h1{font-size:1.35rem;margin:0}
+.dots{display:flex;gap:6px;direction:rtl}
+.dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--muted);font:600 .75rem var(--f-code);cursor:pointer;padding:0}
+.dots button.on{border-color:var(--gpu);background:var(--gpu);color:#fff}
+.dots button.seen{border-color:var(--gpu);color:var(--gpu)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:12px}
+.kicker{font:600 .8rem var(--f-code);letter-spacing:.06em;color:var(--muted)}
+h2{font-size:1.5rem;margin:.1rem 0 .6rem;text-wrap:balance;line-height:1.35}
+canvas{width:100%;max-width:100%;aspect-ratio:16/9;display:block;border-radius:12px;background:var(--bg)}
+.lines{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.lines li{padding-inline-start:14px;border-inline-start:3px solid var(--line)}
+.lines li b{color:var(--gpu)}
+.like{margin-top:12px;background:var(--cpu-soft);border-radius:10px;padding:8px 12px;font-size:.95rem}
+.like b{color:var(--cpu)}
+.code{margin-top:12px;direction:ltr;text-align:left;background:var(--code-bg);color:var(--code-ink);font-family:var(--f-code);font-size:14px;line-height:1.6;border-radius:10px;padding:10px 14px;overflow-x:auto;white-space:pre}
+.code i{color:#7d8799;font-style:normal}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+.nav button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:10px 18px;cursor:pointer;min-height:46px;background:var(--ink);color:var(--bg);flex:1}
+.nav button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.nav button:disabled{opacity:.35;cursor:default}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.replay{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:4px 10px;cursor:pointer;margin-top:8px}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>حكاية المثلث الأزرق</h1>
+    <div class="dots" id="dots" aria-label="المشاهد"></div>
+  </header>
+  <article class="card">
+    <div class="kicker" id="kicker"></div>
+    <h2 id="title"></h2>
+    <canvas id="cv" width="960" height="540" role="img" aria-label="رسمة المشهد"></canvas>
+    <button class="replay" id="replay" type="button">⟲ شغّل الرسمة تاني</button>
+    <ul class="lines" id="lines"></ul>
+    <div class="like" id="like"></div>
+    <div class="code" id="code"></div>
+  </article>
+  <div class="nav">
+    <button class="ghost" id="prev" type="button">→ اللي قبله</button>
+    <button id="next" type="button">اللي بعده ←</button>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const W = 960, H = 540, g = $('cv').getContext('2d');
+
+// ---------- drawing helpers
+function clear(){ g.clearRect(0, 0, W, H); g.fillStyle = css('--bg'); g.fillRect(0, 0, W, H); }
+function box(x, y, w, h, fill, stroke, r = 16){ g.beginPath(); g.roundRect(x, y, w, h, r); if (fill){ g.fillStyle = fill; g.fill(); } if (stroke){ g.strokeStyle = stroke; g.lineWidth = 3; g.stroke(); } }
+function text(t, x, y, { size = 26, color = css('--ink'), align = 'center', weight = 600, mono = false, dir = 'rtl' } = {}){
+  g.font = `${weight} ${size}px ${mono ? '"JetBrains Mono", monospace' : '"IBM Plex Sans Arabic", sans-serif'}`;
+  g.fillStyle = color; g.textAlign = align; g.direction = mono ? 'ltr' : dir; g.textBaseline = 'middle'; g.fillText(t, x, y);
+}
+function arrow(x1, y1, x2, y2, color, p = 1){
+  const x = x1 + (x2 - x1) * p, y = y1 + (y2 - y1) * p;
+  g.strokeStyle = color; g.fillStyle = color; g.lineWidth = 5; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x, y); g.stroke();
+  if (p > .95){ const a = Math.atan2(y2 - y1, x2 - x1); g.beginPath(); g.moveTo(x2, y2);
+    g.lineTo(x2 - 18 * Math.cos(a - .45), y2 - 18 * Math.sin(a - .45)); g.lineTo(x2 - 18 * Math.cos(a + .45), y2 - 18 * Math.sin(a + .45)); g.fill(); }
+}
+const ease = t => t < 0 ? 0 : t > 1 ? 1 : t * t * (3 - 2 * t);
+const seg = (p, a, b) => ease((p - a) / (b - a));
+function chip(t, x, y, color, bg){ g.font = '600 24px "JetBrains Mono", monospace'; const w = g.measureText(t).width + 26; box(x - w/2, y - 22, w, 44, bg, color, 10); text(t, x, y + 1, { size: 24, mono: true, color }); }
+
+// a small "screen": the same triangle in a 32 x 24 pixel window
+const GW = 32, GH = 24, VX = [[8,6],[16,18],[24,6]];
+function insideCell(x, y){ const e = (a,b,px,py) => (b[0]-a[0])*(py-a[1]) - (b[1]-a[1])*(px-a[0]); const P = [x + .5, y + .5];
+  return e(VX[0],VX[1],...P) <= 0 && e(VX[1],VX[2],...P) <= 0 && e(VX[2],VX[0],...P) <= 0; }
+function grid(ox, oy, cell, opts){ // opts: {inside:'none'|'grey'|'blue', upto (0..1 rows done), dots, corners, edges}
+  g.fillStyle = '#20262f'; g.fillRect(ox - 1, oy - 1, GW * cell + 1, GH * cell + 1);
+  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++){
+    const sx = ox + x * cell, sy = oy + (GH - 1 - y) * cell, row = (GH - 1 - y) / GH;
+    let c = '#000'; const ins = insideCell(x, y);
+    if (ins && opts.inside !== 'none' && row < (opts.upto ?? 1)) c = opts.inside === 'blue' ? 'rgb(51,76,204)' : '#4a5468';
+    g.fillStyle = c; g.fillRect(sx, sy, cell - 1, cell - 1);
+    if (opts.dots){ g.fillStyle = ins ? '#ffd166' : '#3b4456'; g.fillRect(sx + cell/2 - 1.5, sy + cell/2 - 1.5, 3, 3); }
+  }
+  const P = ([x, y]) => [ox + x * cell, oy + (GH - y) * cell];
+  if (opts.edges){ g.strokeStyle = '#ffd166'; g.lineWidth = 3; g.beginPath(); g.moveTo(...P(VX[0])); g.lineTo(...P(VX[1])); g.lineTo(...P(VX[2])); g.closePath(); g.stroke(); }
+  if (opts.corners) VX.slice(0, opts.corners).forEach(v => { const [x, y] = P(v); g.fillStyle = '#ffd166'; g.beginPath(); g.arc(x, y, 9, 0, 7); g.fill(); });
+}
+
+// ---------- scenes
+const SC = [
+ { k:'الصورة الكبيرة', t:'فيه جهازين: واحد بيدّي أوامر، وواحد بيرسم',
+   lines:['<b>الـ CPU</b> بينفذ ملف الـ <code>.cpp</code> سطر سطر. هو <b>مش بيرسم</b> ولا بكسل.',
+          '<b>الـ GPU</b> (كارت الشاشة) فيه آلاف العمال الصغيرين، كلهم بيشتغلوا في نفس اللحظة. هو اللي بيرسم.',
+          'كل سطر بيبدأ بـ <code>gl</code> = أمر رايح من الـ CPU للـ GPU.'],
+   like:'<b>تشبيه:</b> الـ CPU مدير في مكتب بيكتب أوامر على ورق. الـ GPU ورشة فيها آلاف العمال، كل واحد بيعمل حتة صغيرة.',
+   code:'<i>// كل دول أوامر من الـ CPU للـ GPU</i>\nglGenBuffers(...);\nglBufferData(...);\nglDrawArrays(...);',
+   draw(p){ clear();
+     box(60, 120, 330, 300, css('--cpu-soft'), css('--cpu')); text('CPU', 225, 175, {size:44, mono:true, color:css('--cpu')}); text('المدير: بينفذ الكود', 225, 240); text('سطر ورا سطر', 225, 285, {size:22, color:css('--muted')});
+     box(570, 120, 330, 300, css('--gpu-soft'), css('--gpu')); text('GPU', 735, 175, {size:44, mono:true, color:css('--gpu')}); text('الورشة: بترسم', 735, 240);
+     for (let i = 0; i < 40; i++){ const on = p * 40 > i; g.fillStyle = on ? css('--gpu') : css('--line'); g.beginPath(); g.arc(610 + (i % 10) * 28, 290 + Math.floor(i / 10) * 28, 9, 0, 7); g.fill(); }
+     text('آلاف العمال مع بعض', 735, 410, {size:20, color:css('--muted')});
+     arrow(400, 270, 560, 270, css('--ink'), seg(p, 0, .6)); text('أوامر gl…', 480, 240, {size:22, mono:false});
+   }},
+ { k:'سطر 107', t:'الأول: 6 أرقام في الرام = 3 أركان',
+   lines:['كتبنا 6 أرقام. كل <b>رقمين</b> = ركن واحد (x و y).','الأرقام من ‎-1 لـ 1: الـ 0 هو نص الشباك، و 1 آخره، و ‎-1 أوله.','لسه دول في رام الكمبيوتر بس. كارت الشاشة ما يعرفش عنهم حاجة.'],
+   like:'<b>تشبيه:</b> كتبت على ورقة عندك في المكتب أماكن 3 دبابيس على لوحة.',
+   code:'float positions[6] = {\n    -0.5f, -0.5f,   <i>// ركن 0: تحت شمال</i>\n     0.0f,  0.5f,   <i>// ركن 1: فوق نص</i>\n     0.5f, -0.5f    <i>// ركن 2: تحت يمين</i>\n};',
+   draw(p){ clear(); const ox = 300, oy = 60, s = 210;
+     box(ox, oy, 2*s, 2*s, '#000', null, 6); g.strokeStyle = '#3b4456'; g.lineWidth = 1;
+     for (let k = -1; k <= 1; k += .5){ g.beginPath(); g.moveTo(ox + (k+1)*s, oy); g.lineTo(ox + (k+1)*s, oy + 2*s); g.stroke(); g.beginPath(); g.moveTo(ox, oy + (1-k)*s); g.lineTo(ox + 2*s, oy + (1-k)*s); g.stroke(); }
+     const V = [[-.5,-.5,'(-0.5, -0.5)'],[0,.5,'(0, 0.5)'],[.5,-.5,'(0.5, -0.5)']];
+     V.forEach(([x,y,l], j) => { const a = seg(p, j*.25, j*.25 + .3); if (!a) return; const X = ox + (x+1)*s, Y = oy + (1-y)*s;
+       g.globalAlpha = a; g.fillStyle = '#ffd166'; g.beginPath(); g.arc(X, Y, 12, 0, 7); g.fill(); text('ركن ' + j, X, Y + (y > 0 ? -34 : 34), {size:22, color:'#ffd166'}); text(l, X, Y + (y > 0 ? -62 : 62), {size:20, mono:true, color:'#e6e9ef'}); g.globalAlpha = 1; });
+     text('-1', ox - 18, oy + 2*s + 20, {size:18, mono:true, color:css('--muted')}); text('1', ox + 2*s + 14, oy + 2*s + 20, {size:18, mono:true, color:css('--muted')});
+   }},
+ { k:'السطور 117–120', t:'Buffer = كرتونة على كارت الشاشة',
+   lines:['<code>glGenBuffers</code>: الكارت عمل كرتونة فاضية ورقمها 1.','<code>glBufferData</code>: نسخنا فيها الـ 6 أرقام (24 بايت) من الرام لذاكرة الكارت.','دلوقتي الكارت عنده الأرقام عنده، ومش هيسأل الـ CPU تاني.'],
+   like:'<b>تشبيه:</b> بعت الورقة اللي فيها أماكن الدبابيس للورشة في كرتونة.',
+   code:'glGenBuffers(1, &buffer);              <i>// اعمل كرتونة</i>\nglBindBuffer(GL_ARRAY_BUFFER, buffer);\nglBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);  <i>// املاها</i>',
+   draw(p){ clear();
+     box(40, 140, 300, 260, css('--cpu-soft'), css('--cpu')); text('رام الكمبيوتر', 190, 180, {color:css('--cpu')}); text('positions', 190, 230, {mono:true, size:26});
+     box(620, 140, 300, 260, css('--gpu-soft'), css('--gpu')); text('ذاكرة الكارت', 770, 180, {color:css('--gpu')}); text('Buffer 1', 770, 230, {mono:true, size:26});
+     const nums = ['-0.5','-0.5','0','0.5','0.5','-0.5'];
+     nums.forEach((n, j) => { const a = seg(p, .1 + j*.08, .5 + j*.08), x0 = 100 + (j%2)*120, y0 = 280 + Math.floor(j/2)*0, x1 = 680 + (j%2)*120;
+       const yy = 270 + Math.floor(j/2) * 40; chip(n, 100 + (j%2)*180 - 10 + (x1 - (100 + (j%2)*180 - 10)) * a, yy, css('--ink'), css('--card')); });
+     text('24 بايت', 480, 120, {size:24, color:css('--muted')}); arrow(350, 160, 610, 160, css('--ink'), seg(p, 0, .3));
+   }},
+ { k:'السطور 113–115 و 122–123', t:'VAO = ورقة تعليمات متلزقة على الكرتونة',
+   lines:['الكرتونة فيها أرقام ورا بعض، والكارت ما يعرفش يقسّمها.','الـ VAO ورقة بتقول: <b>كل ركن = رقمين</b>، والركن اللي بعده بعد 8 بايت، وابدأ من الأول.','فالكارت بقى يعرف: ركن 0 = أول رقمين، ركن 1 = التانيين، ركن 2 = التالتين.'],
+   like:'<b>تشبيه:</b> ورقة على الكرتونة مكتوب فيها «كل اتنين ورا بعض = مكان دبوس».',
+   code:'glGenVertexArrays(1, &vao);   <i>// اعمل ورقة تعليمات</i>\nglBindVertexArray(vao);\nglEnableVertexAttribArray(0);\nglVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);\n<i>//                       ↑ رقمين للركن      ↑ الركن الجاي بعد 8 بايت</i>',
+   draw(p){ clear(); const nums = ['-0.5','-0.5','0','0.5','0.5','-0.5'], cols = ['#d9822b','#2b8ad9','#9b4fd9'];
+     text('Buffer 1', 480, 80, {mono:true, size:28, color:css('--gpu')});
+     nums.forEach((n, j) => chip(n, 175 + j*122, 160, css('--ink'), css('--card')));
+     const a = seg(p, .15, .7);
+     for (let v = 0; v < 3; v++){ if (seg(p, .15 + v*.2, .45 + v*.2) <= 0) continue; const x = 175 + v*244 + 61;
+       g.strokeStyle = cols[v]; g.lineWidth = 4; g.beginPath(); g.roundRect(x - 118, 128, 236, 64, 12); g.stroke();
+       text('ركن ' + v, x, 235, {size:26, color:cols[v]}); text(`بايت ${v*8}–${v*8+7}`, x, 275, {size:20, color:css('--muted')}); }
+     if (a > 0){ g.globalAlpha = a; box(250, 340, 460, 150, '#fff6c9', '#c9a227', 8); text('VAO 1 (ورقة التعليمات)', 480, 380, {size:24, color:'#6b5300'}); text('كل ركن = 2 float = 8 بايت', 480, 425, {size:22, color:'#3d3000'}); text('ابدأ من بايت 0', 480, 462, {size:22, color:'#3d3000'}); g.globalAlpha = 1; }
+   }},
+ { k:'Basic.shader + السطور 125–132', t:'الـ Shaders = وصفتين للعمال، مكتوبين في ملف',
+   lines:['<b>Vertex Shader</b>: «خد كل ركن، وحطه مكانه». بيتنفذ مرة لكل ركن = 3 مرات.','<b>Fragment Shader</b>: «لوّن البكسل أزرق». بيتنفذ مرة لكل بكسل جوه المثلث.','الـ CPU قرا الملف، وبعته للكارت، والكارت ترجمه، و <code>glUseProgram</code> قاله «اشتغل بيهم».'],
+   like:'<b>تشبيه:</b> وصفتين للعمال: عامل الدبابيس بيعرف يحط الدبوس فين، وعامل الدهان بيعرف يلوّن بأنهي لون.',
+   code:'<i>// Basic.shader</i>\ngl_Position = position;            <i>// وصفة الأركان</i>\ncolor = vec4(0.2, 0.3, 0.8, 1.0);  <i>// وصفة اللون: أزرق</i>\n\n<i>// main.cpp</i>\nunsigned int shader = CreateShader(...);  <i>// ترجم الوصفتين</i>\nglUseProgram(shader);                     <i>// استخدمهم</i>',
+   draw(p){ clear();
+     box(60, 90, 390, 360, css('--card'), css('--gpu')); text('Vertex Shader', 255, 140, {mono:true, size:28, color:css('--gpu')}); text('عامل الدبابيس', 255, 190);
+     text('gl_Position = position;', 255, 260, {mono:true, size:20}); text('3 مرات (مرة لكل ركن)', 255, 330, {size:22, color:css('--muted')});
+     for (let j = 0; j < 3; j++) if (seg(p, j*.2, j*.2 + .2) > 0){ g.fillStyle = '#ffd166'; g.beginPath(); g.arc(195 + j*60, 395, 14, 0, 7); g.fill(); }
+     box(510, 90, 390, 360, css('--card'), css('--blue')); text('Fragment Shader', 705, 140, {mono:true, size:28, color:css('--blue')}); text('عامل الدهان', 705, 190);
+     text('color = vec4(0.2, 0.3, 0.8, 1.0);', 705, 260, {mono:true, size:17}); text('مرة لكل بكسل جوه المثلث', 705, 330, {size:22, color:css('--muted')});
+     const a = seg(p, .5, 1); g.fillStyle = 'rgb(51,76,204)'; g.fillRect(605, 375, 200 * a, 40);
+   }},
+ { k:'سطر 137 · جزء 1', t:'glDrawArrays: «ارسم مثلث من 3 أركان». أول حاجة: الأركان تتحط',
+   lines:['الكارت قرا الكرتونة بالورقة (VAO)، وطلع 3 أركان.','عامل الدبابيس (Vertex Shader) اشتغل 3 مرات، وحط كل ركن مكانه على الشاشة.','الشاشة هنا متكبّرة: كل مربع = بكسل واحد.'],
+   like:'<b>تشبيه:</b> 3 دبابيس اتغرسوا في اللوحة.',
+   code:'glDrawArrays(GL_TRIANGLES, 0, 3);\n<i>//           ↑ مثلث       ↑ من ركن 0، وخد 3 أركان</i>',
+   draw(p){ clear(); grid(240, 30, 20, {inside:'none', dots:false, corners: p >= 1 ? 3 : Math.floor(p * 3.2)}); text('شباك متصغّر 32 × 24 بكسل', 480, 520, {size:20, color:css('--muted')}); }},
+ { k:'سطر 137 · جزء 2', t:'الـ Rasterizer: أنهي مربعات جوه المثلث؟',
+   lines:['ده جزء جوه الكارت نفسه، <b>مش كود إحنا كتبناه</b>. كلمة <code>GL_TRIANGLES</code> هي اللي شغّلته.','بيبص على <b>نقطة نص</b> كل مربع: جوه الأضلاع التلاتة؟ يبقى المربع من المثلث.','النقطة الصفرا = جوه. الرمادي = المربعات اللي اتختارت.'],
+   like:'<b>تشبيه:</b> حد شد خيط بين الدبابيس التلاتة، وعلّم كل مربع نصه جوه الخيط.',
+   code:'<i>// مفيش سطر ليه في برنامجك. الكارت بيعمله لوحده</i>\n<i>// لما يشوف GL_TRIANGLES</i>',
+   draw(p){ clear(); grid(240, 30, 20, {inside:'grey', upto: p, dots:true, corners:3, edges:true}); text('النقطة الصفرا = نص المربع جوه المثلث', 480, 520, {size:20, color:css('--muted')}); }},
+ { k:'سطر 137 · جزء 3 + Basic.shader سطر 18', t:'الـ Fragment Shader: لوّن المربعات اللي جوه بس',
+   lines:['عامل الدهان اشتغل مرة لكل مربع رمادي، وكل مرة قال «أزرق».','المربعات اللي برّه ما اتلمستش خالص، فلونها فضل أسود.','في البرنامج الحقيقي الشباك 640 × 480، فالمربعات اللي اتلونت = <b>38,400</b>.'],
+   like:'<b>تشبيه:</b> عامل الدهان لوّن المربعات المعلّمة بس.',
+   code:'color = vec4(0.2, 0.3, 0.8, 1.0);   <i>// أحمر 0.2، أخضر 0.3، أزرق 0.8</i>',
+   draw(p){ clear(); grid(240, 30, 20, {inside:'blue', upto: p, dots:false, corners:0}); text('96 مربع اتلوّن هنا · 38,400 في الشباك الحقيقي', 480, 520, {size:20, color:css('--muted')}); }},
+ { k:'السطور 136 و 138', t:'الرسم بيحصل ورا ستارة، وبعدين الستارة بتتشال',
+   lines:['فيه لوحتين (Framebuffers). واحدة <b>ورا الستارة</b> (Back) بنرسم فيها، وواحدة <b>قدام الناس</b> (Front) معروضة.','<code>glClear</code> بيمسح لوحة الضهر أسود، وبعدين الرسم كله بيحصل فيها.','<code>glfwSwapBuffers</code> بيبدّل اللوحتين: المثلث يظهر مرة واحدة كامل. وده بيتكرر 60 مرة في الثانية.'],
+   like:'<b>تشبيه:</b> رسام بيرسم على لوحة ورا الستارة، ولما تخلص يلفّها للجمهور، ويبدأ في التانية.',
+   code:'while (!glfwWindowShouldClose(window))\n{\n    glClear(GL_COLOR_BUFFER_BIT);        <i>// امسح لوحة الضهر</i>\n    glDrawArrays(GL_TRIANGLES, 0, 3);    <i>// ارسم فيها</i>\n    glfwSwapBuffers(window);             <i>// لفّها للجمهور</i>\n    glfwPollEvents();\n}',
+   draw(p){ clear(); const sw = seg(p, .55, .85);
+     const tri = (x, y, s) => { g.fillStyle = '#000'; g.fillRect(x, y, s * 1.33, s); g.fillStyle = 'rgb(51,76,204)'; g.beginPath(); g.moveTo(x + s*.33, y + s*.75); g.lineTo(x + s*.665, y + s*.25); g.lineTo(x + s, y + s*.75); g.closePath(); if (p > .25) g.fill(); };
+     text('ورا الستارة (Back)', 250, 70, {size:24, color:css('--gpu')}); text('قدام الناس (Front) = الشاشة', 710, 70, {size:24, color:css('--blue')});
+     const xa = 90 + (530 - 90) * sw, xb = 530 + (90 - 530) * sw;
+     g.globalAlpha = 1; tri(xa, 120, 240); g.fillStyle = '#000'; g.fillRect(xb, 120, 320, 240);
+     if (p < .25){ g.fillStyle = '#000'; g.fillRect(xa, 120, 320, 240); text('glClear: أسود', xa + 160, 240, {size:22, color:'#e6e9ef'}); }
+     else if (p < .55) text('بيترسم…', xa + 160, 340, {size:20, color:'#ffd166'});
+     box(470, 110, 16, 270, css('--line'), null, 4);
+     if (sw > 0 && sw < 1) text('⇄ glfwSwapBuffers', 480, 420, {size:26, mono:true, color:css('--ink')});
+     if (sw >= 1) text('المثلث ظهر كامل مرة واحدة', 690, 420, {size:24, color:css('--gpu')});
+     text('ويتكرر 60 مرة في الثانية', 480, 490, {size:22, color:css('--muted')});
+   }}
+];
+
+let cur = 0, t0 = 0, raf = 0;
+const DUR = 3200;
+$('dots').innerHTML = SC.map((_, j) => `<button type="button" aria-label="مشهد ${j+1}">${j+1}</button>`).join('');
+const seen = new Set();
+function show(j){
+  cur = j; seen.add(j); const s = SC[j];
+  $('kicker').textContent = `${j+1} من ${SC.length} · ${s.k}`; $('title').textContent = s.t;
+  $('lines').innerHTML = s.lines.map(l => `<li>${l}</li>`).join(''); $('like').innerHTML = s.like; $('code').innerHTML = s.code;
+  [...$('dots').children].forEach((b, k) => b.className = k === j ? 'on' : seen.has(k) ? 'seen' : '');
+  $('prev').disabled = j === 0; $('next').textContent = j === SC.length - 1 ? '⟲ من الأول' : 'اللي بعده ←';
+  play();
+}
+function play(){ cancelAnimationFrame(raf); t0 = performance.now();
+  const step = now => { const p = reduce ? 1 : Math.min(1, (now - t0) / DUR); SC[cur].draw(p); if (p < 1) raf = requestAnimationFrame(step); };
+  raf = requestAnimationFrame(step); }
+$('next').onclick = () => show(cur === SC.length - 1 ? 0 : cur + 1);
+$('prev').onclick = () => cur > 0 && show(cur - 1);
+$('replay').onclick = play;
+[...$('dots').children].forEach((b, k) => b.onclick = () => show(k));
+document.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') $('next').click(); if (e.key === 'ArrowRight') $('prev').click(); });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => SC[cur].draw(1));
+document.fonts && document.fonts.ready.then(() => SC[cur].draw(1));
+show(0);
+</script>

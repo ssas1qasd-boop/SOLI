@@ -1,0 +1,7 @@
+face list: 36 corners x 12 bytes = 432 bytes
+indexed:   8 vertices x 12 + 12 triangles x 12 = 240 bytes
+V = 8, E = 18, F = 12, V - E + F = 2
+P = (1, 1): alpha = 0.5, beta = 0.25, gamma = 0.25, sum = 1  inside
+P = (2, 2): alpha = 0, beta = 0.5, gamma = 0.5, sum = 1  on an edge
+P = (4, 0): alpha = 0, beta = 1, gamma = 0, sum = 1  on a vertex
+P = (3, 3): alpha = -0.5, beta = 0.75, gamma = 0.75, sum = 1  outside

@@ -1,0 +1,10 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch({args:['--use-gl=swiftshader']}); const p = await b.newPage({viewport:{width:412,height:915}});
+  const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+  await p.route('**/three.min.js', r => r.fulfill({path:'/home/claude/sim/three.min.js', contentType:'application/javascript'})); await p.route(/fonts\.g/, r => r.abort());
+  await p.goto('http://localhost:8765/bench_days.html#d7_r2'); await p.waitForTimeout(4000);
+  await p.screenshot({path:'/tmp/claude-0/bd1.png'});
+  await p.click('details.pk-day[data-day="3"] > summary'); await p.waitForTimeout(300); await p.screenshot({path:'/tmp/claude-0/bd2.png'});
+  console.log(await p.evaluate(() => [...document.querySelectorAll('details.pk-day')].map(d => d.dataset.day + (d.open ? '*' : '')).join(' ')));
+  await p.click('#agFab'); await p.fill('#agQ', 'ليه فيه 3 VAO؟'); await p.press('#agQ', 'Enter'); await p.waitForTimeout(600);
+  console.log((await p.innerText('#agLog')).replace(/\s+/g, ' ').slice(0, 200)); console.log(errs); await b.close(); })();

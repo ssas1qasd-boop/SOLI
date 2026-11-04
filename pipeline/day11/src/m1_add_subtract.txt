@@ -1,0 +1,18 @@
+A + B =
+[[ 6 -7  8]
+ [11  2 -3]]
+B + A == A + B: True
+C - D =
+[[ 1 -2]
+ [ 3 -3]]
+C + (-1) * D =
+[[ 1 -2]
+ [ 3 -3]]
+D - C =
+[[-1  2]
+ [-3  3]]
+add(A, B) element by element =
+[[ 6 -7  8]
+ [11  2 -3]]
+add(E, F): undefined: (3, 2) + (2, 2)
+numpy E + F: operands could not be broadcast together with shapes (3,2) (2,2) 

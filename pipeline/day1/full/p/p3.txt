@@ -1,0 +1,4 @@
+int*    : 0x7ffc0778c164
+double* : 0x7ffc0778c164
+int size    = 4 bytes
+double size = 8 bytes

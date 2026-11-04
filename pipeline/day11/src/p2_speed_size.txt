@@ -1,0 +1,7 @@
+100 x stack Vector3: 16.37 ns each
+100 x new + delete Vector3: 33.29 ns each
+heap / stack = 2.0336
+sum = 2000
+LoadTexture: 16 MB on the heap
+back in main: texture[0] = 200 (still alive)
+delete[] texture: 16 MB returned

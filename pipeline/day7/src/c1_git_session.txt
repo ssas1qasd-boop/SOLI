@@ -1,0 +1,89 @@
+$ git config --global user.name "Student"
+
+$ git config --global user.email "student@example.com"
+
+$ git init
+Initialized empty Git repository in C:/Users/Student/cad/.git/
+
+$ git status
+On branch master
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	refactored.cpp
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+$ git add .
+
+$ git status
+On branch master
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+	new file:   refactored.cpp
+
+$ git commit -m "add refactored polyline tool"
+[master (root-commit) 84180e1] add refactored polyline tool
+ 1 file changed, 227 insertions(+)
+ create mode 100644 refactored.cpp
+
+(in the editor: kPointSize 10.0f -> 12.0f, then save)
+
+$ git status
+On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   refactored.cpp
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git diff
+diff --git a/refactored.cpp b/refactored.cpp
+index d088e29..bc0094a 100644
+--- a/refactored.cpp
++++ b/refactored.cpp
+@@ -7,7 +7,7 @@
+ // ---------- settings in one place (no magic numbers in the code below)
+ const int kWindowWidth = 640;
+ const int kWindowHeight = 480;
+-const float kPointSize = 10.0f;
++const float kPointSize = 12.0f;
+ 
+ struct Color
+ {
+
+$ git add .
+
+$ git commit -m "make points bigger: 10 -> 12 px"
+[master ed785af] make points bigger: 10 -> 12 px
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+$ git log
+commit ed785af2f5120938f82757c9270bc01142efd1bb
+Author: Student <student@example.com>
+Date:   Sat Oct 31 17:10:00 2026 +0200
+
+    make points bigger: 10 -> 12 px
+
+commit 84180e137b1400ead62773a037a681a9a6838bed
+Author: Student <student@example.com>
+Date:   Sat Oct 31 17:00:00 2026 +0200
+
+    add refactored polyline tool
+
+$ git log --oneline
+ed785af make points bigger: 10 -> 12 px
+84180e1 add refactored polyline tool
+
+$ git cat-file -p HEAD~1
+tree c298df0439441674514aba62574a51cac113ef68
+author Student <student@example.com> 1793458800 +0200
+committer Student <student@example.com> 1793458800 +0200
+
+add refactored polyline tool

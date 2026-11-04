@@ -1,0 +1,8 @@
+no constructor: 2.52185e+15, 7.00649e-45
+Entity() ran
+0, 0
+Entity(float, float) ran
+10, 5
+Entity(float, float) ran
+3, 4
+[Log] Hello

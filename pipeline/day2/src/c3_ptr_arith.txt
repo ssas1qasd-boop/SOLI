@@ -1,0 +1,4 @@
+p = 0x7fffc6184e40   *p = 10
+p = 0x7fffc6184e44   *p = 20
+p = 0x7fffc6184e48   *p = 30
+p = 0x7fffc6184e4c   *p = 40

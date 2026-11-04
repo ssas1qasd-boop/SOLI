@@ -1,0 +1,601 @@
+Day 2: 150 lines marked * need a word-by-word breakdown
+
+===== program d2_c1 · file hello.c  (/home/claude/day2/src/c1_hello.c)
+*   1| #include <stdio.h>
+      ↳ الشرح الموجود: مكتبة الطباعة في لغة C. فيها printf. (زي iostream في C++)
+    2| 
+    3| int main(void)
+    4| {
+*   5|     int year = 1972;
+      ↳ الشرح الموجود: متغير صحيح فيه سنة ميلاد لغة C.
+    6|     printf("C was born in %d\n", year);
+*   7|     printf("Hello from C!\n");
+      ↳ الشرح الموجود: اطبع جملة تانية وانزل سطر.
+*   8|     return 0;
+      ↳ الشرح الموجود: اخرج من البرنامج: كله تمام. (0 = نجاح)
+*   9| }
+      ↳ الشرح الموجود: قوس نهاية.
+
+===== program d2_c2 · file malloc.c  (/home/claude/day2/src/c2_malloc.c)
+    1| #include <stdio.h>
+*   2| #include <stdlib.h>
+      ↳ الشرح الموجود: مكتبة فيها malloc و free (حجز ورجوع الذاكرة).
+    3| 
+    4| int main(void)
+    5| {
+*   6|     int count = 5;
+      ↳ الشرح الموجود: عايزين مكان لـ 5 أرقام.
+    7|     int* numbers = malloc(count * sizeof(int));
+*   8|     if (numbers == NULL)
+      ↳ الشرح الموجود: لو الحجز فشل (مفيش ذاكرة كفاية)، malloc بترجع NULL…
+*   9|         return 1;
+      ↳ الشرح الموجود: …اخرج برقم خطأ (أي رقم غير 0 = في مشكلة).
+   10| 
+*  11|     for (int i = 0; i < count; i++)
+      ↳ الشرح الموجود: لف 5 مرات: i من 0 لـ 4.
+*  12|         numbers[i] = i * 10;
+      ↳ الشرح الموجود: حط في الخانة رقم i القيمة i × 10: يعني 0، 10، 20، 30، 40.
+   13| 
+   14|     for (int i = 0; i < count; i++)
+*  15|         printf("numbers[%d] = %d\n", i, numbers[i]);
+      ↳ الشرح الموجود: اطبع رقم الخانة وقيمتها. أول %d بتاخد i، والتانية بتاخد numbers[i]، بالترتيب.
+   16| 
+   17|     free(numbers);
+   18|     return 0;
+   19| }
+
+===== program d2_c3 · file pointer_arithmetic.c  (/home/claude/day2/src/c3_ptr_arith.c)
+    1| #include <stdio.h>
+    2| 
+    3| int main(void)
+    4| {
+*   5|     int arr[4] = { 10, 20, 30, 40 };
+      ↳ الشرح الموجود: مصفوفة فيها 4 أرقام جنب بعض في الذاكرة.
+*   6|     int* p = arr;
+      ↳ الشرح الموجود: اسم المصفوفة لوحده = عنوان أول خانة. فـ p بيشاور على 10.
+    7| 
+*   8|     for (int i = 0; i < 4; i++)
+      ↳ الشرح الموجود: لف 4 مرات.
+    9|     {
+   10|         printf("p = %p   *p = %d\n", (void*)p, *p);
+   11|         p++;
+   12|     }
+   13|     return 0;
+   14| }
+
+===== program d2_c4 · file double_it.cpp  (/home/claude/day2/src/c4_double_it.cpp)
+*   1| #include <iostream>
+      ↳ الشرح الموجود: مكتبة الطباعة على الشاشة (std::cout) والقراءة من الكيبورد.
+    2| 
+    3| void doubleIt(int* number)
+    4| {
+*   5|     *number = *number * 2;
+      ↳ الشرح الموجود: روح للعنوان، خد القيمة اللي هناك واضربها في 2، وحطها مكانها.
+    6| }
+    7| 
+*   8| int main()
+      ↳ الشرح الموجود: نقطة البداية: البرنامج بيبدأ يشتغل من هنا.
+    9| {
+*  10|     int score = 21;
+      ↳ الشرح الموجود: متغير قيمته 21.
+*  11|     std::cout << "before: " << score << std::endl;
+      ↳ الشرح الموجود: اطبع القيمة قبل: 21.
+   12|     doubleIt(&score);
+*  13|     std::cout << "after:  " << score << std::endl;
+      ↳ الشرح الموجود: اطبعها بعد: 42. الدالة غيّرت المتغير الأصلي.
+*  14|     std::cin.get();
+      ↳ الشرح الموجود: استنى لحد ما تدوس Enter، عشان الشباك الأسود ما يقفلش على طول.
+   15| }
+
+===== program d2_dot · file dot_length.cpp  (/home/claude/day2/src/d1_dot_length.cpp)
+    1| #include <iostream>
+*   2| #include <cmath>
+      ↳ الشرح الموجود: مكتبة الرياضيات: فيها std::sqrt (الجذر التربيعي).
+    3| 
+*   4| float dot(const float* a, const float* b, int n)
+      ↳ الشرح الموجود: دالة الضرب النقطي: متجهين + عدد أرقامهم.
+    5| {
+*   6|     float sum = 0.0f;
+      ↳ الشرح الموجود: المجموع يبدأ صفر.
+*   7|     for (int i = 0; i < n; i++)
+      ↳ الشرح الموجود: لف على الأرقام واحد واحد.
+*   8|         sum += a[i] * b[i];
+      ↳ الشرح الموجود: اضرب المتقابلين وزوّد على المجموع.
+*   9|     return sum;
+      ↳ الشرح الموجود: رجّع النتيجة.
+   10| }
+   11| 
+*  12| float length(const float* a, int n)
+      ↳ الشرح الموجود: دالة طول المتجه.
+   13| {
+*  14|     return std::sqrt(dot(a, a, n));
+      ↳ الشرح الموجود: الطول = جذر (المتجه · نفسه). ده قانون Khan بالظبط: ‖a‖ = √(a·a).
+   15| }
+   16| 
+   17| int main()
+   18| {
+*  19|     float a[] = { 2, 5 };
+      ↳ الشرح الموجود: المتجه [2, 5].
+*  20|     float b[] = { 7, 1 };
+      ↳ الشرح الموجود: المتجه [7, 1].
+*  21|     std::cout << "[2,5] . [7,1] = " << dot(a, b, 2) << std::endl;
+      ↳ الشرح الموجود: مثال 1 من الفيديو ← 19.
+   22| 
+*  23|     float c[] = { 1, 2, 3 };
+      ↳ الشرح الموجود: متجه في 3D.
+*  24|     float d[] = { -2, 0, 5 };
+      ↳ الشرح الموجود: متجه تاني في 3D.
+*  25|     std::cout << "[1,2,3] . [-2,0,5] = " << dot(c, d, 3) << std::endl;
+      ↳ الشرح الموجود: مثال 2 من الفيديو ← 13.
+   26| 
+*  27|     std::cout << "[2,5] . [2,5] = " << dot(a, a, 2) << std::endl;
+      ↳ الشرح الموجود: المتجه في نفسه ← 29 = مربع الطول.
+*  28|     std::cout << "length of [2,5] = " << length(a, 2) << std::endl;
+      ↳ الشرح الموجود: الطول ← √29.
+*  29|     std::cout << "sqrt(29) = " << std::sqrt(29.0f) << std::endl;
+      ↳ الشرح الموجود: نحسب √29 مباشرة عشان نتأكد إنه نفس الرقم.
+   30|     std::cin.get();
+   31| }
+
+===== program d2_v1 · file vector_basics.cpp  (/home/claude/day2/src/v1_basics.cpp)
+    1| #include <iostream>
+*   2| #include <vector>
+      ↳ الشرح الموجود: مكتبة std::vector.
+    3| 
+*   4| struct Vertex
+      ↳ الشرح الموجود: نوع جديد اسمه Vertex (نقطة)…
+    5| {
+*   6|     float x, y, z;
+      ↳ الشرح الموجود: …جواه 3 أرقام: x و y و z.
+*   7| };
+      ↳ الشرح الموجود: قوس نهاية (والـ ; بعده لازمة بعد الكلاس أو المصفوفة).
+    8| 
+    9| int main()
+   10| {
+   11|     std::vector<Vertex> vertices;
+*  12|     std::cout << "size at start: " << vertices.size() << std::endl;
+      ↳ الشرح الموجود: اطبع عدد العناصر: 0.
+   13| 
+   14|     vertices.push_back({ 1, 2, 3 });
+*  15|     vertices.push_back({ 4, 5, 6 });
+      ↳ الشرح الموجود: ضيف نقطة (4, 5, 6).
+*  16|     Vertex v = { 7, 8, 9 };
+      ↳ الشرح الموجود: اعمل نقطة في متغير الأول…
+*  17|     vertices.push_back(v);
+      ↳ الشرح الموجود: …وبعدين ضيفها. (بيتعمل منها نسخة جوه القايمة)
+   18| 
+*  19|     std::cout << "size now: " << vertices.size() << std::endl;
+      ↳ الشرح الموجود: العدد دلوقتي: 3.
+*  20|     std::cout << "vertices[0].x = " << vertices[0].x << std::endl;
+      ↳ الشرح الموجود: أول نقطة (رقم 0)، ومنها x ← 1.
+*  21|     std::cout << "vertices.at(1).y = " << vertices.at(1).y << std::endl;
+      ↳ الشرح الموجود: تاني نقطة بـ at (بتتأكد إن الرقم جوه القايمة)، ومنها y ← 5.
+   22|     std::cin.get();
+   23| }
+
+===== program d2_v2 · file vector_loops.cpp  (/home/claude/day2/src/v2_loops.cpp)
+    1| #include <iostream>
+    2| #include <vector>
+    3| 
+    4| struct Vertex
+    5| {
+    6|     float x, y, z;
+    7| };
+    8| 
+    9| int main()
+   10| {
+*  11|     std::vector<Vertex> vertices = { { 1, 2, 3 }, { 4, 5, 6 } };
+      ↳ الشرح الموجود: قايمة فيها نقطتين من البداية.
+   12| 
+*  13|     for (size_t i = 0; i < vertices.size(); i++)
+      ↳ الشرح الموجود: لف بالرقم من 0 لحد العدد. (size_t = نوع رقم موجب، نفس نوع size())
+*  14|         std::cout << "index " << i << ": x = " << vertices[i].x << std::endl;
+      ↳ الشرح الموجود: اطبع رقم النقطة و x بتاعها.
+   15| 
+   16|     for (const Vertex& v : vertices)
+*  17|         std::cout << v.x << ", " << v.y << ", " << v.z << std::endl;
+      ↳ الشرح الموجود: اطبع النقطة.
+   18| 
+*  19|     for (Vertex& v : vertices)
+      ↳ الشرح الموجود: لف تاني، بس من غير const عشان هنعدّل.
+*  20|         v.x = v.x * 10;
+      ↳ الشرح الموجود: اضرب x في 10. وبما إنها &amp;، التعديل بيحصل في القايمة نفسها.
+   21| 
+*  22|     std::cout << "after x * 10: " << vertices[0].x << " and " << vertices[1].x << std::endl;
+      ↳ الشرح الموجود: اتأكد: 10 و 40.
+   23|     std::cin.get();
+   24| }
+
+===== program d2_v3 · file vector_full.cpp  (/home/claude/day2/src/v3_full.cpp)
+    1| #include <iostream>
+    2| #include <vector>
+    3| 
+    4| struct Vertex
+    5| {
+    6|     float x, y, z;
+    7| };
+    8| 
+    9| std::ostream& operator<<(std::ostream& stream, const Vertex& vertex)
+   10| {
+*  11|     stream << vertex.x << ", " << vertex.y << ", " << vertex.z;
+      ↳ الشرح الموجود: اكتب الـ 3 أرقام بفواصل.
+*  12|     return stream;
+      ↳ الشرح الموجود: رجّع نفس الـ stream عشان تقدر تكمّل &lt;&lt; std::endl بعدها.
+   13| }
+   14| 
+   15| int main()
+   16| {
+   17|     std::vector<Vertex> vertices;
+   18|     vertices.push_back({ 1, 2, 3 });
+   19|     vertices.push_back({ 4, 5, 6 });
+   20| 
+   21|     for (const Vertex& v : vertices)
+*  22|         std::cout << v << std::endl;
+      ↳ الشرح الموجود: اطبع النقطة كلها في سطر، بفضل الدالة اللي فوق.
+   23| 
+   24|     vertices.erase(vertices.begin() + 1);
+*  25|     std::cout << "After erase:" << std::endl;
+      ↳ الشرح الموجود: عنوان قبل الطباعة.
+   26|     for (const Vertex& v : vertices)
+   27|         std::cout << v << std::endl;
+   28| 
+*  29|     vertices.clear();
+      ↳ الشرح الموجود: امسح كل العناصر.
+*  30|     std::cout << "Size after clear: " << vertices.size() << std::endl;
+      ↳ الشرح الموجود: العدد ← 0.
+   31|     std::cin.get();
+   32| }
+
+===== program d2_v4 · file cad_points.cpp  (/home/claude/day2/src/v4_cad_points.cpp)
+    1| #include <iostream>
+    2| #include <vector>
+    3| 
+*   4| struct Point
+      ↳ الشرح الموجود: نقطة في رسمة 2D (للـ CAD)…
+    5| {
+*   6|     float x, y;
+      ↳ الشرح الموجود: …فيها x و y.
+    7| };
+    8| 
+*   9| void addPoint(std::vector<Point>& points, float x, float y)
+      ↳ الشرح الموجود: دالة بتضيف نقطة. القايمة جاية بـ &amp; عشان التعديل يوصل للأصل.
+   10| {
+*  11|     points.push_back({ x, y });
+      ↳ الشرح الموجود: ضيف النقطة.
+   12| }
+   13| 
+*  14| void printPoints(const std::vector<Point>& points)
+      ↳ الشرح الموجود: دالة بتطبع. القايمة const&amp;: من غير نسخ ومن غير تعديل.
+   15| {
+*  16|     std::cout << points.size() << " points:" << std::endl;
+      ↳ الشرح الموجود: اطبع العدد.
+*  17|     for (const Point& p : points)
+      ↳ الشرح الموجود: لف على كل نقطة.
+*  18|         std::cout << "  (" << p.x << ", " << p.y << ")" << std::endl;
+      ↳ الشرح الموجود: اطبعها كده: (x, y).
+   19| }
+   20| 
+   21| int main()
+   22| {
+*  23|     std::vector<Point> points;
+      ↳ الشرح الموجود: قايمة النقط اللي المستخدم رسمها.
+*  24|     addPoint(points, 0, 0);
+      ↳ الشرح الموجود: نقطة أولى.
+*  25|     addPoint(points, 100, 0);
+      ↳ الشرح الموجود: نقطة تانية.
+*  26|     addPoint(points, 100, 50);
+      ↳ الشرح الموجود: نقطة تالتة.
+*  27|     printPoints(points);
+      ↳ الشرح الموجود: اطبع القايمة.
+   28| 
+*  29|     points.pop_back();
+      ↳ الشرح الموجود: امسح آخر نقطة. (ده اللي هتستخدمه في «مسح آخر خط» يوم الخميس)
+   30|     printPoints(points);
+   31|     std::cin.get();
+   32| }
+
+===== program d2_v5 · file vector_growth.cpp  (/home/claude/day2/src/v5_growth.cpp)
+    1| #include <iostream>
+    2| #include <vector>
+    3| 
+    4| int main()
+    5| {
+*   6|     std::vector<int> numbers;
+      ↳ الشرح الموجود: قايمة أرقام فاضية.
+*   7|     const int* lastAddress = nullptr;
+      ↳ الشرح الموجود: هنفتكر فيه عنوان البيانات المرة اللي فاتت.
+    8| 
+*   9|     for (int i = 1; i <= 9; i++)
+      ↳ الشرح الموجود: لف 9 مرات.
+   10|     {
+*  11|         numbers.push_back(i);
+      ↳ الشرح الموجود: ضيف رقم.
+*  12|         const int* address = numbers.data();
+      ↳ الشرح الموجود: هات عنوان أول عنصر في القايمة دلوقتي.
+*  13|         std::cout << "size " << numbers.size() << "  capacity " << numbers.capacity();
+      ↳ الشرح الموجود: size = كام عنصر فيها، و capacity = كام عنصر محجوز مكانهم.
+*  14|         if (address != lastAddress)
+      ↳ الشرح الموجود: لو العنوان اتغير…
+*  15|             std::cout << "   <- moved to a new place";
+      ↳ الشرح الموجود: …يبقى القايمة اتنقلت لمكان أكبر.
+*  16|         std::cout << std::endl;
+      ↳ الشرح الموجود: انزل سطر.
+*  17|         lastAddress = address;
+      ↳ الشرح الموجود: افتكر العنوان للمرة الجاية.
+   18|     }
+   19|     std::cin.get();
+   20| }
+
+===== program d2_va1 · file triangle_positions.cpp  (/home/claude/day2/src/va1_positions.cpp)
+*   1| #include <glad/glad.h>
+      ↳ الشرح الموجود: مكتبة GLAD: بتجيب دوال OpenGL. لازم تيجي قبل GLFW.
+*   2| #include <GLFW/glfw3.h>
+      ↳ الشرح الموجود: مكتبة GLFW: الشباك والكيبورد والماوس.
+    3| #include <iostream>
+    4| 
+    5| static const char* vertexShaderSrc = R"(#version 330 core
+    6| layout(location = 0) in vec2 aPosition;
+    7| void main()
+    8| {
+    9|     gl_Position = vec4(aPosition, 0.0, 1.0);
+   10| })";
+   11| 
+   12| static const char* fragmentShaderSrc = R"(#version 330 core
+*  13| out vec4 color;
+      ↳ الشرح الموجود: لون البكسل الطالع (4 أرقام).
+   14| void main()
+   15| {
+*  16|     color = vec4(1.0, 0.5, 0.2, 1.0);
+      ↳ الشرح الموجود: لون ثابت: أحمر كامل، أخضر نص، أزرق قليل = برتقاني.
+   17| })";
+   18| 
+*  19| static unsigned int CompileShader(unsigned int type, const char* source)
+      ↳ الشرح الموجود: دالة بتحوّل نص Shader لبرنامج صغير يفهمه كارت الشاشة. بتاخد النوع (vertex أو fragment) والنص.
+   20| {
+*  21|     unsigned int id = glCreateShader(type);
+      ↳ الشرح الموجود: اعمل Shader فاضي من النوع ده، وخد رقمه.
+*  22|     glShaderSource(id, 1, &source, nullptr);
+      ↳ الشرح الموجود: حط النص جواه. (بنبعت &amp;source = عنوان الـ Pointer، لأن الدالة عايزة «عنوان لعنوان»)
+*  23|     glCompileShader(id);
+      ↳ الشرح الموجود: ترجمه (compile).
+*  24|     int result;
+      ↳ الشرح الموجود: متغير هنعرف فيه الترجمة نجحت ولا لأ.
+*  25|     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+      ↳ الشرح الموجود: اسأل: الترجمة نجحت؟ والإجابة تتكتب في result.
+*  26|     if (result == GL_FALSE)
+      ↳ الشرح الموجود: لو فشلت…
+   27|     {
+*  28|         char message[512];
+      ↳ الشرح الموجود: …جهّز مكان للرسالة…
+*  29|         glGetShaderInfoLog(id, 512, nullptr, message);
+      ↳ الشرح الموجود: …هات رسالة الخطأ…
+*  30|         std::cout << "Shader error: " << message << std::endl;
+      ↳ الشرح الموجود: …واطبعها عشان تعرف الغلطة فين.
+   31|     }
+*  32|     return id;
+      ↳ الشرح الموجود: رجّع رقم الـ Shader.
+   33| }
+   34| 
+*  35| static unsigned int CreateShader(const char* vertexSrc, const char* fragmentSrc)
+      ↳ الشرح الموجود: دالة بتجمع الـ Shaderين في «برنامج» واحد.
+   36| {
+*  37|     unsigned int program = glCreateProgram();
+      ↳ الشرح الموجود: اعمل برنامج فاضي.
+*  38|     unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexSrc);
+      ↳ الشرح الموجود: ترجم الـ Vertex Shader.
+*  39|     unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc);
+      ↳ الشرح الموجود: ترجم الـ Fragment Shader.
+*  40|     glAttachShader(program, vs);
+      ↳ الشرح الموجود: حط الأول في البرنامج.
+*  41|     glAttachShader(program, fs);
+      ↳ الشرح الموجود: وحط التاني.
+*  42|     glLinkProgram(program);
+      ↳ الشرح الموجود: اربطهم ببعض (link).
+*  43|     glDeleteShader(vs);
+      ↳ الشرح الموجود: امسح النسخة المنفصلة، خلاص بقت جوه البرنامج.
+*  44|     glDeleteShader(fs);
+      ↳ الشرح الموجود: ونفس الكلام للتانية.
+*  45|     return program;
+      ↳ الشرح الموجود: رجّع رقم البرنامج.
+   46| }
+   47| 
+   48| int main()
+   49| {
+*  50|     if (!glfwInit())
+      ↳ الشرح الموجود: شغّل GLFW. لو فشل…
+*  51|         return -1;
+      ↳ الشرح الموجود: اخرج من البرنامج ومعاك رقم خطأ.
+*  52|     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+      ↳ الشرح الموجود: عايزين OpenGL نسخة 3…
+*  53|     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+      ↳ الشرح الموجود: …‎.3 (يعني 3.3).
+*  54|     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+      ↳ الشرح الموجود: النسخة الحديثة (Core) بس، من غير الدوال القديمة.
+   55| 
+*  56|     GLFWwindow* window = glfwCreateWindow(640, 480, "Vertex Attributes", nullptr, nullptr);
+      ↳ الشرح الموجود: اعمل شباك 640×480 اسمه Vertex Attributes.
+*  57|     if (!window)
+      ↳ الشرح الموجود: لو الشباك ما اتعملش…
+   58|     {
+*  59|         glfwTerminate();
+      ↳ الشرح الموجود: اقفل GLFW ونضّف كل حاجة.
+   60|         return -1;
+   61|     }
+*  62|     glfwMakeContextCurrent(window);
+      ↳ الشرح الموجود: خلي الرسم يروح للشباك ده.
+*  63|     glfwSwapInterval(1);
+      ↳ الشرح الموجود: ارسم فريم واحد مع كل تحديث للشاشة (عادة 60 في الثانية). من غيره الـ animation هتبقى سريعة جداً.
+   64| 
+*  65|     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+      ↳ الشرح الموجود: خلي GLAD يجيب دوال OpenGL. لو فشل اخرج. (لازم بعد عمل الشباك)
+   66|         return -1;
+   67| 
+*  68|     float positions[6] = {
+      ↳ الشرح الموجود: أماكن 3 أركان للمثلث: كل ركن رقمين (x, y)، يعني 6 أرقام.
+*  69|         -0.5f, -0.5f,
+      ↳ الشرح الموجود: ركن تحت شمال.
+*  70|          0.0f,  0.5f,
+      ↳ الشرح الموجود: الركن الفوقاني (النص فوق).
+*  71|          0.5f, -0.5f
+      ↳ الشرح الموجود: الركن اللي تحت يمين.
+   72|     };
+   73| 
+*  74|     unsigned int vao;
+      ↳ الشرح الموجود: رقم الـ VAO (بيفتكر إعدادات الـ buffers).
+*  75|     glGenVertexArrays(1, &vao);
+      ↳ الشرح الموجود: اعمل VAO واحد، واكتب رقمه في vao (لاحظ الـ &amp;).
+*  76|     glBindVertexArray(vao);
+      ↳ الشرح الموجود: شغّله: كل الإعدادات الجاية تتسجل فيه.
+   77| 
+*  78|     unsigned int buffer;
+      ↳ الشرح الموجود: رقم الـ Buffer (اسمه عند The Cherno buffer، وهو VBO).
+*  79|     glGenBuffers(1, &buffer);
+      ↳ الشرح الموجود: اعمل buffer واحد واكتب رقمه في buffer.
+*  80|     glBindBuffer(GL_ARRAY_BUFFER, buffer);
+      ↳ الشرح الموجود: شغّله كـ buffer للنقط.
+*  81|     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+      ↳ الشرح الموجود: انسخ الـ 6 أرقام (6 × 4 = 24 بايت) لكارت الشاشة.
+   82| 
+*  83|     glEnableVertexAttribArray(0);
+      ↳ الشرح الموجود: فعّل المدخل رقم 0 (المكان). من غير التفعيل الإعداد اللي بعده مش هيتقري.
+*  84|     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+      ↳ الشرح الموجود: اشرح الـ bytes: المدخل 0 = رقمين float، كل ركن طوله 8 بايت (stride)، وأوله من بداية الركن (offset 0). (شرحها كلمة كلمة فوق)
+   85| 
+*  86|     unsigned int shader = CreateShader(vertexShaderSrc, fragmentShaderSrc);
+      ↳ الشرح الموجود: اعمل برنامج الـ Shader من النصين.
+*  87|     glUseProgram(shader);
+      ↳ الشرح الموجود: شغّله. (لازم قبل ما نبعت الـ Uniform)
+   88| 
+*  89|     while (!glfwWindowShouldClose(window))
+      ↳ الشرح الموجود: كرر طول ما الشباك مفتوح. كل لفة = فريم.
+   90|     {
+*  91|         glClear(GL_COLOR_BUFFER_BIT);
+      ↳ الشرح الموجود: امسح الشاشة.
+   92|         glDrawArrays(GL_TRIANGLES, 0, 3);
+*  93|         glfwSwapBuffers(window);
+      ↳ الشرح الموجود: اعرض الفريم على الشاشة.
+*  94|         glfwPollEvents();
+      ↳ الشرح الموجود: اقرا الكيبورد والماوس وزرار القفل.
+   95|     }
+   96| 
+*  97|     glDeleteProgram(shader);
+      ↳ الشرح الموجود: بعد ما الشباك يتقفل: امسح الـ Shader.
+   98|     glfwTerminate();
+   99|     return 0;
+  100| }
+
+===== program d2_va2 · file triangle_colors.cpp  (/home/claude/day2/src/va2_colors.cpp)
+    1| #include <glad/glad.h>
+    2| #include <GLFW/glfw3.h>
+    3| #include <iostream>
+    4| 
+    5| static const char* vertexShaderSrc = R"(#version 330 core
+    6| layout(location = 0) in vec2 aPosition;
+    7| layout(location = 1) in vec3 aColor;
+    8| out vec3 vertexColor;
+    9| void main()
+   10| {
+   11|     gl_Position = vec4(aPosition, 0.0, 1.0);
+*  12|     vertexColor = aColor;
+      ↳ الشرح الموجود: عدّي لون الركن زي ما هو.
+   13| })";
+   14| 
+   15| static const char* fragmentShaderSrc = R"(#version 330 core
+   16| in vec3 vertexColor;
+   17| out vec4 color;
+   18| void main()
+   19| {
+*  20|     color = vec4(vertexColor, 1.0);
+      ↳ الشرح الموجود: لون البكسل = اللون اللي وصل + شفافية 1.
+   21| })";
+   22| 
+   23| static unsigned int CompileShader(unsigned int type, const char* source)
+   24| {
+   25|     unsigned int id = glCreateShader(type);
+   26|     glShaderSource(id, 1, &source, nullptr);
+   27|     glCompileShader(id);
+   28|     int result;
+   29|     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+   30|     if (result == GL_FALSE)
+   31|     {
+   32|         char message[512];
+   33|         glGetShaderInfoLog(id, 512, nullptr, message);
+   34|         std::cout << "Shader error: " << message << std::endl;
+   35|     }
+   36|     return id;
+   37| }
+   38| 
+   39| static unsigned int CreateShader(const char* vertexSrc, const char* fragmentSrc)
+   40| {
+   41|     unsigned int program = glCreateProgram();
+   42|     unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexSrc);
+   43|     unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc);
+   44|     glAttachShader(program, vs);
+   45|     glAttachShader(program, fs);
+   46|     glLinkProgram(program);
+   47|     glDeleteShader(vs);
+   48|     glDeleteShader(fs);
+   49|     return program;
+   50| }
+   51| 
+   52| int main()
+   53| {
+   54|     if (!glfwInit())
+   55|         return -1;
+   56|     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+   57|     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+   58|     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+   59| 
+   60|     GLFWwindow* window = glfwCreateWindow(640, 480, "Vertex Attributes", nullptr, nullptr);
+   61|     if (!window)
+   62|     {
+   63|         glfwTerminate();
+   64|         return -1;
+   65|     }
+   66|     glfwMakeContextCurrent(window);
+   67|     glfwSwapInterval(1);
+   68| 
+   69|     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+   70|         return -1;
+   71| 
+*  72|     float vertices[15] = {
+      ↳ الشرح الموجود: 3 أركان، كل ركن 5 أرقام: مكان (x, y) + لون (r, g, b). يعني 15 رقم.
+*  73|         -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
+      ↳ الشرح الموجود: ركن تحت شمال، لونه أحمر.
+*  74|          0.0f,  0.5f,   0.0f, 1.0f, 0.0f,
+      ↳ الشرح الموجود: ركن فوق، لونه أخضر.
+*  75|          0.5f, -0.5f,   0.0f, 0.0f, 1.0f
+      ↳ الشرح الموجود: ركن تحت يمين، لونه أزرق.
+   76|     };
+   77| 
+   78|     unsigned int vao;
+   79|     glGenVertexArrays(1, &vao);
+   80|     glBindVertexArray(vao);
+   81| 
+   82|     unsigned int buffer;
+   83|     glGenBuffers(1, &buffer);
+   84|     glBindBuffer(GL_ARRAY_BUFFER, buffer);
+*  85|     glBufferData(GL_ARRAY_BUFFER, 15 * sizeof(float), vertices, GL_STATIC_DRAW);
+      ↳ الشرح الموجود: انسخ الـ 15 رقم (60 بايت) لكارت الشاشة.
+   86| 
+   87|     glEnableVertexAttribArray(0);
+   88|     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+   89| 
+   90|     glEnableVertexAttribArray(1);
+   91|     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 2));
+   92| 
+   93|     unsigned int shader = CreateShader(vertexShaderSrc, fragmentShaderSrc);
+   94|     glUseProgram(shader);
+   95| 
+   96|     while (!glfwWindowShouldClose(window))
+   97|     {
+   98|         glClear(GL_COLOR_BUFFER_BIT);
+   99|         glDrawArrays(GL_TRIANGLES, 0, 3);
+  100|         glfwSwapBuffers(window);
+  101|         glfwPollEvents();
+  102|     }
+  103| 
+  104|     glDeleteProgram(shader);
+  105|     glfwTerminate();
+  106|     return 0;
+  107| }

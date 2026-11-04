@@ -1,0 +1,265 @@
+@d5_p1
+[Setup] h none
+cm ctl // swap two numbers | comment · L1 | وصف البرنامج | 1
+inc ctl #include <iostream> | using namespace std | المكتبة | 3-4
+main ctl main() | L6 | البداية | 6-7
+row
+[CPU · Stack (main)] v zram
+xy ram int x = 10, y = 20 | x at 0x7fffffff95f0 · y at 0x7fffffff95f4 ; end: x = 20 · y = 10 | الرقمين | 8
+dec ctl void swap(int* p, int* q); | declared inside main | وعد إن الدالة موجودة | 10
+call ram swap(&x, &y) | sends the 2 addresses | بنبعت العناوين | 15
+[swap(int* a, int* b)] v zgpu
+t prg int temp = *a | temp = 10 | نحفظ x | 21-24
+s1 prg *a = *b | x = 20 | نكتب y في x | 25
+s2 prg *b = temp | y = 10 · end of swap | نكتب القديم في y | 26-27
+[Terminal (cout)] v zloop
+p1 out Before swapping | x = 10 and y = 20 | قبل | 12-13
+p2 out Value after swapping | x = 20 and y = 10 | بعد | 17-19
+term out Terminal | $term | اتبدلوا من جوه الدالة | -
+~ cm inc
+~ inc main
+> call t &x, &y
+~ t s1
+~ s1 s2
+> s2 xy writes
+> xy p1
+> p1 p2
+> p2 term
+
+@d5_p2
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L27 | البداية | 27-28
+row
+[CPU · Stack (main)] v zram
+xy ram int x = 10, y = 20 | x at 0x7fffffff95f0 · y at 0x7fffffff95f4 | الرقمين | 29-30
+c1 ram SwapValue(x, y) | copies | نسخ | 32-33
+c2 ram SwapPointer(&x, &y) | addresses | عناوين | 35-36
+c3 ram SwapReference(x, y) | the same boxes | Reference | 38-40
+[The 3 functions] v zgpu
+f1 prg SwapValue(int a, int b) | a, b at 0x7fffffff95cc, 95c8 ; swaps the copies only | x و y ماتغيروش | 3-9
+f2 prg SwapPointer(int* a, int* b) | a, b = 0x7fffffff95f0, 95f4 ; *a ↔ *b | اتبدلوا | 11-17
+f3 prg SwapReference(int& a, int& b) | &a, &b = 0x7fffffff95f0, 95f4 ; a ↔ b | اتبدلوا تاني | 19-25
+[Terminal (std::cout)] v zloop
+term out Terminal | $term | العناوين بتوضح مين نسخة | -
+~ inc main
+> c1 f1 copies
+> c2 f2 &x, &y
+> c3 f3
+> f2 xy
+> f3 xy
+> f1 term
+> f2 term
+> f3 term
+
+@d5_n1
+[Setup] h none
+imp ctl import numpy as np | NumPy | المكتبة | 1-2
+row
+[Python · arrays] v zram
+a ram a = np.array([1, 2, 3]) | int64 · shape (3,) · 24 bytes | مصفوفة 1D | 3
+b ram b = np.array(2 rows) | [[1, 2, 3], [4, 5, 6]] ; float64 · shape (2, 3) | مصفوفة 2D | 4
+c ram c = a · c[0] = 100 | same array: a changes too | نفس المصفوفة | 21-23
+d ram d = a.copy() · d[0] = 100 | a made again first (L25) ; separate copy: a stays | نسخة مستقلة | 25-28
+[What we ask NumPy] v zgpu
+pr prg print a, b | a = [1 2 3] · b as a list | الطباعة | 5-6
+info prg ndim · shape · dtype · nbytes | 1 2 · (3,) (2, 3) · int64 float64 | خصائص المصفوفة | 8-11
+idx prg b[1, 2] · b[0, :] · b[:, 1] | 6.0 · row 0 · column 1 | الوصول لخانات | 13-15
+ops prg a + 2 · a * 2 · a ** 2 | element by element | عمليات على كل خانة | 17-19
+[Terminal (print)] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ imp a
+> a pr
+> b info
+> b idx
+> a ops
+> c a writes
+> ops term
+> d term
+
+@d5_n2
+[Setup] h none
+imp ctl import numpy as np | NumPy | المكتبة | 1-2
+row
+[Python · arrays] v zram
+ab ram a = [1, -7, 1] · b = [5, 2, 4] | np.array | متجهين 3D | 3-5
+uv ram u = [3, 4] · v = [4, 3] | float | متجهين 2D | 17-18
+xy ram x = [1, 0, 0] · y = [0, 1, 0] | unit vectors | محاور | 24-25
+PQ ram P, Q · 3 rows each | 3 vectors per matrix | 3 أزواج مرة واحدة | 28-29
+[NumPy operations] v zgpu
+dot prg d = np.dot(a, b) = -5 | by hand · np.sum(a * b) | الضرب النقطي بـ 3 طرق | 7-10
+cr prg c = np.cross(a, b) | [-30, 1, 37] · c·a = 0 · c·b = 0 ; np.cross(b, a) = [30, -1, -37] | الضرب الاتجاهي | 12-15
+ang prg norm(u) · arccos(cos) | \|u\| = 5.0 · angle = 16.26° | الطول والزاوية | 19-22
+xc prg np.cross(x, y) · (y, x) | [0 0 1] · [0 0 -1] | الترتيب بيقلب الاتجاه | 26
+many prg np.cross(P, Q) | np.sum(P * Q, axis=1) ; row by row | كتير مرة واحدة | 30-32
+[Terminal (print)] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ imp ab
+> ab dot
+> ab cr
+> uv ang
+> xy xc
+> PQ many
+> cr term
+> many term
+
+@d5_c1
+[Setup] h none
+inc ctl #include × 3 | iostream · string · vector ; using namespace std | المكتبات | 1-5
+main ctl main() | L7 | البداية | 7-8
+end ctl return 0 | the end | النهاية | 30-31
+row
+[CPU · RAM] v zram
+list ram vector<string> list | ends with Braden · Jeff · Katie | الأسماء | 9
+name ram string name = "x" | ends as "Q" | آخر كلمة اتكتبت | 13
+[Keyboard loop] v zloop
+ask out cout: Please enter the names | press Q to quit | السؤال | 11
+lp m1 while (name != "Q") | cin >> name ; list.push_back(name) | كل اسم يتضاف، حتى Q | 15-19
+pop m2 list.pop_back() | removes "Q" | نشيل Q | 21
+[Terminal] v zloop
+cnt out You have entered N names | list.size() = 3 | العدد | 23
+pr out for i < list.size() | cout << list[i] | كل اسم في سطر | 25-28
+term out Terminal | $term | اللي اتكتب واللي اتطبع | -
+~ inc main
+~ main end
+~ ask lp
+~ lp pop
+> lp list push_back
+> lp name cin
+> pop cnt
+> list pr
+> cnt pr
+> pr term
+
+@d5_r1
+[Setup (once)] h none
+main ctl main() | L50 | البداية | 50-51
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 52-65
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 67-68
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 111-112, 117
+row
+[CPU · RAM] v zram
+pos ram float positions[6] | 24 B · 3 corners × (x, y) | أركان المثلث | 70-74
+vs ram std::string vertexShader | gl_Position = position | نص الـ Vertex Shader | 88-96
+fs ram std::string fragmentShader | color = vec4(1, 0, 0, 1) → red | نص الـ Fragment Shader | 98-106
+[GPU · Buffer + VAO] v zgpu
+buf buf Buffer 1 · buffer | GL_ARRAY_BUFFER · 24 B | أركان المثلث | 80-83
+vao vao VAO 1 · vao | slot 0 ← 2 floats · stride 8 | وصف الركن | 76-78, 85-86
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | link + validate | CreateShader + glUseProgram | 108-109
+back out Back buffer · 640 × 480 | glClear L113 | اللوحة اللي ورا | 113
+win out Window "Red Triangle" | $img | اللي بتشوفه | 115-116
+row
+[Render loop (each frame)] h zloop
+draw m2 Draw | L114 glDrawArrays(GL_TRIANGLES, 0, 3) | رسم المثلث | 114
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · iostream · string | المكتبات | 1-4
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 6-31
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 33-48
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 119-122
+~ main glfw
+~ glfw glad
+~ glad loop
+> pos buf L83
+> buf vao
+> vao prog vertices
+> vs prog L108
+> fs prog
+> prog back
+> back win swap · L115
+~ loop draw
+> cs cr
+
+@d5_r2
+[Setup (once)] h none
+main ctl main() | L50 | البداية | 50-51
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 52-65
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 67-68
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 114-115, 120
+row
+[CPU · RAM] v zram
+pos ram float positions[6] | 24 B · 3 corners × (x, y) | أركان المثلث | 70-74
+vs ram std::string vertexShader | gl_Position = position × 1.5 ; v_Position = position → fragment | أكبر مرة ونص + بيبعت المكان | 88-98
+fs ram std::string fragmentShader | color = (x + 0.5, y + 0.5, 0.2) | اللون من المكان | 100-109
+[GPU · Buffer + VAO] v zgpu
+buf buf Buffer 1 · buffer | GL_ARRAY_BUFFER · 24 B | أركان المثلث | 80-83
+vao vao VAO 1 · vao | slot 0 ← 2 floats · stride 8 | وصف الركن | 76-78, 85-86
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | v_Position goes vertex → fragment | CreateShader + glUseProgram | 111-112
+ras prg Rasterizer | blends v_Position across the triangle | كل بكسل له مكان ولون | -
+back out Back buffer · 640 × 480 | glClear L116 | اللوحة اللي ورا | 116
+win out Window "Shader Edit" | $img | اللي بتشوفه | 118-119
+row
+[Render loop (each frame)] h zloop
+draw m2 Draw | L117 glDrawArrays(GL_TRIANGLES, 0, 3) | رسم المثلث | 117
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · iostream · string | المكتبات | 1-4
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 6-31
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 33-48
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 122-125
+~ main glfw
+~ glfw glad
+~ glad loop
+> pos buf L83
+> buf vao
+> vao prog vertices
+> vs prog L111
+> fs prog
+> prog ras
+> ras back
+> back win swap · L118
+~ loop draw
+> cs cr
+
+@d5_c2
+[Setup (once)] h none
+main ctl main() | L116 | البداية | 116-117
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 118-131
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 133-134
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 155-156, 168
+row
+[Mouse + keyboard (callbacks)] v zloop
+mcb m1 MouseButtonCallback() | right: finish line · new { first, 0 } ; left: new point · count++ | الماوس | 66-86
+kcb m2 KeyCallback() · Backspace | empty last? pop it ; nothing left → "nothing to delete" | الكيبورد | 90-104
+del m2 delete the last line | last = polylines.back() · pop_back ; points.pop_back() × count × 2 | مسح آخر خط ونقطه | 105-112
+up m1 UploadPoints() | glBufferData(points) → Buffer 1 | نرفع النقط للكارت | 60-64, 87-88, 113-114
+[CPU · RAM (globals)] v zram
+ty vao struct Polyline | int first · int count | بداية وعدد نقط كل خط | 50-54
+pts ram std::vector<float> points | all points, one after another | كل النقط | 56
+pl ram vector<Polyline> polylines | starts with { 0, 0 } (L151) | قايمة الخطوط | 57, 151
+bid ram unsigned int buffer | Buffer 1's number | رقم الـ Buffer | 58
+src ram Shader text (2 strings) | fragment: color = u_Color | نص الـ Shaders | 6-19
+[GPU · Program → screen] v zgpu
+vao vao VAO 1 + Buffer 1 | slot 0 ← 2 floats · stride 8 | الوصف والنقط | 136-144
+prog prg Program 1 (shader) | location = 0 · glPointSize(10) ; 2 callbacks set (L152-153) | CreateShader + glUseProgram | 146-149, 152-153
+win out Window "Delete Last Line" | $img | اللي بتشوفه | 166-167
+term out Terminal | $term | كل ضغطة | -
+row
+[Render loop (each frame)] h zloop
+lines m2 white polylines | L159 u_Color white ; L160 for each line: ; L161 glDrawArrays(GL_LINE_STRIP, first, count) | كل خط لوحده | 157-161
+dots m2 orange dots | L163 u_Color orange ; L164 glDrawArrays(GL_POINTS, 0, all) | كل النقط | 163-164
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · iostream · vector | المكتبات | 1-4
+cs prg CompileShader() | glCreateShader → compile | بيترجم Shader واحد | 21-35
+cr prg CreateShader() | create → attach × 2 → link | بيعمل الـ Program | 37-48
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 170-173
+~ main glfw
+~ glfw glad
+~ glad loop
+~ mcb up
+~ kcb del
+~ del up
+> mcb pl
+> del pts
+> pts vao
+> pl lines first, count
+> src prog L146
+> vao prog vertices
+> prog win
+> mcb term
+~ loop lines
+~ lines dots
+> cs cr

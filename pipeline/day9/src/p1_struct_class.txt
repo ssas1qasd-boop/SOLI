@@ -1,0 +1,4 @@
+struct: x = 2, y = -2, sizeof = 12
+class:  x = 2, y = -2, sizeof = 12
+position after 2 Add: (2, 0)
+sizeof(Vec2) = 8 bytes

@@ -1,0 +1,13 @@
+const {chromium}=require('playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});
+const p=await b.newPage({viewport:{width:1400,height:900}});
+const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('console',m=>{if(m.type()==='error')errs.push(m.text())});
+await p.route('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',r=>r.fulfill({path:'/home/claude/sim/three.min.js',contentType:'application/javascript'}));
+await p.route(/fonts\.(googleapis|gstatic)\.com/,r=>r.abort());
+await p.setContent('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"></head><body>'+fs.readFileSync('bench.html','utf8')+'</body></html>',{waitUntil:'load'});
+await p.waitForTimeout(1500); await p.screenshot({path:'B_idle.png'});
+await p.click('#key'); await p.waitForTimeout(9000); await p.screenshot({path:'B_run.png'});
+await p.evaluate(()=>document.querySelector('[data-mode=exploded]').click()); await p.waitForTimeout(1500); await p.screenshot({path:'B_exp.png'});
+await p.evaluate(()=>document.querySelector('[data-mode=cutaway]').click()); await p.waitForTimeout(6000); await p.screenshot({path:'B_cut.png'});
+console.log('errors',errs.slice(0,5)); console.log(await p.textContent('#story'), await p.textContent('#rPhase'));
+await b.close();})();

@@ -1,0 +1,9 @@
+size 1  capacity 1   <- moved to a new place
+size 2  capacity 2   <- moved to a new place
+size 3  capacity 4   <- moved to a new place
+size 4  capacity 4
+size 5  capacity 8   <- moved to a new place
+size 6  capacity 8
+size 7  capacity 8
+size 8  capacity 8
+size 9  capacity 16   <- moved to a new place

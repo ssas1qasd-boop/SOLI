@@ -1,0 +1,5 @@
+P has shape (2, 3) -> takes R3, gives R2
+corner 5 (1, 0, 1) lands on [0.225 0.275]
+yesterday's formula gives [0.225 0.275]
+T(a + b) = [ 0.  -0.9]   T(a) + T(b) = [ 0.  -0.9]
+saved projection.png

@@ -1,0 +1,7 @@
+GL_RENDERER = llvmpipe (LLVM 20.1.2, 256 bits)
+GL_MAX_TEXTURE_IMAGE_UNITS = 32 (fragment shader)
+GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS = 32
+GL_MAX_TEXTURE_SIZE = 16384 x 16384
+2 x 2 texture from an array: 12 bytes, the procedural one: 0 bytes
+
+exit=0

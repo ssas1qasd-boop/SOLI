@@ -1,0 +1,4 @@
+Swap(&a, &b): a = 7, b = 3   PASS
+SetToZero(&n): n = 0   PASS
+MakeText(&text, 4): text = xxx   PASS
+Sum(values, 4) = 10   PASS

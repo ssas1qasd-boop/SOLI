@@ -1,0 +1,3 @@
+var  = 8
+&var = 0x7ffebc1fe9ac
+ptr  = 0x7ffebc1fe9ac

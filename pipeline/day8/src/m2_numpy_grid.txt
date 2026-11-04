@@ -1,0 +1,11 @@
+M @ v = [5 2]
+columns of M: [ 1 -2] [3 0]
+unit square corners after M:
+[[ 0  0]
+ [ 1 -2]
+ [ 4 -2]
+ [ 3  0]]
+shear then rotate (one matrix):
+[[ 0 -1]
+ [ 1  1]]
+saved grids.png

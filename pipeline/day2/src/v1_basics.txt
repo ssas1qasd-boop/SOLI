@@ -1,0 +1,4 @@
+size at start: 0
+size now: 3
+vertices[0].x = 1
+vertices.at(1).y = 5

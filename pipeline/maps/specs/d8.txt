@@ -1,0 +1,275 @@
+@d8_p1
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L22 · return 0 | البداية | 22-23, 49-50
+row
+[class Player] v zgpu
+cls vao class Player | public: int x, y · int speed ; sizeof = 12 bytes | شكل اللاعب | 3-8, 14
+mv prg void Move(xa, ya) | x += xa * speed ; y += ya * speed | دالة جوه الـ class | 9-13
+[Objects on the stack (main)] v zram
+pl ram Player player | at 0x7fffffff9580 ; x 9580 · y 9584 · speed 9588 | لاعب: 3 خانات ورا بعض | 24-28
+c1 ram player.Move(1, -1) | x = 2, y = -2 | بالدالة اللي جوه | 30-31
+c2 ram Move(player, 1, -1) | x = 4, y = -4 | بدالة بره بـ Reference | 33-34
+en ram Player enemy | x = 10, y = 10, speed = 5 ; enemy.Move(-1, 0) → x = 5 | Object تاني مستقل | 36-42
+[Free function + Terminal] v zloop
+fm prg void Move(Player&, xa, ya) | same job from outside | نفس الشغل من بره | 16-20
+ad out sizeof + addresses | 12 bytes · x, y, speed 4 bytes apart | الخانات في الرام | 44-48
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> c1 mv
+> c2 fm
+> mv pl
+> fm pl
+> en mv
+> pl ad
+> ad term
+
+@d8_p2
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L31 · return 0 | البداية | 31-32, 49-50
+row
+[class Counter] v zgpu
+cls vao class Counter | private: int count | محدش يلمسه من بره | 3-8, 29
+rs prg Reset() · Add(n) | count = 0 · if n > 0: count += n | الطريق الوحيد للتغيير | 9-18
+gt prg Get() · Where() | return count · print this | القراية وعنوان الـ Object | 20-28
+[Objects (main)] v zram
+ck ram Counter clicks | at 0x7fffffff9580 ; Reset · Add(3) · Add(4) · Add(-100) | العداد الأول = 7 | 33-38
+w1 ram &clicks · clicks.Where() | this = 0x7fffffff9580 | this = عنوان clicks | 40-41
+ot ram Counter other | at 0x7fffffff9584 ; Reset · Add(1) | العداد التاني = 1 | 43-47
+w2 ram other.Where() | this = 0x7fffffff9584 | this = عنوان other | 48
+[Terminal (std::cout)] v zloop
+term out Terminal | $term | كل Object له count و this | -
+~ inc main
+> ck rs
+> ot rs
+> w1 gt
+> w2 gt
+> rs cls
+> gt term
+
+@d8_m1
+[Setup] h none
+cm ctl matrix column by column | plain Python lists | بإيدنا من غير مكتبات | -
+row
+[Python · data] v zram
+ij ram i_hat · j_hat | [1, 0] · [0, 1] ; the two base arrows | الأسهم الأساسية | 12-13
+M ram M = [[1, 3], [-2, 0]] | columns: [1, -2] · [3, 0] | المصفوفة | 15-16
+rs ram rotate · shear | [[0, -1], [1, 0]] · [[1, 1], [0, 1]] | دوران وميل | 21-22, 26-27
+sq ram squash = [[2, -2], [1, -1]] | for v in 4 vectors | بتكبس كل حاجة على خط | 31-34
+[Our functions] v zgpu
+ap prg def apply(M, v) | x · column 1 + y · column 2 | عمود عمود | 1-5
+sh out def show(name, M, v) | prints M, v and M v | الطباعة | 8-9
+[Results (print)] v zloop
+r1 out where i and j land | i → [1, -2] · j → [3, 0] ; M v = [5, 2] · by hand the same | الأعمدة = مكان i و j | 17-19
+r2 out rotate · shear | [1, 0] → [0, 1] · [2, 1] → [-1, 2] ; [0, 1] → [1, 1] · [2, 1] → [3, 1] | الشبكة اتلفت واتمالت | 23-24, 28-29
+term out Terminal | $term | اللي اتطبع | -
+~ cm ij
+> ij ap
+> M ap
+> rs sh
+> sq sh
+> ap r1
+> sh r2
+> r1 r2
+> r2 term
+
+@d8_m2
+[Setup] h none
+imp ctl import numpy + matplotlib | backend "Agg" (save to file) | المكتبات | 1-4
+row
+[Python · arrays] v zram
+M ram M and v | M = [[1, 3], [-2, 0]] · v = [-1, 2] | المصفوفة والمتجه | 6-8
+pts ram points: unit square corners | [0, 0] [1, 0] [1, 1] [0, 1] | المربع | 12
+sr ram shear · rotate | [[1, 1], [0, 1]] · [[0, -1], [1, 0]] | ميل ودوران | 16-19
+[NumPy + drawing] v zgpu
+mv prg M @ v · M[:, 0] · M[:, 1] | [5 2] · [1 -2] · [3 0] | الضرب والأعمدة | 9-10
+ms prg (M @ points.T).T | corners → [0 0] [1 -2] [4 -2] [3 0] | المربع بعد M | 13-14
+rsh prg rotate @ shear | [[0 -1], [1 1]] | مصفوفة واحدة للاتنين | 20-21
+dr prg def draw(ax, A, title) | grid lines through A ; green = column 1 · red = column 2 | رسم الشبكة | 24-35
+fig out 4 grids → grids.png | before · rotate 90 · shear · M | الصورة | 38-45
+[Terminal (print)] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ imp M
+> M mv
+> pts ms
+> M ms
+> sr rsh
+> sr fig
+> dr fig
+> mv term
+> rsh term
+
+@d8_t1
+[Setup (once)] h none
+main ctl main() | L89 | البداية | 89-90
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 91-104
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 106-107
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 185-187, 197
+row
+[Disk + CPU · RAM] v zram
+png ram res/logo.png | 128 × 128 · 4 channels · id 1 ; Load fails → return -1 | الصورة على الديسك | 173-177
+pos ram float positions[16] | 4 corners × (x, y, u, v) · 64 B | المكان + مكان الصورة | 109-114
+idx ram unsigned indices[6] | 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 116-119
+src ram Shader text (2 strings) | vertex: v_TexCoord = texCoord ; fragment: texture(u_Texture, uv) | نص الـ Shaders | 140-165
+[class Texture] v zgpu
+ld prg Texture::Load(path) | stbi_load (flipped) → pixels ; not found → "could not load" | قراية الصورة | 53-68
+up buf upload to the GPU | glGenTextures → id 1 ; LINEAR · CLAMP_TO_EDGE ; glTexImage2D RGBA8 | الصورة على الكارت | 69-80
+bd prg Texture::Bind(slot) | glActiveTexture(GL_TEXTURE0 + 0) | ربطها بخانة 0 | 82-87
+[GPU · Program → screen] v zgpu
+vao vao VAO 1 + Buffers | slot 0 ← xy · slot 1 ← uv · stride 16 ; EBO = indices | الوصف | 121-138
+prog prg Program 1 (shader) | blending on · u_Texture = slot 0 | CreateShader + glUseProgram | 167-171, 179-181
+back out Back buffer · 640 × 480 | clear (0.10, 0.15, 0.30) ; glClear L188 | اللوحة اللي ورا | 183, 188
+win out Window "Texture" | $img | اللي بتشوفه | 195-196
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+draw m2 Draw + check once | L189 glDrawElements(6) ; frame 0 → glGetError() = 0 | رسم المربع بالصورة | 189-193
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 5 | glad · GLFW · iostream · string ; stb_image.h + its #define | المكتبات | 1-7
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 9-34
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 36-51
+cl ctl Cleanup | glDeleteTextures ; glDeleteProgram · glfwTerminate | التنضيف والخروج | 199-203
+~ main glfw
+~ glfw glad
+~ glad loop
+> png ld
+> ld up
+> up bd
+> bd prog slot 0
+> pos vao L128
+> idx vao
+> src prog L167
+> vao prog
+> prog back
+> back win swap · L195
+> ld term L176
+~ loop draw
+> cs cr
+
+@d8_t2
+[Setup (once)] h none
+main ctl main() | L63 | البداية | 63-64
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 65-78
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 80-81
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 170-172, 203
+row
+[CPU · RAM] v zram
+px ram unsigned char pixels[64] | 4 × 4 checkerboard · RGBA ; dark (40, 90, 200) · light (250, 200, 60) | الصورة بالكود | 83-95
+pos ram float positions[16] | 4 corners × (x, y, u, v) | المربع | 104-109
+idx ram unsigned indices[6] | 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 111-114
+src ram Shader text (2 strings) | vertex: + u_Offset · uv × u_Repeat ; fragment: texture(u_Texture, uv) | نص الـ Shaders | 135-162
+[GPU · 2 textures + VAO] v zgpu
+mk prg MakeTexture() | (pixels, 4, filter, wrap) ; gen · bind · MIN/MAG filter · WRAP S/T ; glTexImage2D RGBA8 | Texture بإعداداتها | 50-61
+t0 buf sharp → slot 0 | GL_NEAREST · GL_REPEAT | حادة وبتتكرر | 97, 99-100
+t1 buf smooth → slot 1 | GL_LINEAR · GL_CLAMP_TO_EDGE | ناعمة وبتمط الحرف | 98, 101-102
+vao vao VAO 1 + Buffers | slot 0 ← xy · slot 1 ← uv · stride 16 ; EBO = indices | الوصف | 116-133
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | u_Texture · u_Offset · u_Repeat | CreateShader + glUseProgram | 164-168
+back out Back buffer · 640 × 480 | glClear L173 | اللوحة اللي ورا | 173
+win out Window "Texture Settings" | $img | اللي بتشوفه | 201-202
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop: the same square drawn 4 times] g2 zloop
+q1 m2 top left · slot 0 · repeat 1 | offset (-0.5, 0.5) · draw | NEAREST: مربعات حادة | 175-179
+q2 m2 top right · slot 1 · repeat 1 | offset (0.5, 0.5) · draw | LINEAR: ألوان ممسوحة | 181-184
+q3 m1 bottom left · slot 0 · repeat 2 | offset (-0.5, -0.5) · uv 0..2 | REPEAT: الشطرنج مرتين | 186-190
+q4 m1 bottom right · slot 1 · repeat 2 | offset (0.5, -0.5) · uv 0..2 | CLAMP: الحرف بيتمط | 192-199
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · iostream · string | المكتبات | 1-4
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 6-31
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 33-48
+cl ctl Cleanup | glDeleteTextures × 2 ; glDeleteProgram · glfwTerminate | التنضيف والخروج | 205-210
+~ main glfw
+~ glfw glad
+~ glad loop
+> px mk
+~ mk t0
+~ t0 t1
+> pos vao L123
+> idx vao
+> src prog L164
+> vao prog
+> prog back
+> back win swap · L201
+~ loop q1
+> cs cr
+
+@d8_c1
+[Setup] h none
+inc ctl #include × 3 | iostream · vector · string | المكتبات | 1-3
+main ctl main() | L57 · return 0 | البداية | 57-58, 88-89
+row
+[B-Rep classes] v zgpu
+vt vao Vertex · Edge · Face | x, y, z · v0, v1 (vertex numbers) ; Face = list of edge numbers | نقطة · حرف · وش | 5-21
+bd vao class Body | name · vertices · edges · faces | الجسم كله | 23-30, 55
+eu prg Euler() | F − E + V | لازم 2 لجسم مقفول | 31-34
+oe prg OpenEdges() | count faces per edge ; ≠ 2 → open | حروف مش مقفولة | 36-47
+rp out Report() | V · E · F · Euler · open edges | الطباعة | 49-54
+[3 bodies (main)] v zram
+cube ram Body cube | V 8 · E 12 · F 6 | المكعب | 59-68
+pyr ram Body pyramid | V 5 · E 8 · F 5 | الهرم | 70-76
+op ram Body open = cube − top face | faces.erase(begin + 1) · F 5 | مكعب من غير غطا | 78-81
+fr ram Face& front = cube.faces[2] | edges 0 · 9 · 4 · 8 | الوش الأمامي | 83-87
+[Terminal (std::cout)] v zloop
+term out Terminal | $term | 2 و 0 للمقفول، 1 و 4 للمفتوح | -
+~ inc main
+> cube rp
+> pyr rp
+> op rp
+> rp eu
+> rp oe
+> rp term
+> fr term
+
+@d8_c2
+[Setup (B-Rep first, then the window)] h none
+main ctl main() | L69 | البداية | 69-70
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 103-116
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 118-119
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 174-176, 195
+row
+[B-Rep (CPU)] v zram
+cls vao Vertex · Edge · Face | x, y, z · v0, v1 · edge list | الأنواع | 51-67
+cube ram the cube (B-Rep) | 8 vertices · 12 edges · 6 faces ; F − E + V = 2 | المكعب | 71-79
+scr ram screen: 3D → 2D | x' = 0.9(x − 0.5) + 0.45(y − 0.5) ; y' = 0.9(z − 0.5) + 0.35(y − 0.5) | إسقاط بسيط على الشاشة | 81-86
+ln ram lines from edges | v0, v1 for each of the 12 edges | خطوط الرسم | 88-93
+fl ram frontLines from faces[2] | edges 0 · 9 · 4 · 8 → 4 lines | الوش الأمامي | 95-101
+[GPU · 1 Buffer + 2 VAOs] v zgpu
+buf buf Buffer 1 · screen points | GL_ARRAY_BUFFER · 8 × (x, y) | النقط | 121-124
+av vao VAO 1 · allVao + allIbo | slot 0 ← Buffer 1 ; EBO 2: 24 indices | كل الحروف | 126-134
+fv vao VAO 2 · frontVao + frontIbo | slot 0 ← Buffer 1 ; EBO 3: 8 indices | الوش الأمامي | 136-144
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | u_Color · points 10 px · lines 3 px | CreateShader + glUseProgram | 146-172
+win out Window "B-Rep Wireframe" | $img | اللي بتشوفه | 193-194
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+d1 m2 all edges + points | L179 bind allVao · L180 gray ; L181 glDrawElements(GL_LINES, 24) ; L183 blue points · glDrawArrays(8) | الهيكل كله | 177-183
+d2 m1 front face on top | L185 bind frontVao · L186 orange ; L187 glDrawElements(GL_LINES, 8) ; frame 0 → glGetError() | الوش الأمامي برتقاني | 185-191
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 5 | glad · GLFW · iostream ; string · vector | المكتبات | 1-5
+cs prg CompileShader() | create → compile ; error → log + 0 | بيترجم Shader واحد | 7-32
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 34-49
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 197-200
+~ main glfw
+~ glfw glad
+~ glad loop
+> cube scr
+> cube ln
+> cube fl
+> scr buf L124
+> buf av
+> buf fv
+> ln av
+> fl fv
+> av prog
+> fv prog
+> prog win
+> cube term
+~ loop d1
+~ d1 d2
+> cs cr

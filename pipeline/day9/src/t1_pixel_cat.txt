@@ -1,0 +1,2 @@
+pixel_cat.png: 16 x 16, channels = 4
+frame 0 drawn, glGetError() = 0

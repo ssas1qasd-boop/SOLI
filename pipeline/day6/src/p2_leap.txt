@@ -1,0 +1,6 @@
+2015: not leap   PASS
+1996: leap   PASS
+2100: not leap   PASS
+2000: leap   PASS
+1900: not leap   PASS
+2024: leap   PASS

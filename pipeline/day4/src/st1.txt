@@ -1,0 +1,4 @@
+main.cpp sees:   10
+Function from main.cpp
+static.cpp sees: 5
+Function from static.cpp

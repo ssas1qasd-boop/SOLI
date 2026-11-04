@@ -1,0 +1,8 @@
+read cube.obj: 8 vertices, 6 faces
+face 1: normal (0, 0, -4)  outward
+face 2: normal (0, -0, 4)  outward
+face 3: normal (0, -4, 0)  outward
+face 4: normal (0, 4, 0)  outward
+face 5: normal (4, 0, 0)  outward
+face 6: normal (-4, 0, 0)  outward
+V = 8, E = 12, F = 6, V - E + F = 2

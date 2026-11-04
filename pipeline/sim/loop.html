@@ -1,0 +1,274 @@
+<title>لفة الـ while: الرسم 60 مرة</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: the render loop as a machine. Code on one side; two framebuffers and the monitor on the other; a frame clock underneath. */
+:root{
+  --bg:#eef1f5; --panel:#ffffff; --ink:#152033; --muted:#5d6a7e; --line:#d6dce6;
+  --code-bg:#121a28; --code-ink:#c9d3e3; --code-dim:#5f6d84; --cur:#2a3a57;
+  --cpu:#b45309; --gpu:#0f766e; --gpu-soft:#dcf3ef; --both:#6d4fc2; --warn:#b42318;
+  --f-ui:"IBM Plex Sans Arabic",system-ui,sans-serif; --f-code:"JetBrains Mono","DejaVu Sans Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1019; --panel:#131b29; --ink:#e3e9f3; --muted:#91a0b8; --line:#253248;
+  --code-bg:#0e1522; --code-ink:#c9d3e3; --code-dim:#56647a; --cur:#24375a;
+  --cpu:#f5a524; --gpu:#37d2be; --gpu-soft:#0f3430; --both:#a58bff; --warn:#ff7a6b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1019; --panel:#131b29; --ink:#e3e9f3; --muted:#91a0b8; --line:#253248;
+  --code-bg:#0e1522; --code-ink:#c9d3e3; --code-dim:#56647a; --cur:#24375a;
+  --cpu:#f5a524; --gpu:#37d2be; --gpu-soft:#0f3430; --both:#a58bff; --warn:#ff7a6b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:15px;line-height:1.6;direction:rtl}
+code{font-family:var(--f-code);font-size:.88em;direction:ltr;unicode-bidi:isolate;background:var(--bg);padding:0 4px;border-radius:4px}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px}
+h1{font-size:1.4rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:.2rem 0 .8rem;font-size:.92rem}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.bar button,.bar select{font:inherit;font-size:.95rem;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;min-height:38px}
+.bar button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);min-width:96px}
+.bar button.close{border-color:var(--warn);color:var(--warn)}
+.bar button:focus-visible,.bar select:focus-visible{outline:2px solid var(--both);outline-offset:2px}
+.grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr);gap:14px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.code{direction:ltr;background:var(--code-bg);color:var(--code-ink);font-family:var(--f-code);font-size:13px;line-height:1.7;border-radius:10px;padding:8px 0;overflow-x:auto}
+.code div{white-space:pre;padding:0 12px 0 0;border-left:3px solid transparent;transition:background .2s}
+.code div i{display:inline-block;width:3em;text-align:right;padding-right:1em;color:var(--code-dim);font-style:normal}
+.code div.cur{background:var(--cur);border-left-color:var(--gpu);color:#fff}
+.code div.cur.cpu{border-left-color:var(--cpu)}
+.now{margin-top:12px;border-width:2px}
+.now .who{font-family:var(--f-code);font-size:.78rem;font-weight:600;color:#fff;padding:2px 9px;border-radius:6px}
+.now h2{font-size:1.1rem;margin:.3rem 0 .2rem;text-wrap:balance}
+.now p{margin:0}
+.ht{width:100%;border-collapse:collapse;font-size:.82rem;font-variant-numeric:tabular-nums}
+.ht th,.ht td{padding:3px 6px;border-top:1px solid var(--line);text-align:center}
+.ht th{color:var(--muted);font-weight:600;border-top:0}
+.ht td.A{color:var(--gpu)} .ht td.B{color:var(--both)}
+.ht tr.cur td{background:var(--gpu-soft);font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--panel)}
+.stat b{display:block;font-family:var(--f-code);font-size:1.25rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.78rem;color:var(--muted)}
+.fbs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fb{border:2px solid var(--line);border-radius:10px;padding:6px;transition:border-color .3s}
+.fb.back{border-color:var(--gpu)}
+.fb .lab{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:.85rem;margin-bottom:4px;flex-wrap:wrap}
+.fb .role{font-family:var(--f-code);font-weight:600;font-size:.78rem;padding:1px 8px;border-radius:6px;color:#fff;background:var(--muted);transition:background .3s}
+.fb.back .role{background:var(--gpu)}
+.fb.front .role{background:var(--both)}
+canvas{width:100%;max-width:100%;aspect-ratio:4/3;display:block;border-radius:6px;background:#000}
+.mon{margin-top:12px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:center}
+@media (max-width:560px){.mon{grid-template-columns:minmax(0,1fr)}.fbs{grid-template-columns:minmax(0,1fr)}}
+.screen{border:10px solid #2b3240;border-radius:12px;background:#000;position:relative}
+.screen::after{content:"";display:block;width:30%;height:10px;background:#2b3240;margin:10px auto -20px;border-radius:0 0 6px 6px}
+.screen .cap{position:absolute;bottom:6px;right:8px;font-family:var(--f-code);font-size:.7rem;color:#8a96aa;direction:ltr}
+.mon .txt{font-size:.88rem}
+.clock{margin-top:16px}
+.clock .row{display:flex;gap:2px;direction:ltr;align-items:stretch;height:30px}
+.clock .seg{flex:1;border-radius:4px;background:var(--bg);border:1px solid var(--line);position:relative;overflow:hidden}
+.clock .seg i{position:absolute;inset:0;transform-origin:left;transform:scaleX(0);background:var(--gpu)}
+.clock .seg.cpu i{background:var(--cpu)}
+.clock .seg.wait i{background:var(--both);opacity:.6}
+.clock .names{display:flex;gap:2px;direction:ltr;margin-top:3px}
+.clock .names span{flex:1;font-family:var(--f-code);font-size:.66rem;color:var(--muted);text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.note{font-size:.82rem;color:var(--muted);margin-top:8px}
+.ended{color:var(--warn);font-weight:700}
+@media (prefers-reduced-motion:reduce){.code div,.fb,.fb .role{transition:none}}
+</style>
+
+<div class="wrap">
+  <h1>لفة الـ while: إزاي الرسم بيتكرر 60 مرة في الثانية</h1>
+  <p class="sub">السطور 134 لـ 140 من برنامج «Shader من ملف». كل لفة = صورة جديدة على الشاشة. بطّأناها جداً عشان تشوف كل خطوة، وفي الحقيقة اللفة كلها بتاخد <b>16.7 مللي ثانية</b>.</p>
+  <div class="bar" role="toolbar" aria-label="التحكم">
+    <button id="play" class="primary" type="button">⏸ إيقاف</button>
+    <button id="step" type="button">الخطوة الجاية ←</button>
+    <select id="speed" aria-label="السرعة"><option value="1.7">بطيء</option><option value="1" selected>عادي</option><option value="0.45">سريع</option></select>
+    <button id="close" class="close" type="button">✕ اقفل الشباك</button>
+    <button id="restart" type="button" hidden>⟲ شغّل البرنامج تاني</button>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="code" id="code"></div>
+      <div class="panel now" id="now">
+        <span class="who" id="who">CPU</span>
+        <h2 id="title"></h2>
+        <p id="text"></p>
+      </div>
+      <div class="panel" id="hist"><div style="font-weight:700;margin-bottom:4px">سجل اللفات: مين رسم فين</div><table class="ht" id="histt"></table></div>
+      <div class="stats">
+        <div class="stat"><b id="lap">1</b><span>رقم اللفة (الفريم)</span></div>
+        <div class="stat"><b id="frags">0</b><span>تشغيلات Fragment Shader في اللفة دي</span></div>
+        <div class="stat"><b id="total">0</b><span>كل التشغيلات من أول البرنامج</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="fbs">
+        <div class="fb" id="fbA"><div class="lab"><b>Framebuffer A</b><span class="role" id="roleA">BACK</span></div><canvas id="cA" width="320" height="240"></canvas></div>
+        <div class="fb" id="fbB"><div class="lab"><b>Framebuffer B</b><span class="role" id="roleB">FRONT</span></div><canvas id="cB" width="320" height="240"></canvas></div>
+      </div>
+      <p class="note">الاتنين صندوقين ذاكرة على كارت الشاشة، كل واحد 1,228,800 بايت. <b style="color:var(--gpu)">BACK</b> = اللي الكارت بيرسم فيه دلوقتي. <b style="color:var(--both)">FRONT</b> = اللي معروض على الشاشة. الرقم في الركن رقم الفريم، حطيناه للتوضيح بس، مش في الكود.</p>
+      <div class="mon">
+        <div class="screen"><canvas id="cS" width="320" height="240"></canvas><span class="cap">monitor</span></div>
+        <div class="txt" id="montxt"></div>
+      </div>
+      <div class="clock">
+        <div class="row" id="segs"></div>
+        <div class="names" id="names"></div>
+        <p class="note">شريط اللفة الحالية: <span style="color:var(--cpu)">■</span> شغل CPU، <span style="color:var(--gpu)">■</span> شغل GPU، <span style="color:var(--both)">■</span> استنا تحديث الشاشة (VSync من <code>glfwSwapInterval(1)</code> سطر 102).</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const CODE = [[134,'    while (!glfwWindowShouldClose(window))'],[135,'    {'],[136,'        glClear(GL_COLOR_BUFFER_BIT);'],[137,'        glDrawArrays(GL_TRIANGLES, 0, 3);'],[138,'        glfwSwapBuffers(window);'],[139,'        glfwPollEvents();'],[140,'    }'],[141,''],[142,'    glDeleteProgram(shader);'],[143,'    glfwTerminate();'],[144,'    return 0;']];
+$('code').innerHTML = CODE.map(([n, t]) => `<div id="L${n}"><i>${n}</i>${t.replace(/&/g,'&amp;').replace(/</g,'&lt;') || ' '}</div>`).join('');
+
+// phases of one lap; dur in ms at "normal" speed
+const PH = [
+  {k:'check', line:134, who:'CPU', dur:1500, name:'134 check'},
+  {k:'clear', line:136, who:'GPU', dur:1800, name:'136 glClear'},
+  {k:'draw',  line:137, who:'GPU', dur:3200, name:'137 glDrawArrays'},
+  {k:'wait',  line:138, who:'VSYNC', dur:1500, name:'138 wait vsync'},
+  {k:'swap',  line:138, who:'GPU', dur:1500, name:'138 swap'},
+  {k:'poll',  line:139, who:'CPU', dur:1500, name:'139 poll events'}];
+$('segs').innerHTML = PH.map(p => `<div class="seg ${p.who==='CPU'?'cpu':p.who==='VSYNC'?'wait':''}"><i></i></div>`).join('');
+$('names').innerHTML = PH.map(p => `<span>${p.name}</span>`).join('');
+
+let lap = 1, ph = 0, t = 0, playing = true, closeAsked = false, ended = false, total = 0, last = performance.now();
+let back = 'A';                       // which framebuffer is BACK now
+const fb = {A:{state:'empty', frame:0, rows:0}, B:{state:'empty', frame:0, rows:0}};
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// same triangle as the real program, scaled to 320x240: corners (80,60) (160,180) (240,60) in bottom-up pixels
+const V = [[80,60],[160,180],[240,60]];
+function inside(x, y){ // y bottom-up, pixel center test with the same edge functions
+  const e = (a,b,px,py) => (b[0]-a[0])*(py-a[1]) - (b[1]-a[1])*(px-a[0]);
+  const P = [x+.5, y+.5];
+  return e(V[0],V[1],...P) <= 0 && e(V[1],V[2],...P) <= 0 && e(V[2],V[0],...P) <= 0;
+}
+const MASK = new Uint8Array(320*240); let TRI = 0;
+for (let y=0; y<240; y++) for (let x=0; x<320; x++) if (inside(x, 239-y)){ MASK[y*320+x] = 1; TRI++; }
+
+function draw(cv, s){
+  const g = cv.getContext('2d');
+  if (s.state === 'empty'){ g.fillStyle = '#1b2433'; g.fillRect(0,0,320,240);
+    g.fillStyle = '#5f6d84'; g.font = '16px "IBM Plex Sans Arabic", sans-serif'; g.textAlign = 'center'; g.direction = 'rtl';
+    g.fillText('فاضي: لسه محدش رسم هنا', 160, 125); return; }
+  const img = g.createImageData(320, 240), d = img.data;
+  const rows = s.state === 'drawing' ? s.rows : s.state === 'done' ? 240 : 0;
+  for (let p=0; p<320*240; p++){
+    const on = MASK[p] && Math.floor(p/320) < rows;
+    d[p*4] = on ? 51 : 0; d[p*4+1] = on ? 76 : 0; d[p*4+2] = on ? 204 : 0; d[p*4+3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  if (s.state === 'clearing'){ g.fillStyle = '#000'; }
+  if (s.state === 'drawing' && rows < 240){ g.fillStyle = 'rgba(255,209,102,.8)'; g.fillRect(0, rows, 320, 2); }
+  if (s.frame){ g.fillStyle = '#ffd166'; g.font = 'bold 15px JetBrains Mono, monospace'; g.textAlign = 'left'; g.direction = 'ltr'; g.fillText('frame ' + s.frame, 8, 20); }
+}
+function drawClearing(cv, p, prev){ // wipe from top: black covers old picture
+  draw(cv, prev); const g = cv.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, 320, Math.round(240*p));
+  if (p < 1){ g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(0, Math.round(240*p), 320, 2); }
+}
+
+const TXT = {
+  check: l => [`اللفة ${l}: الشباك اتقفل؟`, `الـ CPU بيسأل GLFW: حد داس ✕؟ ${closeAsked ? 'أيوه! فالـ while هتخلص.' : 'لأ، فندخل جوه اللفة.'}`],
+  clear: l => [`امسح الـ Back buffer (Framebuffer ${back})`, l === 1
+      ? `<code>glClear</code> بتملا Framebuffer ${back} بالأسود: الـ 307,200 بكسل كلهم (0, 0, 0). لسه مفيش حاجة على الشاشة.`
+      : `<code>glClear</code> بتملا Framebuffer ${back} بالأسود. ${l === 2 ? 'ده كان فاضي، فمفيش فرق باين.' : `كان فيه مثلث اللفة ${l - 2}، واتمسح خالص: كل لفة بتبدأ من صفحة بيضا (سودا).`} الشاشة لسه بتعرض Framebuffer ${back === 'A' ? 'B' : 'A'} اللي فيه مثلث اللفة ${l - 1}، فمحدش شاف المسح.`],
+  draw:  l => [`ارسم المثلث من الصفر في Framebuffer ${back}`, `<code>glDrawArrays</code>: الـ Vertex Shader 3 مرات، والـ Rasterizer يحدد البكسلات اللي جوه، والـ Fragment Shader يلوّنها أزرق. ${l === 1 ? 'ده أول مثلث.' : `ده مثلث جديد خالص (فريم ${l})، مش المثلث اللي فات. نفس الشغل كله بيتعاد.`} الشاشة ${l === 1 ? 'لسه سودا' : `لسه بتعرض فريم ${l - 1}`}: الرسم كله ورا الستارة.`],
+  wait:  () => [`استنى الشاشة`, `<code>glfwSwapBuffers</code> مش بيبدّل على طول: بيستنى الشاشة تخلص عرض الصورة الحالية وتبدأ واحدة جديدة (VSync، 60 مرة في الثانية). لو بدّل في نص العرض، كنت هتشوف نص صورة قديمة ونص جديدة.`],
+  swap:  l => [`بدّل الأدوار: ${back} يتعرض، و${back === 'A' ? 'B' : 'A'} يروح ورا الستارة`, `مفيش نسخ بايتات. الكارت بس بيبدّل الاسمين: Framebuffer ${back} (فيه فريم ${l}) بقى FRONT وظهر على الشاشة، و Framebuffer ${back === 'A' ? 'B' : 'A'} ${l === 1 ? '(الفاضي)' : `(فيه فريم ${l - 1} القديم)`} بقى BACK. ${l >= 1 ? `في اللفة الجاية هنمسحه ونرسم فيه فريم ${l + 1}.` : ''}`],
+  poll:  () => [`شوف الماوس والكيبورد`, `<code>glfwPollEvents</code>: الـ CPU بياخد من نظام التشغيل أي حاجة حصلت: حركة ماوس، زرار، أو ✕. ${closeAsked ? 'لقى إنك دست ✕، فعلّم على الشباك «يتقفل».' : 'مفيش حاجة. جرّب تدوس «✕ اقفل الشباك» فوق.'}`]
+};
+
+function setRoles(){
+  const f = back === 'A' ? 'B' : 'A';
+  $('fb' + back).className = 'fb back'; $('fb' + f).className = 'fb front';
+  $('role' + back).textContent = 'BACK'; $('role' + f).textContent = 'FRONT';
+}
+function showScreen(){
+  const f = back === 'A' ? 'B' : 'A';
+  draw($('cS'), fb[f]);
+  $('montxt').innerHTML = fb[f].state === 'empty'
+    ? 'الشاشة بتعرض Framebuffer ' + f + ' وهو لسه فاضي. أول صورة هتظهر بعد أول تبديل.'
+    : `الشاشة بتعرض <b>Framebuffer ${f}</b> (الـ FRONT): فريم ${fb[f].frame}. الصورة دي خلصت رسم قبل ما تظهر، عشان كده عمرك ما بتشوف رسم ناقص.`;
+}
+
+function render(){
+  const P = PH[ph], p = Math.min(1, t / (P.dur * +$('speed').value));
+  document.querySelectorAll('.code div').forEach(d => d.classList.remove('cur', 'cpu'));
+  const L = $('L' + P.line); L.classList.add('cur'); if (P.who === 'CPU') L.classList.add('cpu');
+  const [ti, tx] = TXT[P.k](lap); $('title').textContent = ti; $('text').innerHTML = tx;
+  const w = $('who'); w.textContent = P.who === 'VSYNC' ? 'GPU · VSync' : P.who;
+  w.style.background = P.who === 'CPU' ? 'var(--cpu)' : P.who === 'VSYNC' ? 'var(--both)' : 'var(--gpu)';
+  $('now').style.borderColor = w.style.background;
+  document.querySelectorAll('#segs i').forEach((e, j) => e.style.transform = `scaleX(${j < ph ? 1 : j === ph ? p : 0})`);
+  setRoles();
+  const B = fb[back], cb = $('c' + back), cf = $('c' + (back === 'A' ? 'B' : 'A'));
+  if (P.k === 'clear'){ drawClearing(cb, p, B.prevSnap || B); }
+  else if (P.k === 'draw'){ B.state = 'drawing'; B.rows = Math.round(240 * p); B.frame = lap; draw(cb, B);
+    let n = 0; for (let q=0; q < B.rows*320; q++) n += MASK[q];
+    const real = Math.round(n / TRI * 38400); $('frags').textContent = real.toLocaleString('en'); }
+  else draw(cb, B);
+  draw(cf, fb[back === 'A' ? 'B' : 'A']);
+  $('lap').textContent = lap;
+  { const rows = []; for (let l = Math.max(1, lap - 3); l <= lap; l++){ const b = (l % 2 === 1) ? 'A' : 'B', f = b === 'A' ? 'B' : 'A';
+      const st = l < lap ? 'خلصت' : ['بتسأل', 'بتمسح', 'بترسم', 'بتستنى', 'بتبدّل', 'بتشوف الأحداث'][ph];
+      rows.push(`<tr class="${l === lap ? 'cur' : ''}"><td>${l}</td><td class="${b}">${b}</td><td class="${f}">${l === 1 ? 'فاضي' : f + ' (فريم ' + (l - 1) + ')'}</td><td>${st}</td></tr>`); }
+    $('histt').innerHTML = '<tr><th>اللفة</th><th>بتمسح وبترسم في</th><th>الشاشة بتعرض</th><th>الحالة</th></tr>' + rows.join(''); } $('total').textContent = (total + (P.k === 'draw' ? +$('frags').textContent.replace(/,/g,'') : 0)).toLocaleString('en');
+  showScreen();
+}
+
+function enter(k){ // state changes when a phase starts
+  const B = fb[back];
+  if (k === 'clear'){ B.prevSnap = {...B}; $('frags').textContent = '0'; }
+  if (k === 'check' && closeAsked){ finish(); }
+}
+function leave(k){ // state changes when a phase ends
+  const B = fb[back];
+  if (k === 'clear'){ B.state = 'black'; B.frame = 0; }
+  if (k === 'draw'){ B.state = 'done'; B.rows = 240; total += 38400; }
+  if (k === 'swap'){ back = back === 'A' ? 'B' : 'A'; }
+  if (k === 'poll'){ lap++; }
+}
+function finish(){
+  ended = true; playing = false; $('play').textContent = '▶ تشغيل'; $('play').disabled = true; $('step').disabled = true;
+  document.querySelectorAll('.code div').forEach(d => d.classList.remove('cur', 'cpu'));
+  ['L142','L143','L144'].forEach(id => $(id).classList.add('cur', 'cpu'));
+  $('who').textContent = 'CPU'; $('who').style.background = 'var(--cpu)'; $('now').style.borderColor = 'var(--cpu)';
+  $('title').innerHTML = '<span class="ended">الـ while خلصت</span>';
+  $('text').innerHTML = `<code>glfwWindowShouldClose</code> رجّعت true، فالبرنامج نزل للسطور 142–144: مسح الـ Program، و <code>glfwTerminate</code> رجّعت الشباك والـ Framebuffers للنظام، و <code>return 0</code>. اتعمل <b>${lap - 1}</b> لفة = ${(lap - 1)} صورة.`;
+  fb.A = {state:'empty', frame:0, rows:0}; fb.B = {state:'empty', frame:0, rows:0};
+  draw($('cA'), fb.A); draw($('cB'), fb.B); const g = $('cS').getContext('2d'); g.fillStyle = '#000'; g.fillRect(0,0,320,240);
+  $('montxt').textContent = 'الشباك اتقفل. الشاشة رجعت تعرض سطح المكتب.';
+  $('restart').hidden = false; $('close').hidden = true;
+}
+
+function advance(){ leave(PH[ph].k); ph = (ph + 1) % PH.length; t = 0; enter(PH[ph].k); }
+function frame(now){
+  const dt = Math.min(100, now - last); last = now;
+  if (playing && !ended){
+    t += reduce ? 1e9 : dt;
+    if (t >= PH[ph].dur * +$('speed').value) advance();
+  }
+  if (!ended) render();
+  requestAnimationFrame(frame);
+}
+$('play').onclick = () => { playing = !playing; $('play').textContent = playing ? '⏸ إيقاف' : '▶ تشغيل'; };
+$('step').onclick = () => { if (ended) return; playing = false; $('play').textContent = '▶ تشغيل'; advance(); render(); };
+$('close').onclick = () => { closeAsked = true; $('close').disabled = true; $('close').textContent = '✕ اتداس، هيتقفل بعد اللفة دي'; };
+$('restart').onclick = () => {
+  lap = 1; ph = 0; t = 0; total = 0; back = 'A'; closeAsked = false; ended = false; playing = true;
+  fb.A = {state:'empty', frame:0, rows:0}; fb.B = {state:'empty', frame:0, rows:0};
+  $('play').disabled = false; $('step').disabled = false; $('play').textContent = '⏸ إيقاف';
+  $('close').hidden = false; $('close').disabled = false; $('close').textContent = '✕ اقفل الشباك'; $('restart').hidden = true;
+  document.querySelectorAll('.code div').forEach(d => d.classList.remove('cur', 'cpu')); enter('check');
+};
+enter('check');
+requestAnimationFrame(frame);
+</script>

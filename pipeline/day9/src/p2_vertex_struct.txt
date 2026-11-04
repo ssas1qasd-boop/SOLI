@@ -1,0 +1,6 @@
+sizeof(Vertex) = 16 bytes  (the stride)
+offsetof(Vertex, x) = 0
+offsetof(Vertex, u) = 8  (where the texture coordinates start)
+sizeof(square) = 64 bytes  (what glBufferData copies)
+the same bytes read as floats: -0.5 -0.5 0 0 0.5 -0.5 1 0 0.5 0.5 1 1 -0.5 0.5 0 1
+after square[2].u = 2: numbers[10] = 2

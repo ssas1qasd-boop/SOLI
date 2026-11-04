@@ -1,0 +1,34 @@
+source: var x = 1 + 2 * 3; x * 2;
+tokens: [var] [x] [=] [1] [+] [2] [*] [3] [;] [x] [*] [2] [;] [end]
+tree for x =
+    [+]
+        1
+        [*]
+            2
+            3
+tree for print =
+    [*]
+        x
+        2
+bytecode:
+  LOAD_INT 1
+  LOAD_INT 2
+  LOAD_INT 3
+  MULTIPLY 0
+  ADD 0
+  STORE_VAR 0
+  LOAD_VAR 0
+  LOAD_INT 2
+  MULTIPLY 0
+  PRINT 0
+run:
+  LOAD_INT 1   stack: [1]
+  LOAD_INT 2   stack: [1, 2]
+  LOAD_INT 3   stack: [1, 2, 3]
+  MULTIPLY 0   stack: [1, 6]
+  ADD 0   stack: [7]
+  STORE_VAR 0   stack: []
+  LOAD_VAR 0   stack: [7]
+  LOAD_INT 2   stack: [7, 2]
+  MULTIPLY 0   stack: [14]
+  result: 14

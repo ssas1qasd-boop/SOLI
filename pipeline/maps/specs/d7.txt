@@ -1,0 +1,243 @@
+@d7_r2
+[Setup (once)] h none
+main ctl main() | L50 | البداية | 50-51
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 52-65
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 66-69
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 147-150, 181
+row
+[CPU · RAM] v zram
+sq ram float square[8] | 32 B · 4 corners × (x, y) | أركان المربع | 70-76
+ix ram unsigned squareIndices[6] | 24 B · 0 1 2 · 2 3 0 | ترتيب المثلثين | 77-81
+tr ram float triangle[9] | 36 B · 3 corners × (x, y, z) | أركان المثلث | 82-87
+ids ram IDs from the GPU | squareBuffer = 1 · squareIbo = 2 ; triangleBuffer = 3 · Vao 1, 2, 3 | أرقام بس، مش البيانات | 88-93, 95, 105, 114
+src ram Shader text | vertexShader + fragmentShader | نص الـ Shaders | 118-141
+loc ram Uniform slots | u_Offset → 0 · u_Color → 1 | أرقام خانات الـ uniforms | 144-146
+[GPU · Buffers + VAOs] v zgpu
+b1 buf Buffer 1 · squareBuffer | GL_ARRAY_BUFFER · 32 B | المربع | 97-98
+b2 buf Buffer 2 · squareIbo (EBO) | GL_ELEMENT_ARRAY_BUFFER · 24 B | ترتيب المربع | 101-102
+b3 buf Buffer 3 · triangleBuffer | GL_ARRAY_BUFFER · 36 B | المثلث | 107-108
+v1 vao VAO 1 · squareVao | slot 0 ← Buffer 1 · 2 floats · stride 8 ; EBO = Buffer 2 | الطريقة 2 · المربع | 94, 96, 99-100, 103
+v2 vao VAO 2 · triangleVao | slot 0 ← Buffer 3 · 3 floats · stride 12 | الطريقة 2 · المثلث | 104, 106, 109-110
+v3 vao VAO 3 · globalVao | slot 0 on · layout rewritten ; before every draw (L164-171) | الطريقة 1 · مشترك | 112-117
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | Vertex: position.xy + u_Offset ; Fragment: color = u_Color | CreateShader + glUseProgram | 142-143
+ras prg Rasterizer | triangles → pixels | المثلثات لبكسلات | -
+back out Back buffer · 640 × 480 | glClear L151 · draws land here | اللوحة اللي ورا | 151-152
+win out Window "Two Methods" | $img | اللي بتشوفه | 179-180
+row
+[Render loop (each frame)] h zloop
+m2 m2 Method 2 · left half · u_Offset = (-0.45, 0) | L155 bind VAO 1 → u_Color orange → glDrawElements(6) ; L158 bind VAO 2 → u_Color blue → glDrawArrays(3) | كل شكل ليه VAO: سطر ربط واحد قبل الرسم | 153-160
+m1 m1 Method 1 · right half · u_Offset = (0.45, 0) | L164 bind VAO 3 ; L165-167 Buffer 1 + layout(2, 8) + Buffer 2 → draw(6) ; L170-171 Buffer 3 + layout(3, 12) → draw(3) | VAO واحد: الشكل بيتوصف تاني قبل كل رسمة | 161-178
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · iostream · string | المكتبات | 1-5
+cs prg CompileShader() | glCreateShader → glShaderSource ; → glCompileShader (× 2: vs, fs) | بيترجم Shader واحد | 6-32
+cr prg CreateShader() | glCreateProgram → attach × 2 ; → link → Program 1 | بيعمل الـ Program | 33-49
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 182-186
+~ main glfw
+~ glfw glad
+~ glad loop
+> sq b1 L98
+> ix b2 L102
+> tr b3 L108
+> b1 v1
+> b2 v1
+> b3 v2
+> v1 prog vertices
+> v2 prog
+> v3 prog
+> src prog L142
+> loc prog glUniform
+> prog ras
+> ras back
+> back win swap · L179
+~ loop m2
+~ loop m1
+> cs cr
+
+@d7_p1
+[Setup] h none
+inc ctl #include × 2 | iostream · cstring | المكتبات | 1-2
+main ctl main() | L4 · return 0 | البداية | 4-5, 30-31
+row
+[CPU · Stack (main)] v zram
+var ram int var = 8 → 10 | at 0x7fffffff9554 | المتغير | 6
+vp ram void* ptr = &var | 0x7fffffff9554 · no type | عنوان بس | 7
+ip ram int* intPtr = &var | *intPtr = 10 → writes 10 into var | الكتابة من خلال العنوان | 10-11
+buf ram char* buffer | 0x55555559d2b0 → nullptr at the end | Pointer للـ Heap | 17
+pp ram char** ptrToBuffer = &buffer | 0x7fffffff9558 | Pointer لـ Pointer | 23
+[CPU · Heap] v zram
+heap buf new char[8] · memset 0 | buffer[0] = 'H' · *(buffer + 1) = 'i' | الكلمة Hi | 18-20
+del ctl delete[] buffer | the 8 bytes go back · buffer = nullptr | رجّعنا الحتة | 27-28
+[Terminal (std::cout)] v zloop
+pr1 out var · &var · ptr | then var after the write | العنوان والقيمة | 8, 12
+sz out sizeof of 3 pointer types | int* · double* · char* = 8 bytes each | كل الـ Pointers 8 بايت | 14-15
+pr2 out buffer and ptrToBuffer | text = Hi · *ptrToBuffer = buffer ; **ptrToBuffer = H | المستويات | 21, 24-25
+pr3 out after delete[] | buffer = 0 | بعد المسح | 29
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> vp var
+> ip var
+> buf heap
+> pp buf
+> var pr1
+> pr1 sz
+> sz pr2
+> pr2 pr3
+> pr3 term
+
+@d7_p2
+[Setup] h none
+inc ctl #include × 2 | iostream · cstring | المكتبات | 1-2
+main ctl main() | L37 · return 0 | البداية | 37-38, 55-56
+row
+[main: 4 questions] v zram
+q1 ram a = 3, b = 7 · Swap(&a, &b) | → a = 7, b = 3 | سؤال 1 | 39-41
+q2 ram n = 5 · SetToZero(&n) | also SetToZero(nullptr) | سؤال 2 | 43-46
+q3 ram MakeText(&text, 4) | text = nullptr first ; → "xxx" · delete[] text | سؤال 3 | 48-51
+q4 ram values[4] = {1, 2, 3, 4} | Sum(values, 4) | سؤال 4 | 53-54
+[The 4 functions] v zgpu
+sw prg Swap(int* a, int* b) | temp = *a · *a = *b · *b = temp | تبديل | 4-9
+sz prg SetToZero(int* p) | if p != nullptr → *p = 0 | حماية من nullptr | 11-15
+mt prg MakeText(char** out, int size) | *out = new char[size] ; 'x' × 3 + 0 at the end | بنغيّر Pointer الـ main | 17-22
+su prg Sum(const int* values, count) | total += *(values + i) | الجمع بحساب العناوين | 24-30
+[Check + Terminal] v zloop
+ck out check(question, ok) | prints PASS or FAIL | التصحيح | 32-35
+term out Terminal | $term | الأربعة PASS | -
+~ inc main
+> q1 sw
+> q2 sz
+> q3 mt
+> q4 su
+> sw ck
+> sz ck
+> mt ck
+> su ck
+> ck term
+
+@d7_m1
+[Setup] h none
+cm ctl # Test yourself: cross by hand | no libraries | الفكرة | 1
+row
+[Python · lists] v zram
+ab ram a = [1, -7, 1] · b = [5, 2, 4] | c = cross(a, b) | المتجهين | 19-21
+ijk ram i, j, k | [1, 0, 0] · [0, 1, 0] · [0, 0, 1] | المحاور | 26-28
+[Our functions] v zgpu
+cr prg def cross(a, b) | [a1·b2 − a2·b1, a2·b0 − a0·b2, ; a0·b1 − a1·b0] | الضرب الاتجاهي | 2-5
+dt prg def dot(a, b) | total += a[i] * b[i] | الضرب النقطي | 8-12
+ck prg def check(q, got, expected) | prints = got + PASS / FAIL | التصحيح | 15-16
+[7 checks] v zloop
+c1 out a × b · (a × b)·a · (a × b)·b | [-30, 1, 37] · 0 · 0 | العمودي | 22-24
+c2 out i × j · j × i · b × a · a × a | k · −k · [30, -1, -37] · [0, 0, 0] | قواعد الترتيب | 29-32
+term out Terminal | $term | السبعة PASS | -
+~ cm ab
+> ab cr
+> ijk cr
+> cr dt
+> cr c1
+> dt c1
+> ck c1
+> c1 c2
+> c2 term
+
+@d7_m2
+[Setup] h none
+imp ctl # same with NumPy + normal | import numpy as np | الفكرة والمكتبة | 1-2
+row
+[Python · arrays] v zram
+ab ram a = [1, -7, 1] · b = [5, 2, 4] | np.array | المتجهين | 4-5
+d ram d = [1, 2, 3] | and 2 * d = [2, 4, 6] | متجهين على نفس الخط | 10
+tri ram triangle p0, p1, p2 | (0, 0, 0) · (2, 0, 0) · (0, 3, 0) | مثلث | 13-15
+[NumPy] v zgpu
+c prg c = np.cross(a, b) | [-30, 1, 37] · (b, a) = [30, -1, -37] ; c · a = 0 · c · b = 0 | زي اللي بإيدنا | 6-8
+par prg np.cross(d, 2 * d) | [0 0 0] | متوازيين = صفر | 11
+n prg n = cross(p1 − p0, p2 − p0) | [0 0 6] · length 6 · unit [0 0 1] | الـ Normal للإضاءة | 16-17
+[Terminal (print)] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ imp ab
+> ab c
+> d par
+> tri n
+> c term
+> par term
+> n term
+
+@d7_c1
+[Setup] h none
+imp ctl # where does a commit ID come from? | import hashlib (SHA-1) | الفكرة والمكتبة | 1-2
+row
+[Inputs] v zram
+data ram data = refactored.cpp (bytes) | header "blob 5722\0" | الملف نفسه | 10
+who ram who + message | Student · 1793458800 +0200 ; "add refactored polyline tool" | مين وإمتى وليه | 18
+d2 ram data2 | kPointSize 10.0f → 12.0f | تغيير حرف واحد | 24
+[git_hash(kind, data) × 4] v zgpu
+gh prg def git_hash(kind, data) | sha1("kind size\0" + data) | البصمة | 5-7
+bl prg blob = git_hash("blob", data) | d088e29614e6041b76b5482c4ea7e4526d3f827e | بصمة الملف | 11-12
+tr prg tree = git_hash("tree", entry) | "100644 refactored.cpp\0" + blob | بصمة الفولدر | 14-16
+cm prg commit = git_hash("commit") | tree + author + committer + message | بصمة الـ Commit | 19-21
+[Terminal (print)] v zloop
+sh out short ID = commit[:7] | 84180e1 | الرقم اللي بنشوفه | 22
+nb out new blob after the change | bc0094a8828d270cc69f8e7c83cf02cc0196e5b2 | حرف واحد = بصمة جديدة خالص | 25
+term out Terminal | $term | اللي اتطبع | -
+~ imp data
+> data bl
+~ gh bl
+> bl tr blob
+> tr cm tree
+> who cm
+> cm sh
+> d2 nb
+> sh term
+> nb term
+
+@d7_r1
+[Setup (once)] h none
+main ctl main() | L50 | البداية | 50-51
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 52-65
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 67-68
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 140-141, 163
+row
+[CPU · RAM] v zram
+pos ram float positions[8] | 32 B · 4 corners × (x, y) | أركان المربع | 70-75
+idx ram unsigned indices[6] | 24 B ; 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 77-80
+src ram Shader text (2 strings) | fragment: color = u_Color | نص الـ Shaders | 102-122
+loc ram location = 0 (u_Color) | -1 → "not found" | خانة اللون | 127-129
+rv ram r · increment · frame | r = 0 · increment = 0.05 · frame = 0 | الأحمر والعداد | 136-138
+[GPU · Buffers + VAO] v zgpu
+err m1 test: no VAO bound | glVertexAttribPointer → error 1282 | من غير VAO = غلط | 82-83
+vao vao VAO 1 · vao | slot 0 ← Buffer 1 · stride 8 ; remembers Buffer 2 (EBO) | وصف الركن | 85-87, 94-95
+buf buf Buffer 1 · buffer | GL_ARRAY_BUFFER · 32 B | الأركان | 89-92
+ibo buf Buffer 2 · ibo (EBO) | GL_ELEMENT_ARRAY_BUFFER · 24 B | الترتيب | 97-100
+unb ctl unbind everything (0) | program · VAO · both buffers | فكّ الربط قبل اللوب | 131-134
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | Fragment: color = u_Color | CreateShader + glUseProgram | 124-125
+back out Back buffer · 640 × 480 | glClear L142 | اللوحة اللي ورا | 142
+win out Window "Vertex Array" | $img | اللي بتشوفه | 161-162
+term out Terminal | $term | 1282 بره و 0 جوه | -
+row
+[Render loop (each frame): bind again, then draw] h zloop
+bind m2 Bind + draw | L144 glUseProgram · L145 u_Color = (r, 0.3, 0.8) ; L147 glBindVertexArray(vao) · L148 ibo ; L149 glDrawElements(6) | الربط في كل فريم | 144-149
+bump m1 Change r + print | r bounces 0 ↔ 1 ; every 10 frames: r and glGetError() | r رايح جاي | 151-159
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · iostream · string | المكتبات | 1-4
+cs prg CompileShader() | create → source → compile ; error → print + 0 | بيترجم Shader واحد | 6-31
+cr prg CreateShader() | create → attach × 2 → link ; → validate | بيعمل الـ Program | 33-48
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 165-168
+~ main glfw
+~ glfw glad
+~ glad loop
+> pos buf L92
+> idx ibo L100
+> buf vao
+> ibo vao
+> err term L83
+> vao prog vertices
+> src prog L124
+> loc prog glUniform4f
+> prog back
+> back win swap · L161
+> rv bind r
+~ loop bind
+~ bind bump
+> cs cr

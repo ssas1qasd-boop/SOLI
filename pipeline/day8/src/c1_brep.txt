@@ -1,0 +1,4 @@
+cube: V = 8, E = 12, F = 6  ->  F - E + V = 2, edges not shared by 2 faces = 0
+pyramid: V = 5, E = 8, F = 5  ->  F - E + V = 2, edges not shared by 2 faces = 0
+cube without its top face: V = 8, E = 12, F = 5  ->  F - E + V = 1, edges not shared by 2 faces = 4
+front face of the cube uses edges: 0(0-1) 9(1-5) 4(4-5) 8(0-4)

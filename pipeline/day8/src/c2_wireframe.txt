@@ -1,0 +1,3 @@
+V = 8, E = 12, F = 6, F - E + V = 2
+lines to draw: 12, front face lines: 4
+frame 0 drawn, glGetError() = 0

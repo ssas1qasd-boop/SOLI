@@ -1,0 +1,5 @@
+scale x2  A = [[2, 0], [0, 1]]   corner (2, 3) -> [4, 3]
+rotate 90 A = [[0, -1], [1, 0]]   corner (2, 3) -> [-3, 2]
+shear     A = [[1, 1], [0, 1]]   corner (2, 3) -> [5, 3]
+mirror    A = [[-1, 0], [0, 1]]   corner (2, 3) -> [-2, 3]
+saved shapes.png

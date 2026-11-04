@@ -1,0 +1,397 @@
+{
+ "events": [
+  [
+   1,
+   "Internal::Context Configuration",
+   "Context = Context 6, FBO = Backbuffer FBO, InitParams = [32, 24, 8, 0, 1, 640, 480, False, , ]"
+  ],
+  [
+   2,
+   "glClear",
+   "mask = GL_COLOR_BUFFER_BIT"
+  ],
+  [
+   3,
+   "glUniform2f",
+   "location = 0, type = 2fv, count = 1, values = [-0.45, 0]"
+  ],
+  [
+   4,
+   "glBindVertexArray",
+   "vaobj = Vertex Array 29"
+  ],
+  [
+   5,
+   "glUniform4f",
+   "location = 1, type = 4fv, count = 1, values = [1, 0.5, 0.1, 1]"
+  ],
+  [
+   6,
+   "glDrawElements",
+   "mode = GL_TRIANGLES, count = 6, type = GL_UNSIGNED_INT, indices = 0"
+  ],
+  [
+   7,
+   "glBindVertexArray",
+   "vaobj = Vertex Array 30"
+  ],
+  [
+   8,
+   "glUniform4f",
+   "location = 1, type = 4fv, count = 1, values = [0.2, 0.6, 1, 1]"
+  ],
+  [
+   9,
+   "glDrawArrays",
+   "mode = GL_TRIANGLES, first = 0, count = 3"
+  ],
+  [
+   10,
+   "glUniform2f",
+   "location = 0, type = 2fv, count = 1, values = [0.45, 0]"
+  ],
+  [
+   11,
+   "glBindVertexArray",
+   "vaobj = Vertex Array 31"
+  ],
+  [
+   12,
+   "glBindBuffer",
+   "target = GL_ARRAY_BUFFER, buffer = Buffer 26"
+  ],
+  [
+   13,
+   "glVertexAttribPointer",
+   "vaobj = Vertex Array 31, buffer = Buffer 26, index = 0, size = 2, type = GL_FLOAT, normalized = False, stride = 8, offset = 0"
+  ],
+  [
+   14,
+   "glBindBuffer",
+   "target = GL_ELEMENT_ARRAY_BUFFER, buffer = Buffer 27"
+  ],
+  [
+   15,
+   "glUniform4f",
+   "location = 1, type = 4fv, count = 1, values = [1, 0.5, 0.1, 1]"
+  ],
+  [
+   16,
+   "glDrawElements",
+   "mode = GL_TRIANGLES, count = 6, type = GL_UNSIGNED_INT, indices = 0"
+  ],
+  [
+   17,
+   "glBindBuffer",
+   "target = GL_ARRAY_BUFFER, buffer = Buffer 28"
+  ],
+  [
+   18,
+   "glVertexAttribPointer",
+   "vaobj = Vertex Array 31, buffer = Buffer 28, index = 0, size = 3, type = GL_FLOAT, normalized = False, stride = 12, offset = 0"
+  ],
+  [
+   19,
+   "glUniform4f",
+   "location = 1, type = 4fv, count = 1, values = [0.2, 0.6, 1, 1]"
+  ],
+  [
+   20,
+   "glDrawArrays",
+   "mode = GL_TRIANGLES, first = 0, count = 3"
+  ],
+  [
+   21,
+   "glXSwapBuffers",
+   ""
+  ]
+ ],
+ "draws": [
+  {
+   "eid": 6,
+   "name": "glDrawElements()",
+   "n": 6,
+   "vao": "Vertex Array 29",
+   "ibuf": "Buffer 27",
+   "attr0": {
+    "enabled": true,
+    "fmt": "R32G32_FLOAT",
+    "comp": 2,
+    "slot": 0,
+    "offset": 0,
+    "buf": "Buffer 26",
+    "stride": 8
+   },
+   "vbuf": [
+    -0.35,
+    -0.35,
+    0.05,
+    -0.35,
+    0.05,
+    0.05,
+    -0.35,
+    0.05
+   ],
+   "idx": [
+    0,
+    1,
+    2,
+    2,
+    3,
+    0
+   ],
+   "uni": {
+    "u_Offset": [
+     -0.45,
+     0.0
+    ],
+    "u_Color": [
+     1.0,
+     0.5,
+     0.1,
+     1.0
+    ]
+   },
+   "prog": "Program 32",
+   "vs": "",
+   "post": [
+    [
+     -0.8,
+     -0.35,
+     0.0,
+     1.0
+    ],
+    [
+     -0.4,
+     -0.35,
+     0.0,
+     1.0
+    ],
+    [
+     -0.4,
+     0.05,
+     0.0,
+     1.0
+    ],
+    [
+     -0.8,
+     0.05,
+     0.0,
+     1.0
+    ]
+   ],
+   "png": "tm_eid6.png",
+   "target": "Backbuffer Color"
+  },
+  {
+   "eid": 9,
+   "name": "glDrawArrays()",
+   "n": 3,
+   "vao": "Vertex Array 30",
+   "ibuf": "ResourceId::0",
+   "attr0": {
+    "enabled": true,
+    "fmt": "R32G32B32_FLOAT",
+    "comp": 3,
+    "slot": 0,
+    "offset": 0,
+    "buf": "Buffer 28",
+    "stride": 12
+   },
+   "vbuf": [
+    -0.3,
+    0.15,
+    0.0,
+    0.3,
+    0.15,
+    0.0,
+    0.0,
+    0.55,
+    0.0
+   ],
+   "uni": {
+    "u_Offset": [
+     -0.45,
+     0.0
+    ],
+    "u_Color": [
+     0.2,
+     0.6,
+     1.0,
+     1.0
+    ]
+   },
+   "prog": "Program 32",
+   "vs": "",
+   "post": [
+    [
+     -0.75,
+     0.15,
+     0.0,
+     1.0
+    ],
+    [
+     -0.15,
+     0.15,
+     0.0,
+     1.0
+    ],
+    [
+     -0.45,
+     0.55,
+     0.0,
+     1.0
+    ]
+   ],
+   "png": "tm_eid9.png",
+   "target": "Backbuffer Color"
+  },
+  {
+   "eid": 16,
+   "name": "glDrawElements()",
+   "n": 6,
+   "vao": "Vertex Array 31",
+   "ibuf": "Buffer 27",
+   "attr0": {
+    "enabled": true,
+    "fmt": "R32G32_FLOAT",
+    "comp": 2,
+    "slot": 0,
+    "offset": 0,
+    "buf": "Buffer 26",
+    "stride": 8
+   },
+   "vbuf": [
+    -0.35,
+    -0.35,
+    0.05,
+    -0.35,
+    0.05,
+    0.05,
+    -0.35,
+    0.05
+   ],
+   "idx": [
+    0,
+    1,
+    2,
+    2,
+    3,
+    0
+   ],
+   "uni": {
+    "u_Offset": [
+     0.45,
+     0.0
+    ],
+    "u_Color": [
+     1.0,
+     0.5,
+     0.1,
+     1.0
+    ]
+   },
+   "prog": "Program 32",
+   "vs": "",
+   "post": [
+    [
+     0.1,
+     -0.35,
+     0.0,
+     1.0
+    ],
+    [
+     0.5,
+     -0.35,
+     0.0,
+     1.0
+    ],
+    [
+     0.5,
+     0.05,
+     0.0,
+     1.0
+    ],
+    [
+     0.1,
+     0.05,
+     0.0,
+     1.0
+    ]
+   ],
+   "png": "tm_eid16.png",
+   "target": "Backbuffer Color"
+  },
+  {
+   "eid": 20,
+   "name": "glDrawArrays()",
+   "n": 3,
+   "vao": "Vertex Array 31",
+   "ibuf": "Buffer 27",
+   "attr0": {
+    "enabled": true,
+    "fmt": "R32G32B32_FLOAT",
+    "comp": 3,
+    "slot": 0,
+    "offset": 0,
+    "buf": "Buffer 28",
+    "stride": 12
+   },
+   "vbuf": [
+    -0.3,
+    0.15,
+    0.0,
+    0.3,
+    0.15,
+    0.0,
+    0.0,
+    0.55,
+    0.0
+   ],
+   "idx": [
+    0,
+    1,
+    2,
+    2,
+    3,
+    0
+   ],
+   "uni": {
+    "u_Offset": [
+     0.45,
+     0.0
+    ],
+    "u_Color": [
+     0.2,
+     0.6,
+     1.0,
+     1.0
+    ]
+   },
+   "prog": "Program 32",
+   "vs": "",
+   "post": [
+    [
+     0.15,
+     0.15,
+     0.0,
+     1.0
+    ],
+    [
+     0.75,
+     0.15,
+     0.0,
+     1.0
+    ],
+    [
+     0.45,
+     0.55,
+     0.0,
+     1.0
+    ]
+   ],
+   "png": "tm_eid20.png",
+   "target": "Backbuffer Color"
+  }
+ ]
+}

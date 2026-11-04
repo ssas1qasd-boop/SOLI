@@ -1,0 +1,7 @@
+box with a hole: V = 16, E = 24, F = 10, loops = 12
+  V - E + F = 2,  V - E + F - (loops - F) = 0
+  manifold: yes
+two cubes touching at one edge: V = 14, E = 23, F = 12, loops = 12
+  V - E + F = 3,  V - E + F - (loops - F) = 3
+  edge 2-6 is used by 4 faces
+  manifold: no

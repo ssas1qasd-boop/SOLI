@@ -1,0 +1,314 @@
+@d1_u1
+[Setup (once)] h none
+main ctl main() | L49 | البداية | 49-50
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 51-64
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 66-67
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 106-107, 114
+row
+[CPU · RAM] v zram
+pos ram float positions[8] | 32 B · 4 corners × (x, y) | أركان المربع | 69-74
+idx ram unsigned indices[6] | 24 B ; 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 75-78
+src ram Shader text (2 strings) | vertex: gl_Position = position ; fragment: color = u_Color | نص الـ Shaders | 5-18
+loc ram Uniform slots | location = 0 (u_Color) ; wrong = -1 (u_Colour: typo) | رقم خانة الـ uniform | 100, 103
+[GPU · Buffers + VAO] v zgpu
+vbo buf Buffer 1 · vbo | GL_ARRAY_BUFFER · 32 B | أركان المربع | 84-87
+ibo buf Buffer 2 · ibo (EBO) | GL_ELEMENT_ARRAY_BUFFER · 24 B | ترتيب المربع | 92-95
+vao vao VAO 1 · vao | slot 0 ← Buffer 1 · 2 floats · stride 8 ; EBO = Buffer 2 | وصف الركن | 80-82, 89-90
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | Vertex: gl_Position = position ; Fragment: color = u_Color | CreateShader + glUseProgram | 97-98
+ras prg Rasterizer | triangles → pixels | المثلثات لبكسلات | -
+back out Back buffer · 640 × 480 | glClear L108 · draws land here | اللوحة اللي ورا | 108
+win out Window "Uniforms" | $img | اللي بتشوفه | 112-113
+term out Terminal | $term | اللي اتطبع | 101, 104
+row
+[Render loop (each frame)] h zloop
+draw m2 Draw the square | L109 glUniform4f(location, 0.2, 0.3, 0.8, 1) ; L110 glDrawElements(6) | نفس اللون الأزرق في كل فريم | 109-110
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 3 | glad · GLFW · iostream | المكتبات | 1-3
+cs prg CompileShader() | glCreateShader → glShaderSource ; → glCompileShader (× 2: vs, fs) | بيترجم Shader واحد | 20-34
+cr prg CreateShader() | glCreateProgram → attach × 2 ; → link → Program 1 | بيعمل الـ Program | 36-47
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 116-119
+~ main glfw
+~ glfw glad
+~ glad loop
+> pos vbo L87
+> idx ibo L95
+> vbo vao
+> ibo vao
+> vao prog vertices
+> src prog L97
+> loc prog glUniform4f
+> prog ras
+> ras back
+> back win swap · L112
+~ loop draw
+> cs cr
+
+@d1_u2
+[Setup (once)] h none
+main ctl main() | L49 | البداية | 49-50
+glfw ctl GLFW | glfwInit · window 640×480 | الشباك والـ Context | 51-64
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 66-67
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | 106-107, 120
+row
+[CPU · RAM] v zram
+pos ram float positions[8] | 32 B · 4 corners × (x, y) | أركان المربع | 69-74
+idx ram unsigned indices[6] | 24 B ; 0, 1, 2,  (triangle 1) ; 2, 3, 0  (triangle 2) | ترتيب المثلثين | 75-78
+src ram Shader text (2 strings) | vertex: gl_Position = position ; fragment: color = u_Color | نص الـ Shaders | 5-18
+loc ram Uniform slot | location = 0 (u_Color) | رقم خانة الـ uniform | 100
+rv ram float r, increment | r = 0 · increment = 0.05 | الأحمر اللي بيتغير | 103-104
+[GPU · Buffers + VAO] v zgpu
+vbo buf Buffer 1 · vbo | GL_ARRAY_BUFFER · 32 B | أركان المربع | 84-87
+ibo buf Buffer 2 · ibo (EBO) | GL_ELEMENT_ARRAY_BUFFER · 24 B | ترتيب المربع | 92-95
+vao vao VAO 1 · vao | slot 0 ← Buffer 1 · 2 floats · stride 8 ; EBO = Buffer 2 | وصف الركن | 80-82, 89-90
+[GPU · Program → screen] v zgpu
+prog prg Program 1 (shader) | Vertex: gl_Position = position ; Fragment: color = u_Color | CreateShader + glUseProgram | 97-98
+ras prg Rasterizer | triangles → pixels | المثلثات لبكسلات | -
+back out Back buffer · 640 × 480 | glClear L108 · draws land here | اللوحة اللي ورا | 108
+win out Window "Uniforms" | $img | اللي بتشوفه | 118-119
+term out Terminal | $term | اللي اتطبع | 101
+row
+[Render loop (each frame)] h zloop
+draw m2 Draw with the current r | L109 glUniform4f(location, r, 0.3, 0.8, 1) ; L110 glDrawElements(6) | اللون بياخد r الحالي | 109-110
+bump m1 Change r for the next frame | r > 1 → increment = -0.05 ; r < 0 → increment = +0.05 ; r += increment | r بيروح ويرجع بين 0 و 1 | 112-116
+row
+[Helpers (called from main) + cleanup] h zloop
+inc ctl #include × 3 | glad · GLFW · iostream | المكتبات | 1-3
+cs prg CompileShader() | glCreateShader → glShaderSource ; → glCompileShader (× 2: vs, fs) | بيترجم Shader واحد | 20-34
+cr prg CreateShader() | glCreateProgram → attach × 2 ; → link → Program 1 | بيعمل الـ Program | 36-47
+cl ctl Cleanup | glDeleteProgram · glfwTerminate | التنضيف والخروج | 122-125
+~ main glfw
+~ glfw glad
+~ glad loop
+> pos vbo L87
+> idx ibo L95
+> vbo vao
+> ibo vao
+> vao prog vertices
+> src prog L97
+> loc prog glUniform4f
+> rv draw r
+> prog ras
+> ras back
+> back win swap · L118
+~ loop draw
+~ draw bump
+> cs cr
+
+@d1_cam
+[Setup (once)] h none
+main ctl main() | L58 | البداية | f0:58-59
+glfw ctl GLFW | glfwInit · window 800×800 | الشباك والـ Context | f0:60-71
+glad ctl GLAD + viewport | gladLoadGL · glViewport | دوال الكارت | f0:72-73
+loop ctl while loop | !glfwWindowShouldClose | كل لفة = فريم | f0:97-98, 111
+row
+[CPU · RAM (main.cpp)] v zram
+wh ram width, height | 800 × 800 | مقاس الشباك | f0:6-7
+vtx ram GLfloat vertices[96] | 16 corners × (x y z + r g b) · 384 B | أركان الهرم وألوانها | f0:28-46
+idx ram GLuint indices[18] | 6 triangles · 72 B | ترتيب المثلثات | f0:48-56
+src ram Shader text | vertex: camMatrix * aPos ; fragment: FragColor = color | نص الـ Shaders | f0:9-26
+camo ram Camera camera | Position (0, 0, 2) · 800 × 800 | الكاميرا | f0:95
+[GPU · Buffers + VAO] v zgpu
+vbo buf Buffer 1 · VBO | GL_ARRAY_BUFFER · 384 B | الأركان والألوان | f0:79, 83-84
+ebo buf Buffer 2 · EBO | GL_ELEMENT_ARRAY_BUFFER · 72 B | الترتيب | f0:80, 85-86
+vao vao VAO 1 | slot 0 ← xyz · slot 1 ← rgb ; stride 24 B (6 floats) | وصف الركن | f0:77-78, 82, 88-91
+[GPU · Program → screen] v zgpu
+prog prg Shader shaderProgram (ID 3) | Vertex: camMatrix * vec4(aPos, 1) ; Fragment: FragColor = color | الـ Program | f0:75
+dep prg Depth test | glEnable(GL_DEPTH_TEST) | الأقرب يغطي الأبعد | f0:93
+back out Back buffer · 800 × 800 | clear color (0.07, 0.13, 0.17) + depth | اللوحة اللي ورا | f0:99-100
+win out Window "Camera" | $img | اللي بتشوفه | f0:109-110
+row
+[Render loop (each frame)] h zloop
+act m2 Activate + Inputs | L101 shaderProgram.Activate() ; L103 camera.Inputs(window): W A S D + mouse | الكيبورد والماوس بيحركوا الكاميرا | f0:101-103
+mat m2 camera.Matrix(45°, 0.1, 100) | projection × view → uniform camMatrix | مصفوفة الكاميرا للـ Shader | f0:104
+dr m1 Draw | L106 glBindVertexArray(VAO) ; L107 glDrawElements(18) | رسم الهرم | f0:106-107
+row
+[shaderClass.cpp] h zloop
+sh prg Shader::Shader() | compile vertex + fragment ; → glCreateProgram → link | بيعمل الـ Program | f1:1-20
+sa prg Shader::Activate() | glUseProgram(ID) | تشغيل الـ Program | f1:22-25
+sd ctl Shader::Delete() | glDeleteProgram(ID) | مسح الـ Program | f1:27-30
+row
+[Camera.cpp] h zloop
+cc ram Camera::Camera() | width, height, Position | بيحفظ مكان الكاميرا | f2:1-8
+cm prg Camera::Matrix() | lookAt (view) · perspective ; glUniformMatrix4fv(camMatrix) | بيبعت المصفوفة | f2:10-19
+ci m1 Camera::Inputs() | W A S D · Space · Ctrl · Shift ; left mouse → rotate Orientation | بيقرا الكيبورد والماوس | f2:21-71
+row
+[Cleanup] h zloop
+inc ctl #include × 4 | glad · GLFW · shaderClass.h · Camera.h | المكتبات | f0:1-4
+cl ctl Cleanup | delete VAO, VBO, EBO · shader ; glfwDestroyWindow · glfwTerminate | التنضيف والخروج | f0:113-120
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx vbo L84
+> idx ebo L86
+> vbo vao
+> ebo vao
+> vao prog vertices
+> src prog L75
+> prog dep
+> dep back
+> back win swap · L109
+~ loop act
+~ act mat
+~ mat dr
+> camo mat Position
+
+@d1_p1
+[Setup] h none
+inc ctl #include × 2 | iostream · cstddef | المكتبات | 1-2
+main ctl main() | L4 | البداية | 4-5
+end ctl std::cin.get() | wait for Enter | استنى زرار | 12-13
+row
+[CPU · Stack (main)] v zram
+a ram void* a = 0 | 8 B · value 0x0 | Pointer فاضي بالرقم 0 | 6
+b ram void* b = NULL | 8 B · value 0x0 | Pointer فاضي بـ NULL | 7
+c ram void* c = nullptr | 8 B · value 0x0 | Pointer فاضي بـ nullptr | 8
+[Terminal (std::cout)] v zloop
+pr out std::cout × 3 | print a, b, c | الطباعة | 9-11
+term out Terminal | $term | الـ 3 طرق نفس النتيجة: 0 | -
+~ inc main
+~ main end
+> a pr
+> b pr
+> c pr
+> pr term
+
+@d1_p2
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L3 | البداية | 3-4
+end ctl std::cin.get() | wait for Enter | استنى زرار | 10-11
+row
+[CPU · Stack (main)] v zram
+var ram int var = 8 | 4 B · at 0x7fffffff95ac | متغير عادي | 5
+ptr ram void* ptr = &var | 8 B · holds 0x7fffffff95ac | عنوان var | 6
+[Terminal (std::cout)] v zloop
+pr out std::cout × 3 | var · &var · ptr | الطباعة | 7-9
+term out Terminal | $term | &var و ptr نفس الرقم | -
+~ inc main
+~ main end
+> ptr var points to
+> var pr
+> ptr pr
+> pr term
+
+@d1_p3
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L3 | البداية | 3-4
+end ctl std::cin.get() | wait for Enter | استنى زرار | 12-13
+row
+[CPU · Stack (main)] v zram
+var ram int var = 8 | 4 B · at 0x7fffffff95a4 | متغير عادي | 5
+ptr ram int* ptr = &var | 0x7fffffff95a4 · reads 4 B | Pointer نوعه int | 6
+ptr2 ram double* ptr2 = (double*)&var | 0x7fffffff95a4 · reads 8 B | نفس العنوان بنوع تاني | 7
+[Terminal (std::cout)] v zloop
+pr out std::cout × 4 | ptr · ptr2 · sizeof(int) · sizeof(double) | الطباعة | 8-11
+term out Terminal | $term | النوع بيغير عدد البايتات بس | -
+~ inc main
+~ main end
+> ptr var
+> ptr2 var
+> ptr pr
+> ptr2 pr
+> pr term
+
+@d1_p4
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L3 | البداية | 3-4
+end ctl std::cin.get() | wait for Enter | استنى زرار | 10-11
+row
+[CPU · Stack (main)] v zram
+var ram int var = 8 → 10 | 4 B · at 0x7fffffff95ac | المتغير اللي اتغير | 5
+ptr ram int* ptr = &var | 8 B · holds 0x7fffffff95ac | عنوان var | 6
+wr ram *ptr = 10 | write 10 at the address in ptr | الكتابة من خلال العنوان | 8
+[Terminal (std::cout)] v zloop
+p1 out before | var = 8 | قبل | 7
+p2 out after | var = 10 | بعد | 9
+term out Terminal | $term | var اتغير من غير ما نكتب اسمه | -
+~ inc main
+~ main end
+> ptr var
+> wr var L8
+> var p1
+> p1 p2
+> p2 term
+
+@d1_p5
+[Setup] h none
+inc ctl #include × 2 | iostream · cstring | المكتبات | 1-2
+main ctl main() | L4 | البداية | 4-5
+end ctl std::cin.get() | wait for Enter | استنى زرار | 13-14
+row
+[CPU · Stack (main)] v zram
+buf ram char* buffer | 8 B · holds 0x55555559d2b0 | عنوان الحتة اللي اتحجزت | 6
+loop ram for i = 0 .. 7 | (int)buffer[i] | لف على الـ 8 بايت | 9-10
+[CPU · Heap] v zram
+heap buf new char[8] | 8 B at 0x55555559d2b0 | حتة في الـ Heap | -
+ms buf memset(buffer, 0, 8) | all 8 bytes = 0 | تصفير الحتة | 7
+del ctl delete[] buffer | the 8 bytes go back | رجّعنا الحتة | 12
+[Terminal (std::cout)] v zloop
+pa out print the address | (void*)buffer | العنوان | 8
+pb out print 8 bytes | buffer[0..7] then endl | الأرقام | 11
+term out Terminal | $term | عدد 8 أصفار | -
+~ inc main
+~ main end
+> buf heap
+> ms heap
+> buf pa
+> loop pb
+> pb term
+
+@d1_p6
+[Setup] h none
+inc ctl #include × 2 | iostream · cstring | المكتبات | 1-2
+main ctl main() | L4 | البداية | 4-5
+end ctl std::cin.get() | wait for Enter | استنى زرار | 15-16
+row
+[CPU · Stack (main)] v zram
+pp ram char** ptr = &buffer | at 0x7fffffff95a8 → buffer | Pointer لـ Pointer | 8
+buf ram char* buffer | at 0x7fffffff95a8 · holds 0x55555559d2b0 | Pointer للـ Heap | 6
+[CPU · Heap] v zram
+heap buf new char[8] | 8 B at 0x55555559d2b0 | حتة في الـ Heap | -
+ms buf memset(buffer, 0, 8) | all 8 bytes = 0 | تصفير الحتة | 7
+del ctl delete[] buffer | the 8 bytes go back | رجّعنا الحتة | 14
+[Terminal (std::cout)] v zloop
+pr out std::cout × 5 | ptr · &buffer · *ptr · buffer · (*ptr)[0] | الطباعة | 9-13
+term out Terminal | $term | ptr = &buffer و *ptr = buffer | -
+~ inc main
+~ main end
+> pp buf points to
+> buf heap
+> ms heap
+> pp pr
+> pr term
+
+@d1_dot
+[Setup] h none
+inc ctl #include × 2 | iostream · glm/glm.hpp | المكتبات | 1-2
+main ctl main() | L12 | البداية | 12-13
+end ctl std::cin.get() | wait for Enter | استنى زرار | 27-28
+row
+[CPU · Stack (main)] v zram
+ab ram float a[2], b[2] | a = {1, 2} · b = {3, 4} | متجهين في 2D | 14-15
+cd ram float c[4], d[4] | c = {6, 2, 8, 3} · d = {1, 8, 5, 3} | متجهين في 4D | 18-19
+v ram glm::vec2 v(2, 1) | v = (2, 1) | متجه glm | 22
+[dot() (our function)] v zgpu
+dot prg dot(v, w, n) | sum += v[i] * w[i] for i < n | بنضرب كل خانة في اللي قصادها ونجمع | 4-10
+gd prg glm::dot(v, other) | (3, 1) · (-1, 2) · (-3, -1) | دالة glm الجاهزة | 23-25
+[Terminal (std::cout)] v zloop
+p1 out print dot(a, b, 2) | 1×3 + 2×4 = 11 | 2D | 16
+p2 out print dot(c, d, 4) | 6 + 16 + 40 + 9 = 71 | 4D | 20
+term out Terminal | $term | موجب، صفر، سالب حسب الاتجاه | -
+~ inc main
+~ main end
+> ab dot
+> cd dot
+> v gd
+> dot p1
+> dot p2
+> gd term
+> p1 p2
+> p2 term

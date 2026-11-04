@@ -1,0 +1,13 @@
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch({args:['--use-gl=swiftshader']}); const p = await b.newPage({viewport:{width:412,height:915}});
+  const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+  await p.route('**/three.min.js', r => r.fulfill({path:'/home/claude/sim/three.min.js', contentType:'application/javascript'})); await p.route(/fonts\.g/, r => r.abort());
+  await p.goto('file:///home/claude/bench2/bench_day7.html'); await p.waitForTimeout(1500); await p.evaluate(() => __bench.load('d7_r2'));
+  await p.click('#agFab'); await p.fill('#agQ', 'الكارت بيعرف منين ان المربع مثلثين'); await p.press('#agQ', 'Enter'); await p.waitForTimeout(700);
+  console.log('first:', (await p.innerText('#agLog')).replace(/\s+/g,' ').slice(0, 300));
+  await p.click('.agdown'); await p.waitForTimeout(200);
+  console.log('alts:', (await p.innerText('.agalt')).replace(/\s+/g,' ').slice(0, 500));
+  await p.click('.agpick[data-n="0"]'); await p.waitForTimeout(200);
+  await p.fill('#agQ', 'الكارت عارف منين ان المربع مثلثين؟'); await p.press('#agQ', 'Enter'); await p.waitForTimeout(700);
+  const all = await p.$$eval('.agmsg.bot', els => els.map(e => e.innerText.replace(/\s+/g,' ').slice(0, 200)));
+  console.log('second:', all[all.length - 1]); await p.screenshot({path:'/tmp/claude-0/fb.png'}); console.log(errs); await b.close(); })();

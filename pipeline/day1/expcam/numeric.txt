@@ -1,0 +1,15 @@
+[normalize] looking 60 deg down:
+  length of cross(Orientation, Up)            = 0.5
+  length of normalize(cross(Orientation, Up)) = 1
+
+[firstClick] mouse at (700,100) on the first click, without centering first:
+  jump up/down    = -37.5 deg
+  jump left/right = 37.5 deg   (in ONE frame)
+
+[5 deg check] lookAt when looking straight up:
+  view[0][0] = -nan   (nan = not a number -> nothing can be drawn)
+  cross(Up, Up) = (0, 0, 0)  -> no 'right' direction
+
+[float cast] window 800 x 600:
+  width / height        = 1     (int division: fraction lost)
+  (float)width / height = 1.33333

@@ -1,0 +1,12 @@
+const {chromium}=require('playwright');const fs=require('fs');
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist']});
+const p=await b.newPage({viewport:{width:412,height:900},colorScheme:'dark',hasTouch:true}); const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.route('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',r=>r.fulfill({path:'/home/claude/sim/three.min.js',contentType:'application/javascript'}));
+await p.route(/fonts\.(googleapis|gstatic)\.com/,r=>r.abort());
+await p.setContent('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"></head><body>'+fs.readFileSync('bench_full.html','utf8')+'</body></html>',{waitUntil:'load'});
+await p.click('#reftoggle'); await p.locator('#refimg').scrollIntoViewIfNeeded(); await p.click('#refimg'); await p.waitForTimeout(300);
+await p.click('#refin'); await p.click('#refin'); await p.waitForTimeout(200); console.log('after ++', await p.textContent('#refzv'));
+await p.screenshot({path:'Z1.png'}); console.log('closeVisible', await p.locator('#refclose').isVisible());
+await p.evaluate(()=>{const r=document.getElementById('refzr'); r.value=400; r.dispatchEvent(new Event('input'))}); console.log('slider', await p.textContent('#refzv'));
+await p.click('#refout'); console.log('after -', await p.textContent('#refzv'));
+console.log(errs); await b.close();})();

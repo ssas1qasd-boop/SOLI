@@ -1,0 +1,10 @@
+left click: polyline 0 has 1 points
+left click: polyline 0 has 2 points
+left click: polyline 0 has 3 points
+left click: polyline 0 has 4 points
+right click: polyline 0 finished
+left click: polyline 1 has 1 points
+left click: polyline 1 has 2 points
+left click: polyline 1 has 3 points
+right click: polyline 1 finished
+left click: polyline 2 has 1 points

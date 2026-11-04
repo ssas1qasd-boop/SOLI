@@ -1,0 +1,2 @@
+C was born in 1972
+Hello from C!

@@ -1,0 +1,7 @@
+[1, -7, 1] x [5, 2, 4] = [-30, 1, 37]   PASS
+(a x b) . a = 0   PASS
+(a x b) . b = 0   PASS
+i x j = [0, 0, 1]   PASS
+j x i = [0, 0, -1]   PASS
+b x a = [30, -1, -37]   PASS
+a x a = [0, 0, 0]   PASS

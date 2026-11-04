@@ -1,0 +1,5 @@
+1, 2, 3
+4, 5, 6
+After erase:
+1, 2, 3
+Size after clear: 0

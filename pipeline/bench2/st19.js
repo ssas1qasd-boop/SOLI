@@ -1,0 +1,13 @@
+const { chromium, devices } = require('playwright');
+(async () => { const b = await chromium.launch({args:['--use-gl=swiftshader']}); const ctx = await b.newContext({...devices['Pixel 7'], colorScheme:'dark'}); const p = await ctx.newPage(); const errs=[]; p.on('pageerror', e => errs.push(e.message));
+  await p.route(/fonts\.g/, r => r.abort());
+  await p.goto('file:///home/claude/bench2/offline/bench_day4.html#d4_v2'); await p.waitForTimeout(1200);
+  await p.evaluate(() => document.getElementById('goLine').scrollIntoView({block:'start'})); await p.waitForTimeout(300);
+  await p.fill('#lnN','25'); await p.tap('#goLine button[type=submit]'); await p.waitForTimeout(300); console.log(await p.textContent('#lnInfo'));
+  await p.tap('#lnInc'); await p.tap('#lnInc'); await p.waitForTimeout(200); console.log(await p.inputValue('#lnN'), await p.textContent('#lnInfo'));
+  await p.tap('#lnDec'); await p.waitForTimeout(200); console.log(await p.inputValue('#lnN'));
+  await p.fill('#lnN','22'); await p.tap('#goLine button[type=submit]'); await p.waitForTimeout(200); console.log(await p.textContent('#lnInfo'));
+  await p.screenshot({path:'/tmp/claude-0/ln.png'});
+  await p.tap('#lnInfo button'); await p.waitForTimeout(300); console.log('step', await p.textContent('#stepOut'));
+  await p.goto('file:///home/claude/bench2/offline/bench_day1.html#d1_cam'); await p.waitForTimeout(1200); console.log('files sel hidden', await p.evaluate(() => [document.getElementById('lnF').hidden, document.getElementById('lnF').options.length]));
+  console.log(errs); await b.close(); })();

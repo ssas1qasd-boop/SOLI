@@ -1,0 +1,8 @@
+T(1, 1, 1) = (3, 3)
+T(2, 4, 1) = (10, 3)
+input has 3 numbers (R3), output has 2 numbers (R2)
+T (1, 1, 1) = (3, 3)    A times (1, 1, 1) = (3, 3)
+T (2, 4, 1) = (10, 3)    A times (2, 4, 1) = (10, 3)
+T (0, 0, 0) = (0, 0)    A times (0, 0, 0) = (0, 0)
+S(0, 0, 0) = (0, 1)  -> the origin moved, so S is not linear
+S(2, 0, 0) = (4, 1)  but 2 * S(1, 0, 0) = (2, 2)

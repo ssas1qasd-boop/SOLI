@@ -1,0 +1,10 @@
+const { chromium, devices } = require('playwright');
+(async () => { const b = await chromium.launch({args:['--use-gl=swiftshader']}); const ctx = await b.newContext({...devices['Pixel 7'], colorScheme:'dark'}); const p = await ctx.newPage(); const errs=[]; p.on('pageerror', e => errs.push(e.message));
+  await p.route(/fonts\.g/, r => r.abort());
+  await p.goto('file:///home/claude/bench2/offline/bench_day4.html#d4_v2'); await p.waitForTimeout(1200);
+  await p.tap('#goInc'); await p.tap('#goInc'); await p.tap('#goDec'); await p.waitForTimeout(300); console.log('step', await p.textContent('#stepOut'));
+  await p.evaluate(() => document.getElementById('goStep').scrollIntoView({block:'center'})); await p.waitForTimeout(300);
+  const bb = await (await p.$('#goStep')).boundingBox(); await p.screenshot({path:'/tmp/claude-0/arr.png', clip:{x:0,y:bb.y-10,width:412,height:bb.height+20}});
+  await p.tap('#stepsBtn'); await p.waitForTimeout(600); await p.evaluate(() => document.getElementById('stepsSheet').scrollTop = 0); await p.waitForTimeout(200);
+  await (await p.$('#stp0')).screenshot({path:'/tmp/claude-0/st0.png'});
+  console.log(errs); await b.close(); })();

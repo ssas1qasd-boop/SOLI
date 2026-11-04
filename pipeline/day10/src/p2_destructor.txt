@@ -1,0 +1,12 @@
+Function start
+Created Entity!
+Function end
+Destroyed Entity!
+back in main
+Created Entity!
+heap Entity still alive
+Destroyed Entity!
+Buffer(16): new float[16]
+inside the { }: data[0] = 1.5
+~Buffer(): delete[] 16 floats
+after the { }

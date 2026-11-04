@@ -1,0 +1,7 @@
+x lives at 0x7ffec345ae90, y lives at 0x7ffec345ae94
+  SwapValue got copies at:    0x7ffec345ae6c and 0x7ffec345ae68
+after SwapValue:     x = 10, y = 20
+  SwapPointer got addresses:  0x7ffec345ae90 and 0x7ffec345ae94
+after SwapPointer:   x = 20, y = 10
+  SwapReference got the same: 0x7ffec345ae90 and 0x7ffec345ae94
+after SwapReference: x = 10, y = 20
