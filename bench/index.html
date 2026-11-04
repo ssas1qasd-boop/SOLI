@@ -3353,9 +3353,10 @@ const robot = (() => {
   const LOCAL_RULES = 'انت مساعد شرح جوه «بنش» تعليمي بيعرض برنامج C++/OpenGL أو Python اتشغّل فعلاً خطوة بخطوة. ' +
     'جاوب على طول بالعامية المصرية لطالب مبتدئ، في 3 لـ 6 جمل قصيرة، من غير مقدمات. ' +
     'اعتمد على «حقايق البنش» اللي في الرسالة، وخد الأرقام منها هي. لو المعلومة مش فيها قول «مش موجود في البنش». ' +
-    'لما تذكر خطوة اكتب «خطوة N». اكتب الكود بين علامتي `.' +
-    ' جاوب السؤال نفسه على طول: ماتعلّقش على «إجابة البحث المحلي» (دي ملاحظات ليك بس)، وماتتكلمش عن الخطوة اللي المستخدم واقف عليها إلا لو السؤال عنها.' +
-    ' لو الحقايق فيها «الطريقة 1» و«الطريقة 2»، اكتب كل طريقة برقمها زي ما هو مكتوب في الحقايق بالظبط (مثلاً: الطريقة 2 = VAO لكل شكل، الطريقة 1 = VAO واحد مشترك)، وماتقولش «الأولى» و«التانية» حسب ترتيب كلامك.';
+    'لما تذكر خطوة اكتب «خطوة N»، وخد رقمها من الحقايق بس، ولو مش متأكد ماتكتبش رقم. اكتب الكود بين علامتي `.' +
+    ' جاوب السؤال نفسه على طول: ماتعلّقش على «إجابة البحث المحلي» (دي ملاحظات ليك بس)، وماتتكلمش عن الخطوة اللي المستخدم واقف عليها إلا لو السؤال عنها.';
+  const METHOD_RULE = ' لو الحقايق فيها «الطريقة 1» و«الطريقة 2»، اكتب كل طريقة برقمها زي ما هو مكتوب في الحقايق بالظبط (مثلاً: الطريقة 2 = VAO لكل شكل، الطريقة 1 = VAO واحد مشترك)، وماتقولش «الأولى» و«التانية» حسب ترتيب كلامك.';
+  const localRules = t => LOCAL_RULES + (/الطريقة [12]/.test(t) ? METHOD_RULE : '');
   // 👍 / 👎 under a local-brain answer; rebuilt after the chat is restored from storage (the question and answer live on the bubble)
   // ---------- Claude grades a local-brain answer (in-page on claude.ai; elsewhere opens a Claude chat with the same prompt)
   const JUDGE_RULES = 'انت مصحّح بيراجع إجابة نموذج ذكاء صناعي صغير شغال على موبايل طالب. اكتب بالعامية المصرية وباختصار، بالشكل ده بالظبط:\n' +
@@ -3429,7 +3430,7 @@ const robot = (() => {
     if (les.length){ const lt = '\n\n📚 دروس اتعلّمتها قبل كده من Claude في أسئلة شبه دي (الإجابات دي مظبوطة، استخدمها لو مناسبة للسؤال):\n' + les.map(l => 'س: ' + l.q + '\nج: ' + l.a.slice(0, 700)).join('\n\n');
       if (Array.isArray(content)) content[0].text = lt + '\n\n' + content[0].text; else content = lt + '\n\n' + content;
       b.querySelector('.agtag').insertAdjacentText('beforeend', ` · 📚 عدد ${les.length} درس من Claude`); }
-    const body = {messages: [{role: 'system', content: free ? FREE_RULES : LOCAL_RULES}, {role: 'user', content}], stream: true, temperature: .5, max_tokens: LOCAL.think ? 2500 : 1200,
+    const body = {messages: [{role: 'system', content: free ? FREE_RULES : localRules(Array.isArray(content) ? content.map(c => c.text || '').join(' ') : content)}, {role: 'user', content}], stream: true, temperature: .5, max_tokens: LOCAL.think ? 2500 : 1200,
       reasoning_format: 'deepseek', reasoning_control: true, chat_template_kwargs: {enable_thinking: LOCAL.think}};
     if (!LOCAL.think) body.reasoning_effort = 'none';
     const t0 = performance.now(); let n = 0, first = 0, fin = '';
