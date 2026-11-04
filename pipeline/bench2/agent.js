@@ -426,6 +426,17 @@ const AG = (() => {
     if (!sh && P.term && P.term.length) L.push('اللي اتطبع: ' + P.term.slice(0, 8).join(' | '));
     L.push('أقرب السطور للسؤال (من البنش):');
     R.forEach(d => L.push(`- ${d.kind === 'step' ? 'خطوة ' + (d.k + 1) + '، ' : ''}سطر ${d.kind === 'step' ? ST[d.k].ln : d.ln}: ${d.code} — ${strip(d.ex || '').slice(0, sh ? 90 : 220)}${d.kind === 'step' ? '' : ' (سطر مش بيتنفذ لوحده)'}`));
+    return L.join('\n') + (window.__agDayAll ? '\n\n' + dayBlock(q, sh) : ''); }
+  // «📅 اليوم كله»: a short card for every program of the open day + the closest lines from the other programs (no step numbers: those belong to the open program)
+  function dayBlock(q, sh){ const ps = PROGS.filter(p => p.day === P.day);
+    const L = [`وضع «اليوم كله»: البرامج اللي في نفس اليوم (عدد ${ps.length}). المستخدم ممكن يسأل عن أي واحد فيهم أو عن العلاقة بينهم:`];
+    ps.forEach(p => { const tm = (p.term || []).filter(x => x && x[0] !== '\u0001').slice(0, sh ? 2 : 4).join(' / ');
+      L.push(`• «${p.title}»${p.id === P.id ? ' (ده المفتوح)' : ''}: ${p.desc}${tm ? ' | اتطبع: ' + tm.slice(0, sh ? 170 : 320) : ''}`); });
+    const ids = new Set(ps.map(p => p.id).filter(id => id !== P.id));
+    const R = search(q, {kinds: ['step', 'line'], n: 40}).map(x => x.d).filter(d => ids.has(d.pid)).filter((d, n, a) => a.findIndex(e => e.code === d.code && e.pid === d.pid) === n).slice(0, sh ? 4 : 8);
+    if (R.length){ L.push('أقرب السطور للسؤال في برامج اليوم التانية (اكتب اسم البرنامج لما تذكرها، ومن غير رقم خطوة):');
+      R.forEach(d => { const p = PROGS.find(x => x.id === d.pid); const f = p.files[d.kind === 'step' ? p.steps[d.k].f : d.f]; const ln = d.kind === 'step' ? p.steps[d.k].ln : d.ln;
+        L.push(`- [${p.title}] ${f ? f.name + ' ' : ''}سطر ${ln}: ${d.code} — ${strip(d.ex || '').slice(0, sh ? 90 : 200)}`); }); }
     return L.join('\n'); }
   return {lessons, saveFreeLesson, lessonCount, build, answer, suggestions, search, norm, toks, facts, qweights, context, learnFromClaude, train, predict, modelStats, exportModel, importModel, resetModel, remember, alternatives, docForLine, refDoc, forget(){ memSave([]); }, chipFor: d => anyChip(d), reset(){ lastQ = null; }};
 })();
@@ -520,6 +531,12 @@ const robot = (() => {
     q.placeholder = on ? 'اسأل أي سؤال، حتى لو برّه المحاضرات…' : qPh; }
   freeBtn.onclick = () => { setFree(!FREE); bubble('bot', FREE ? '🌍 <b>الوضع الحر:</b> اسأل في أي حاجة. المخ المحلي أو Claude هيجاوبوا من معلوماتهم العامة، والإجابة مش متراجعة على التشغيل الحقيقي، فممكن تغلط.' : '🔒 <b>رجعنا للبنش:</b> الإجابات من التشغيل الحقيقي للبرنامج المفتوح بس.'); };
   setFree(FREE);
+  const dayBtn = $('agDay'), DAY_KEY = 'benchHelperDay';
+  function setDay(on){ window.__agDayAll = on; try { localStorage.setItem(DAY_KEY, on ? '1' : '0'); } catch (e) {}
+    if (!dayBtn) return; dayBtn.setAttribute('aria-pressed', on); dayBtn.textContent = on ? '📅 اليوم كله' : '📄 البرنامج';
+    dayBtn.title = on ? 'الحقايق من كل برامج اليوم. دوس ترجع للبرنامج المفتوح بس' : 'الحقايق من البرنامج المفتوح بس. دوس عشان تسأل عن كل برامج اليوم'; }
+  if (dayBtn) dayBtn.onclick = () => { setDay(!window.__agDayAll); bubble('bot', window.__agDayAll ? '📅 <b>اليوم كله:</b> مع كل سؤال هبعت ملخص كل برامج اليوم، وأقرب السطور ليه من البرامج التانية. اسأل عن أي برنامج أو عن العلاقة بينهم. (المخ المحلي هياخد وقت أطول شوية في القراية)' : '📄 <b>البرنامج ده بس:</b> الحقايق من البرنامج المفتوح بس.'); };
+  { let d0 = false; try { d0 = localStorage.getItem(DAY_KEY) === '1'; } catch (e) {} setDay(d0); }
   const FREE_RULES = 'انت مساعد ذكي ودود بيتكلم بالعامية المصرية. جاوب على أي سؤال من معلوماتك العامة، بوضوح وبجمل قصيرة. لو مش متأكد من معلومة قول كده بصراحة، وماتألّفش مصادر. اكتب الكود بين علامات `.';
   function freeAsk(text, att){ const wait = bubble('bot', '<div class="aglearn">🌍 سؤال حر: الإجابة هتيجي من معلومات النموذج العامة، مش من التشغيل الحقيقي.</div><div class="agfb">' +
       (LOCAL.ok ? '<button type="button" class="aglocal">🧠 اسأل المخ المحلي</button>' : '') + (SAMPLE ? '<button type="button" class="agmore">✨ اسأل Claude</button>' : '') + (!SAMPLE && !ONCLAUDE ? '<button type="button" class="agext">✨ اسأل Claude</button>' : '') + '</div>');
@@ -683,6 +700,7 @@ const robot = (() => {
     const userText = user + attText(att, 2500) + (imgAtt.length ? `\n\n(المستخدم رفع عدد ${imgAtt.length} صورة مع السؤال، وهي مرفقة.)` : '');
     let content = userText;
     if (imgAtt.length){ content = [{type: 'text', text: userText}]; for (const a of imgAtt) content.push({type: 'image_url', image_url: {url: await toDataURL(a.blob)}}); }
+    if (window.__agDayAll && !(after._free || after.dataset.free)) b.querySelector('.agtag').insertAdjacentText('beforeend', ' · 📅 اليوم كله');
     const free = !!(after._free || after.dataset.free); if (free){ b.dataset.free = '1'; b.querySelector('.agtag').insertAdjacentText('beforeend', ' · 🌍 حر');
       const ft = question + attText(att, 2500) + (imgAtt.length ? `\n\n(المستخدم رفع عدد ${imgAtt.length} صورة، وهي مرفقة.)` : '');
       if (Array.isArray(content)) content[0].text = ft; else content = ft; }
