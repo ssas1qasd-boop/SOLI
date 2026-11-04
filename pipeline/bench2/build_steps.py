@@ -191,7 +191,7 @@ PROGS = [
    ['/home/claude/day10/src/c2_brep_hole.cpp']),
   ('d11_p1', 11, 'برمجة', 'Stack و Heap (كود The Cherno)', 'int و int[5] و Vector3 على الـ Stack وبعدين بـ new على الـ Heap: الأحجام 4 و 20 و 12، والـ Stack لازق في بعض (12 بايت)، والـ Heap كل حتة بعد 32.',
    ['/home/claude/day11/src/p1_stack_heap.cpp']),
-  ('d11_p2', 11, 'برمجة', 'السرعة وصورة 16 MB', 'عدد 100 Vector3 على الـ Stack وعدد 100 بـ new و delete، ودالة بتحجز صورة 2048 × 2048 × 4 على الـ Heap وترجّعها حية لـ main. (الأوقات في البنش كبيرة لأن البرنامج ماشي خطوة خطوة.)',
+  ('d11_p2', 11, 'برمجة', 'السرعة وصورة 16 MB', 'عدد 100 Vector3 على الـ Stack وعدد 100 بـ new و delete، ودالة بتحجز صورة 2048 × 2048 × 4 على الـ Heap وترجّعها حية لـ main. الأوقات في البنش بالملي ثانية لأن البرنامج ماشي خطوة خطوة، ومن غير البنش: 16.37 ns للـ Stack و 33.29 ns للـ new + delete (وبمليون مرة: 3.18 و 16.41).',
    ['/home/claude/day11/src/p2_speed_size.cpp']),
   ('d11_t1', 11, 'رسم', 'التكرار بإيدنا (Wrap)', 'حرف F في 6 مستطيلات: فوق الكارت بيكرر (REPEAT و MIRRORED و CLAMP)، وتحت دالة Wrap في الـ Shader بتعمل نفس الحسبة. الكود في ملفين: wrap_by_hand.cpp و stb.cpp.',
    ['/home/claude/day11/src/t1_wrap_by_hand.cpp', '/home/claude/day11/src/stb.cpp']),
@@ -725,6 +725,21 @@ def build(pid, day, kind, title, desc, srcs):
 
 if __name__ == '__main__':
     progs = [build(*p) for p in PROGS]
+    # timing programs: under gdb every line is stepped, so the times are huge. Show the normal run (no bench) next to them, from the real output files.
+    def _real(path):
+        try: return [l for l in open(path).read().splitlines() if ' ns each' in l or 'heap / stack' in l]
+        except OSError: return []
+    REAL = {'d11_p2': (_real('/home/claude/day11/src/p2_speed_size.txt'), _real('/home/claude/day11/exp/s_million.out'))}
+    for p in progs:
+        if p['id'] not in REAL: continue
+        n100, n1m = REAL[p['id']]
+        for s_ in p['steps']:
+            t = p['files'][s_['f']]['lines'][s_['ln'] - 1]
+            k = 0 if 'stack Vector3' in t else 1 if 'new + delete' in t else 2 if 'heap / stack' in t else None
+            if k is None or k >= len(n100): continue
+            s_['dy'].append(f'⏱ <b>التشغيل العادي (من غير البنش):</b> <code>{n100[k]}</code>' + (f' · ولما خلّينا N = مليون: <code>{n1m[k]}</code>' if k < len(n1m) else '')
+                            + '. الرقم اللي فوق كبير لأن البنش بيوقّف البرنامج عند كل سطر.')
+            s_['lv'] = [['cpu', 'من غير البنش', n100[k][:60]]] + (s_.get('lv') or [])[:3]
     json.dump({'programs': progs}, open('/home/claude/bench2/progs.json', 'w'), ensure_ascii=False, separators=(',', ':'))
     for p in progs:
         print(p['id'], len(p['steps']), 'steps', len(p['frames']), 'frames', 'laps', p['laps'], 'regions', [r[2] for r in p['regions']], 'phases', len(p['phases']))

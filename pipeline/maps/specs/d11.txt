@@ -45,7 +45,7 @@ ls ram stack loop × N | Vector3 v; sum += v.x | بيتعمل ويموت كل ل
 lh ram heap loop × N | new Vector3() · sum += v->x · delete v | new + delete | 40-46
 tx ram texture = LoadTexture(2048, 2048) | alive in main ; delete[] texture | بيعيش بعد الدالة | 53-55
 [Terminal (std::cout)] v zloop
-o1 out ns each · heap / stack | stack · new + delete ; slow in the bench (step by step) | السرعة | 48-51
+o1 out ns each · heap / stack | normal run: 16.4 ns · 33.3 ns ; N = 1M: 3.2 ns · 16.4 ns | السرعة | 48-51
 o2 out 16 MB | LoadTexture · texture[0] = 200 ; delete[] texture | الصورة | 25, 54, 56
 term out Terminal | $term | اللي اتطبع | -
 ~ inc main
