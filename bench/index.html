@@ -570,7 +570,9 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
 .ag-sug[hidden]{display:none}
 .agsug{font:inherit;font-size:.8rem;padding:3px 10px;border-radius:999px;border:1px solid var(--rule);background:var(--paper-deep);color:var(--ink-2);cursor:pointer}
 .ag-form button.agattb{background:transparent;color:var(--ink);border:1.5px solid var(--rule);box-shadow:none}@media (max-width:520px){.ag-top small{display:none}}
-#agFree{white-space:nowrap}
+#agFree,#agDay{white-space:nowrap}
+#agDay[aria-pressed="true"]{border-color:#c2410c;color:#c2410c}
+@media (max-width:520px){.ag-top{flex-wrap:wrap;row-gap:6px}}
 #agFree[aria-pressed="true"]{border-color:#16a34a;color:#16a34a}
 .agfreetag{display:inline-block;font-size:.7rem;font-weight:700;color:#16a34a;border:1px solid #16a34a;border-radius:999px;padding:0 6px;margin-inline-start:6px}
 .agattb{font:inherit;font-size:1.1rem;padding:0 8px;border-radius:10px;border:1.5px solid var(--rule);background:transparent;color:var(--ink);cursor:pointer}
@@ -620,7 +622,7 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
 
 <button type="button" class="agfab" id="agFab" aria-expanded="false" aria-controls="askbot" title="اسأل مساعد البنش"><svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="27" rx="22" ry="17" fill="#eef1f6"/><ellipse cx="32" cy="27" rx="16" ry="11" fill="#0e2233"/><path d="M22 27a4 4 0 0 1 8 0z M34 27a4 4 0 0 1 8 0z" fill="#5ee6ff"/><path d="M29 32a3 3 0 0 0 6 0z" fill="#5ee6ff"/><rect x="8" y="23" width="4" height="9" rx="2" fill="#c9ced8"/><rect x="52" y="23" width="4" height="9" rx="2" fill="#c9ced8"/><ellipse cx="32" cy="54" rx="13" ry="9" fill="#eef1f6"/></svg><span>اسأل</span></button>
 <section class="askbot" id="askbot" aria-label="مساعد البنش" hidden>
-  <header class="ag-top"><b>🤖 مساعد البنش</b><small>بيدوّر في البنش من غير نت</small><button type="button" id="agFree" aria-pressed="false" title="مقيّد بالبنش أو سؤال حر">🔒 البنش</button><button type="button" id="agBrain" title="اللي المساعد اتعلّمه">🧠</button><button type="button" id="agHist" title="المحادثات القديمة" aria-label="المحادثات القديمة">🕘</button><button type="button" id="agNew" title="محادثة جديدة">جديد</button><button type="button" id="agX" aria-label="اقفل المساعد">✕</button></header>
+  <header class="ag-top"><b>🤖 مساعد البنش</b><small>بيدوّر في البنش من غير نت</small><button type="button" id="agFree" aria-pressed="false" title="مقيّد بالبنش أو سؤال حر">🔒 البنش</button><button type="button" id="agDay" aria-pressed="false" title="البرنامج ده بس أو كل برامج اليوم">📄 البرنامج</button><button type="button" id="agBrain" title="اللي المساعد اتعلّمه">🧠</button><button type="button" id="agHist" title="المحادثات القديمة" aria-label="المحادثات القديمة">🕘</button><button type="button" id="agNew" title="محادثة جديدة">جديد</button><button type="button" id="agX" aria-label="اقفل المساعد">✕</button></header>
   <div class="ag-log" id="agLog" aria-live="polite"></div>
   <div class="ag-sug" id="agSug"></div>
   <div id="agAttList" class="agattl" hidden></div><form id="agForm" class="ag-form" autocomplete="off"><button type="button" id="agAtt" class="agattb" title="ضيف صورة أو ملف" aria-label="ضيف صورة أو ملف">📎</button><input id="agFile" type="file" hidden multiple accept="image/*,.txt,.md,.cpp,.cc,.c,.h,.hpp,.py,.js,.ts,.json,.glsl,.vert,.frag,.shader,.csv,.log,.xml,.html,.css"><label for="agQ" class="vh">سؤالك</label><input id="agQ" type="text" placeholder="اكتب سؤالك… مثلاً: ليه 3 صناديق؟" enterkeyhint="send"><button type="submit">اسأل</button></form>
@@ -3166,6 +3168,17 @@ const AG = (() => {
     if (!sh && P.term && P.term.length) L.push('اللي اتطبع: ' + P.term.slice(0, 8).join(' | '));
     L.push('أقرب السطور للسؤال (من البنش):');
     R.forEach(d => L.push(`- ${d.kind === 'step' ? 'خطوة ' + (d.k + 1) + '، ' : ''}سطر ${d.kind === 'step' ? ST[d.k].ln : d.ln}: ${d.code} — ${strip(d.ex || '').slice(0, sh ? 90 : 220)}${d.kind === 'step' ? '' : ' (سطر مش بيتنفذ لوحده)'}`));
+    return L.join('\n') + (window.__agDayAll ? '\n\n' + dayBlock(q, sh) : ''); }
+  // «📅 اليوم كله»: a short card for every program of the open day + the closest lines from the other programs (no step numbers: those belong to the open program)
+  function dayBlock(q, sh){ const ps = PROGS.filter(p => p.day === P.day);
+    const L = [`وضع «اليوم كله»: البرامج اللي في نفس اليوم (عدد ${ps.length}). المستخدم ممكن يسأل عن أي واحد فيهم أو عن العلاقة بينهم:`];
+    ps.forEach(p => { const tm = (p.term || []).filter(x => x && x[0] !== '\u0001').slice(0, sh ? 2 : 4).join(' / ');
+      L.push(`• «${p.title}»${p.id === P.id ? ' (ده المفتوح)' : ''}: ${p.desc}${tm ? ' | اتطبع: ' + tm.slice(0, sh ? 170 : 320) : ''}`); });
+    const ids = new Set(ps.map(p => p.id).filter(id => id !== P.id));
+    const R = search(q, {kinds: ['step', 'line'], n: 40}).map(x => x.d).filter(d => ids.has(d.pid)).filter((d, n, a) => a.findIndex(e => e.code === d.code && e.pid === d.pid) === n).slice(0, sh ? 4 : 8);
+    if (R.length){ L.push('أقرب السطور للسؤال في برامج اليوم التانية (اكتب اسم البرنامج لما تذكرها، ومن غير رقم خطوة):');
+      R.forEach(d => { const p = PROGS.find(x => x.id === d.pid); const f = p.files[d.kind === 'step' ? p.steps[d.k].f : d.f]; const ln = d.kind === 'step' ? p.steps[d.k].ln : d.ln;
+        L.push(`- [${p.title}] ${f ? f.name + ' ' : ''}سطر ${ln}: ${d.code} — ${strip(d.ex || '').slice(0, sh ? 90 : 200)}`); }); }
     return L.join('\n'); }
   return {lessons, saveFreeLesson, lessonCount, build, answer, suggestions, search, norm, toks, facts, qweights, context, learnFromClaude, train, predict, modelStats, exportModel, importModel, resetModel, remember, alternatives, docForLine, refDoc, forget(){ memSave([]); }, chipFor: d => anyChip(d), reset(){ lastQ = null; }};
 })();
@@ -3260,6 +3273,12 @@ const robot = (() => {
     q.placeholder = on ? 'اسأل أي سؤال، حتى لو برّه المحاضرات…' : qPh; }
   freeBtn.onclick = () => { setFree(!FREE); bubble('bot', FREE ? '🌍 <b>الوضع الحر:</b> اسأل في أي حاجة. المخ المحلي أو Claude هيجاوبوا من معلوماتهم العامة، والإجابة مش متراجعة على التشغيل الحقيقي، فممكن تغلط.' : '🔒 <b>رجعنا للبنش:</b> الإجابات من التشغيل الحقيقي للبرنامج المفتوح بس.'); };
   setFree(FREE);
+  const dayBtn = $('agDay'), DAY_KEY = 'benchHelperDay';
+  function setDay(on){ window.__agDayAll = on; try { localStorage.setItem(DAY_KEY, on ? '1' : '0'); } catch (e) {}
+    if (!dayBtn) return; dayBtn.setAttribute('aria-pressed', on); dayBtn.textContent = on ? '📅 اليوم كله' : '📄 البرنامج';
+    dayBtn.title = on ? 'الحقايق من كل برامج اليوم. دوس ترجع للبرنامج المفتوح بس' : 'الحقايق من البرنامج المفتوح بس. دوس عشان تسأل عن كل برامج اليوم'; }
+  if (dayBtn) dayBtn.onclick = () => { setDay(!window.__agDayAll); bubble('bot', window.__agDayAll ? '📅 <b>اليوم كله:</b> مع كل سؤال هبعت ملخص كل برامج اليوم، وأقرب السطور ليه من البرامج التانية. اسأل عن أي برنامج أو عن العلاقة بينهم. (المخ المحلي هياخد وقت أطول شوية في القراية)' : '📄 <b>البرنامج ده بس:</b> الحقايق من البرنامج المفتوح بس.'); };
+  { let d0 = false; try { d0 = localStorage.getItem(DAY_KEY) === '1'; } catch (e) {} setDay(d0); }
   const FREE_RULES = 'انت مساعد ذكي ودود بيتكلم بالعامية المصرية. جاوب على أي سؤال من معلوماتك العامة، بوضوح وبجمل قصيرة. لو مش متأكد من معلومة قول كده بصراحة، وماتألّفش مصادر. اكتب الكود بين علامات `.';
   function freeAsk(text, att){ const wait = bubble('bot', '<div class="aglearn">🌍 سؤال حر: الإجابة هتيجي من معلومات النموذج العامة، مش من التشغيل الحقيقي.</div><div class="agfb">' +
       (LOCAL.ok ? '<button type="button" class="aglocal">🧠 اسأل المخ المحلي</button>' : '') + (SAMPLE ? '<button type="button" class="agmore">✨ اسأل Claude</button>' : '') + (!SAMPLE && !ONCLAUDE ? '<button type="button" class="agext">✨ اسأل Claude</button>' : '') + '</div>');
@@ -3423,6 +3442,7 @@ const robot = (() => {
     const userText = user + attText(att, 2500) + (imgAtt.length ? `\n\n(المستخدم رفع عدد ${imgAtt.length} صورة مع السؤال، وهي مرفقة.)` : '');
     let content = userText;
     if (imgAtt.length){ content = [{type: 'text', text: userText}]; for (const a of imgAtt) content.push({type: 'image_url', image_url: {url: await toDataURL(a.blob)}}); }
+    if (window.__agDayAll && !(after._free || after.dataset.free)) b.querySelector('.agtag').insertAdjacentText('beforeend', ' · 📅 اليوم كله');
     const free = !!(after._free || after.dataset.free); if (free){ b.dataset.free = '1'; b.querySelector('.agtag').insertAdjacentText('beforeend', ' · 🌍 حر');
       const ft = question + attText(att, 2500) + (imgAtt.length ? `\n\n(المستخدم رفع عدد ${imgAtt.length} صورة، وهي مرفقة.)` : '');
       if (Array.isArray(content)) content[0].text = ft; else content = ft; }
