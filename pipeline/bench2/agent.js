@@ -537,6 +537,21 @@ const robot = (() => {
     dayBtn.title = on ? 'الحقايق من كل برامج اليوم. دوس ترجع للبرنامج المفتوح بس' : 'الحقايق من البرنامج المفتوح بس. دوس عشان تسأل عن كل برامج اليوم'; }
   if (dayBtn) dayBtn.onclick = () => { setDay(!window.__agDayAll); bubble('bot', window.__agDayAll ? '📅 <b>اليوم كله:</b> مع كل سؤال هبعت ملخص كل برامج اليوم، وأقرب السطور ليه من البرامج التانية. اسأل عن أي برنامج أو عن العلاقة بينهم. (المخ المحلي هياخد وقت أطول شوية في القراية)' : '📄 <b>البرنامج ده بس:</b> الحقايق من البرنامج المفتوح بس.'); };
   { let d0 = false; try { d0 = localStorage.getItem(DAY_KEY) === '1'; } catch (e) {} setDay(d0); }
+  // ---------- the divider on top of the chat (like Android split screen): drag to resize, double-tap = full / back
+  { const box = $('askbot'), grip = $('agGrip'), HK = 'benchHelperH';
+    const lim = h => Math.round(Math.max(160, Math.min(window.innerHeight - 40, h)));
+    const setH = (h, save) => { box.style.height = lim(h) + 'px'; if (save) try { localStorage.setItem(HK, String(lim(h))); } catch (e) {} };
+    try { const h0 = +localStorage.getItem(HK); if (h0) setH(h0); } catch (e) {}
+    let y0 = 0, h0 = 0, id = null, lastTap = 0, prevH = 0;
+    if (grip){
+      grip.addEventListener('pointerdown', e => { id = e.pointerId; y0 = e.clientY; h0 = box.getBoundingClientRect().height; grip.setPointerCapture(id); grip.classList.add('drag'); e.preventDefault(); });
+      grip.addEventListener('pointermove', e => { if (e.pointerId !== id) return; setH(h0 + (y0 - e.clientY)); });
+      const end = e => { if (e.pointerId !== id) return; id = null; grip.classList.remove('drag'); const h = box.getBoundingClientRect().height; setH(h, true);
+        if (Math.abs(e.clientY - y0) < 6){ const t = performance.now(); if (t - lastTap < 350){ const full = window.innerHeight - 40;
+            if (h < full - 4){ prevH = h; setH(full, true); } else setH(prevH || window.innerHeight * .46, true); lastTap = 0; } else lastTap = t; } };
+      grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
+      grip.addEventListener('keydown', e => { const h = box.getBoundingClientRect().height; if (e.key === 'ArrowUp'){ setH(h + 40, true); e.preventDefault(); } if (e.key === 'ArrowDown'){ setH(h - 40, true); e.preventDefault(); } });
+      window.addEventListener('resize', () => { const h = box.getBoundingClientRect().height; if (h) setH(h); }); } }
   const FREE_RULES = 'انت مساعد ذكي ودود بيتكلم بالعامية المصرية. جاوب على أي سؤال من معلوماتك العامة، بوضوح وبجمل قصيرة. لو مش متأكد من معلومة قول كده بصراحة، وماتألّفش مصادر. اكتب الكود بين علامات `.';
   function freeAsk(text, att){ const wait = bubble('bot', '<div class="aglearn">🌍 سؤال حر: الإجابة هتيجي من معلومات النموذج العامة، مش من التشغيل الحقيقي.</div><div class="agfb">' +
       (LOCAL.ok ? '<button type="button" class="aglocal">🧠 اسأل المخ المحلي</button>' : '') + (SAMPLE ? '<button type="button" class="agmore">✨ اسأل Claude</button>' : '') + (!SAMPLE && !ONCLAUDE ? '<button type="button" class="agext">✨ اسأل Claude</button>' : '') + '</div>');
