@@ -689,10 +689,10 @@ const robot = (() => {
     if (les.length){ const lt = '\n\n📚 دروس اتعلّمتها قبل كده من Claude في أسئلة شبه دي (الإجابات دي مظبوطة، استخدمها لو مناسبة للسؤال):\n' + les.map(l => 'س: ' + l.q + '\nج: ' + l.a.slice(0, 700)).join('\n\n');
       if (Array.isArray(content)) content[0].text = lt + '\n\n' + content[0].text; else content = lt + '\n\n' + content;
       b.querySelector('.agtag').insertAdjacentText('beforeend', ` · 📚 عدد ${les.length} درس من Claude`); }
-    const body = {messages: [{role: 'system', content: free ? FREE_RULES : LOCAL_RULES}, {role: 'user', content}], stream: true, temperature: .5, max_tokens: 450,
+    const body = {messages: [{role: 'system', content: free ? FREE_RULES : LOCAL_RULES}, {role: 'user', content}], stream: true, temperature: .5, max_tokens: LOCAL.think ? 2500 : 1200,
       reasoning_format: 'deepseek', reasoning_control: true, chat_template_kwargs: {enable_thinking: LOCAL.think}};
     if (!LOCAL.think) body.reasoning_effort = 'none';
-    const t0 = performance.now(); let n = 0, first = 0;
+    const t0 = performance.now(); let n = 0, first = 0, fin = '';
     const paint = () => { if (think){ th.hidden = false; tht.textContent = think; th.querySelector('summary').textContent = ans ? `🧠 فكّر إزاي (عدد ${think.split(/\s+/).length} كلمة)` : 'بيفكّر…'; enough.hidden = !!ans || !cid; }
       if (ans) ct.innerHTML = mdToHtml(ans.trim()); };
     fetch(LOCAL.url.replace(/\/$/, '') + '/v1/chat/completions', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), signal: ctl.signal})
@@ -702,6 +702,7 @@ const robot = (() => {
             if (!line.startsWith('data:')) continue; const data = line.slice(5).trim(); if (data === '[DONE]') continue;
             let j; try { j = JSON.parse(data); } catch (e){ continue; } if (j.id && !cid) cid = j.id;
             const d = (j.choices && j.choices[0] && j.choices[0].delta) || {};
+            if (j.choices && j.choices[0] && j.choices[0].finish_reason) fin = j.choices[0].finish_reason;
             if (d.reasoning_content){ think += d.reasoning_content; n++; }
             if (d.content){ ans += d.content; n++; if (!first) first = performance.now(); }
             paint(); } }
@@ -710,6 +711,7 @@ const robot = (() => {
         if (!ans.trim()) ct.innerHTML = '<small>خلص من غير ما يكتب إجابة. جرّب «جاوب على طول» من 🧠.</small>';
         const sec = (performance.now() - t0) / 1000;
         ct.insertAdjacentHTML('beforeend', `<div class="agstat">عدد ${n} توكن في ${sec.toFixed(1)} ثانية${first ? ` · أول كلمة بعد ${((first - t0) / 1000).toFixed(1)} ثانية` : ''}</div>`);
+        if (fin === 'length') ct.insertAdjacentHTML('beforeend', `<div class="agstat">✂️ الرد وصل لأقصى طول (عدد ${LOCAL.think ? 2500 : 1200} توكن). اسأل عن جزء أصغر، أو قول له «كمّل».</div>`);
         if (ans.trim()){ b.dataset.q = question; b.dataset.a = ans.trim(); localFeedback(b); judgeBtn(b); }
         fixBidi(ct); wire(ct, question); })
       .catch(e => { if (e && e.name === 'AbortError'){ ct.insertAdjacentHTML('beforeend', '<br><small>وقّفته.</small>'); return; }
