@@ -205,7 +205,7 @@ two cubes touching at one edge: V = 14, E = 23, F = 12, loops = 12
       const fx = (fr.scrollLeft + cx) / svg.clientWidth, fy = (fr.scrollTop + cy) / svg.clientHeight;
       if (z === 1) fitH = fr.clientHeight;
       z = nz; svg.style.width = (z * 100) + '%';
-      fr.style.height = z > 1 ? Math.max(fitH, Math.min(innerHeight * 0.75, fitH * 2.2)) + 'px' : '';
+      fr.style.height = z > 1 ? Math.max(fitH, Math.min(innerHeight * 0.72, svg.clientHeight * 0.6)) + 'px' : '';  // a window shorter than the zoomed map, so it pans up and down too
       fr.style.overflow = z > 1 ? 'auto' : '';
       fr.scrollLeft = fx * svg.clientWidth - cx; fr.scrollTop = fy * svg.clientHeight - cy;
       zv.textContent = Math.round(z * 100) + '%'; compact();
