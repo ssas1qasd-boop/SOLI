@@ -1,19 +1,26 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# yom 05-11   -> one text file with the day's 4 lectures: every link + the full transcript of every YouTube video.
-# Upload that one file to Claude and say «اعمل اليوم». (no date = today)
-D="${1:-$(date +%d-%m)}"
-exec python - "$D" <<'PY'
+# yom 05-11              -> one day
+# yom 05-11 05-12        -> every day from 05-11 to 05-12 in ONE file (links + full transcript of every YouTube video)
+# yom                    -> today
+# Upload the file to Claude. Transcripts are cached in ~/.yom/subs, so running it again only fetches what is missing.
+A="${1:-$(date +%d-%m)}"; B="${2:-$A}"
+exec python - "$A" "$B" <<'PY'
 import sys, os, re, json, glob, time, tempfile, urllib.request
-D = sys.argv[1]
-H = os.path.expanduser('~/.yom'); os.makedirs(H, exist_ok=True)
+A, B = sys.argv[1], sys.argv[2]
+H = os.path.expanduser('~/.yom'); C = os.path.join(H, 'subs'); os.makedirs(C, exist_ok=True)
 PLAN = os.path.join(H, 'plan.json')
 URL = 'https://raw.githubusercontent.com/ssas1qasd-boop/SOLI/main/tools/plan.json'
 if not os.path.exists(PLAN) or time.time() - os.path.getmtime(PLAN) > 86400:
     try: urllib.request.urlretrieve(URL, PLAN)
     except Exception as e:
         if not os.path.exists(PLAN): sys.exit('X can not download the plan: ' + str(e))
-plan = json.load(open(PLAN))
-if D not in plan: sys.exit('X day ' + D + ' is not in the plan (write it like 05-11)')
+plan = json.load(open(PLAN)); keys = list(plan)          # the plan is in calendar order (Oct 2026 -> Sep 2027)
+def pos(d):
+    if d in plan: return keys.index(d)
+    sys.exit('X day ' + d + ' is not in the plan (write it like 05-11)')
+i, j = pos(A), pos(B)
+if j < i: sys.exit('X the second date must be after the first')
+days = keys[i:j + 1]
 try:
     import yt_dlp
 except ImportError:
@@ -28,30 +35,51 @@ def vtt_text(path):
         if line and line != last: out.append(line); last = line
     return ' '.join(out)
 
-tmp = tempfile.mkdtemp()
-lines = ['DAY ' + D, '']
-for col, links in plan[D].items():
-    lines.append('=' * 60); lines.append('LECTURE: ' + col)
-    for u in links:
-        lines.append('LINK: ' + u)
-        if 'youtu' not in u: continue
-        print('…', col, u, flush=True)
-        opts = {'skip_download': True, 'writesubtitles': True, 'writeautomaticsub': True, 'subtitleslangs': ['en', 'en-orig', 'en-US', 'en-GB'],
-                'subtitlesformat': 'vtt', 'outtmpl': os.path.join(tmp, '%(id)s.%(ext)s'), 'quiet': True, 'no_warnings': True}
+def vid(u):
+    m = re.search(r'(?:v=|youtu\.be/|shorts/)([A-Za-z0-9_-]{11})', u); return m.group(1) if m else None
+
+def fetch(u):
+    """returns the cached block for one video (title, channel, duration, transcript); fetches it once"""
+    v = vid(u); cf = os.path.join(C, (v or 'x') + '.txt')
+    if v and os.path.exists(cf): return open(cf, encoding='utf-8').read(), True
+    tmp = tempfile.mkdtemp()
+    opts = {'skip_download': True, 'writesubtitles': True, 'writeautomaticsub': True, 'subtitleslangs': ['en', 'en-orig', 'en-US', 'en-GB'],
+            'subtitlesformat': 'vtt', 'outtmpl': os.path.join(tmp, '%(id)s.%(ext)s'), 'quiet': True, 'no_warnings': True}
+    for attempt in range(3):
         try:
             with yt_dlp.YoutubeDL(opts) as y: info = y.extract_info(u, download=True)
-            lines.append('TITLE: ' + str(info.get('title'))); lines.append('CHANNEL: ' + str(info.get('channel') or info.get('uploader')))
-            lines.append('DURATION: ' + str(info.get('duration_string') or info.get('duration')))
+            L = ['TITLE: ' + str(info.get('title')), 'CHANNEL: ' + str(info.get('channel') or info.get('uploader')),
+                 'DURATION: ' + str(info.get('duration_string') or info.get('duration'))]
             subs = sorted(glob.glob(os.path.join(tmp, info['id'] + '*.vtt')), key=lambda p: ('orig' in p, len(p)))
-            if subs: t = vtt_text(subs[0]); lines.append('TRANSCRIPT (' + os.path.basename(subs[0]) + ', ' + str(len(t.split())) + ' words):'); lines.append(t)
-            else: lines.append('TRANSCRIPT: none (the video has no English captions)')
-            print('  ok:', info.get('title'), flush=True)
+            if subs: t = vtt_text(subs[0]); L += ['TRANSCRIPT (' + str(len(t.split())) + ' words):', t]
+            else: L.append('TRANSCRIPT: none (no English captions)')
+            block = '\n'.join(L); open(cf, 'w', encoding='utf-8').write(block); return block, False
         except Exception as e:
-            lines.append('ERROR: ' + str(e)[:300]); print('  X', str(e)[:200], flush=True)
+            err = str(e)[:300]; time.sleep(3 * (attempt + 1))
+    return 'ERROR: ' + err, False
+
+seen = {}
+lines = [f'PLAN {A} -> {B}  ({len(days)} days)', '']
+total = sum(1 for d in days for c in plan[d].values() for u in c if 'youtu' in u); n = 0
+for d in days:
+    lines += ['#' * 70, 'DAY ' + d, '#' * 70]
+    for col, links in plan[d].items():
+        lines += ['=' * 50, 'LECTURE: ' + col]
+        for u in links:
+            lines.append('LINK: ' + u)
+            if 'youtu' not in u: continue
+            n += 1; v = vid(u)
+            if v in seen: lines.append(f'(same video as day {seen[v]}, transcript there)'); print(f'[{n}/{total}] {d} {col}: repeat', flush=True); continue
+            block, cached = fetch(u); seen[v] = d; lines.append(block)
+            print(f'[{n}/{total}] {d} {col}: ' + ('cached' if cached else ('X' if block.startswith('ERROR') else 'ok')) + ' ' + block.split('\n')[0][:60], flush=True)
+            if not cached: time.sleep(1)
     lines.append('')
 dl = os.path.expanduser('~/storage/downloads')
-dest = os.path.join(dl if os.path.isdir(dl) else os.path.expanduser('~'), 'yom_' + D + '.txt')
+name = 'yom_' + A + ('' if A == B else '_to_' + B) + '.txt'
+dest = os.path.join(dl if os.path.isdir(dl) else os.path.expanduser('~'), name)
 open(dest, 'w', encoding='utf-8').write('\n'.join(lines))
-print('\nOK ->', dest)
-print('ارفع الملف ده لـ Claude وقول: اعمل اليوم')
+bad = sum(1 for l in lines if l.startswith('ERROR'))
+print(f'\nOK -> {dest}  ({os.path.getsize(dest) // 1024} KB, {bad} errors)')
+if bad: print('فيه فيديوهات فشلت: شغّل نفس الأمر تاني، هيجيب الناقص بس.')
+print('ارفع الملف ده لـ Claude')
 PY
