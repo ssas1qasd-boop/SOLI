@@ -552,7 +552,10 @@ const robot = (() => {
       grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
       grip.addEventListener('keydown', e => { const h = box.getBoundingClientRect().height; if (e.key === 'ArrowUp'){ setH(h + 40, true); e.preventDefault(); } if (e.key === 'ArrowDown'){ setH(h - 40, true); e.preventDefault(); } });
       window.addEventListener('resize', () => { const h = box.getBoundingClientRect().height; if (h) setH(h); }); } }
-  const FREE_RULES = 'انت مساعد ذكي ودود بيتكلم بالعامية المصرية. جاوب على أي سؤال من معلوماتك العامة، بوضوح وبجمل قصيرة. لو مش متأكد من معلومة قول كده بصراحة، وماتألّفش مصادر. اكتب الكود بين علامات `.';
+  const DIAG_RULE = ' لو رسمة هتوضح الفكرة (خطوات، أو حاجة رايحة لحاجة، أو أجزاء متوصلة)، ارسمها في بلوك ```diagram وكل سطر فيه «اسم -> اسم : كلمتين»، والأسماء قصيرة (من 1 لـ 4 كلمات)، ومن 2 لـ 8 أسطر. مثال:\n```diagram\nnew -> malloc : تحجز\nmalloc -> Constructor : بعدها\n```\nالبنش هيحوّلها لرسمة. ماتقولش إنك مش بتعرف ترسم.';
+  const FREE_RULES = 'انت مساعد ذكي ودود بيتكلم بالعامية المصرية. جاوب على أي سؤال من معلوماتك العامة، بوضوح وبجمل قصيرة. لو مش متأكد من معلومة قول كده بصراحة، وماتألّفش مصادر. اكتب الكود بين علامات `.' +
+    ' لو في الرسالة «من البرنامج المفتوح»، ابدأ بأقرب حاجة في البرنامج ده للسؤال: اذكر السطر أو الخطوة (مثلاً «خطوة 12» أو «سطر 18») واستخدم أسماء المتغيرات والدوال اللي فيه، وبعدها كمّل من معلوماتك العامة. ماتكتبش كود جديد من برّه البرنامج إلا لو السؤال طالب كده صراحة.' + DIAG_RULE;
+  const freeCtx = q => { try { return '\n\nمن البرنامج المفتوح «' + P.title + '» (أقرب سطور وخطوات للسؤال، من التشغيل الحقيقي):\n' + AG.context(q, {short: true}); } catch (e) { return ''; } };
   function freeAsk(text, att){ const wait = bubble('bot', '<div class="aglearn">🌍 سؤال حر: الإجابة هتيجي من معلومات النموذج العامة، مش من التشغيل الحقيقي.</div><div class="agfb">' +
       (LOCAL.ok ? '<button type="button" class="aglocal">🧠 اسأل المخ المحلي</button>' : '') + (SAMPLE ? '<button type="button" class="agmore">✨ اسأل Claude</button>' : '') + (!SAMPLE && !ONCLAUDE ? '<button type="button" class="agext">✨ اسأل Claude</button>' : '') + '</div>');
     wait.dataset.free = '1'; wait._att = att; wait._free = true;
@@ -609,9 +612,25 @@ const robot = (() => {
   const RULES = 'انت مساعد شرح جوه «بنش» تعليمي بيعرض برنامج C++/OpenGL أو Python اتشغّل فعلاً خطوة بخطوة. اكتب بالعامية المصرية لطالب مبتدئ، بجمل قصيرة. ' +
     'اعتمد بس على «حقايق البنش» اللي تحت (دي من التشغيل الحقيقي)؛ ماتألّفش أرقام ولا قيم ولا أسطر مش موجودة. لو المعلومة مش موجودة في الحقايق، قول كده بصراحة. ' +
     'لما تذكر خطوة اكتبها بالشكل «خطوة 12» عشان تتحول لزرار. قبل أي رقم معناه عدد اكتب كلمة «عدد» (مثلاً: عدد 3 Buffers)، واستخدم «رقم» للأرقام اللي هي أسماء (VAO رقم 3). ' +
-    'خلّي الرد من 4 لـ 10 سطور، ومن غير عناوين كبيرة. الكود اكتبه بين علامتي `.';
-  function mdToHtml(t){ const pre = []; t = String(t).replace(/```[\w+-]*\n?([\s\S]*?)(```|$)/g, (m, c) => { pre.push(c.replace(/\n+$/, '')); return '\u0000' + (pre.length - 1) + '\u0000'; });
-    return mdInline(t).replace(/\u0000(\d+)\u0000(<br>)?/g, (m, n) => `<pre class="agpre" dir="ltr"><code>${esc(pre[+n])}</code></pre>`); }
+    'خلّي الرد من 4 لـ 10 سطور، ومن غير عناوين كبيرة. الكود اكتبه بين علامتي `.' + DIAG_RULE;
+  function diagramSvg(src){ const E = [], N = []; const id = x => { x = x.trim().slice(0, 28); if (!x) return -1; let k = N.indexOf(x); if (k < 0){ N.push(x); k = N.length - 1; } return k; };
+    for (const raw of String(src).split('\n')){ const L = raw.replace(/^[-*•\s]+/, ''); const m = /^(.+?)\s*(?:->|→|=>)\s*(.+?)(?:\s*[:：]\s*(.*))?$/.exec(L);
+      if (m){ const a = id(m[1]), b = id(m[2]); if (a >= 0 && b >= 0) E.push([a, b, (m[3] || '').trim().slice(0, 26)]); } else if (L.trim()) id(L); }
+    if (!N.length || N.length > 14) return '';
+    const lvl = N.map(() => 0); for (let it = 0; it < N.length; it++) for (const [a, b] of E) if (a !== b && lvl[b] < lvl[a] + 1 && lvl[a] + 1 < N.length) lvl[b] = lvl[a] + 1;
+    const rows = []; N.forEach((n, k) => { (rows[lvl[k]] = rows[lvl[k]] || []).push(k); });
+    const W = 330, BH = 30, GY = 52, pos = []; let y = 10;
+    rows.filter(Boolean).forEach(r => { const bw = Math.min(150, (W - 10 * (r.length + 1)) / r.length); r.forEach((k, j) => { pos[k] = {x: 10 + j * (bw + 10) + (W - 10 - r.length * (bw + 10)) / 2, y, w: bw}; }); y += BH + GY; });
+    const H = y - GY + 10; const t = s0 => esc(s0);
+    let g = `<defs><marker id="agar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>`;
+    for (const [a, b, lab] of E){ const A = pos[a], B = pos[b]; const x1 = A.x + A.w / 2, y1 = A.y + BH, x2 = B.x + B.w / 2, y2 = B.y;
+      const up = y2 <= y1; const d = up ? `M${x1} ${A.y + BH / 2} C ${x1 + 60} ${A.y - 20}, ${x2 + 60} ${y2 + BH + 20}, ${x2 + B.w / 2} ${B.y + BH / 2}` : `M${x1} ${y1} L${x2} ${y2}`;
+      g += `<path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" marker-end="url(#agar)" opacity=".75"/>`;
+      if (lab) g += `<text x="${(x1 + x2) / 2 + 4}" y="${up ? A.y - 4 : (y1 + y2) / 2 + 4}" font-size="10.5" fill="#f59e0b" text-anchor="start">${t(lab)}</text>`; }
+    N.forEach((n, k) => { const p = pos[k]; g += `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${BH}" rx="7" fill="rgba(37,99,235,.18)" stroke="#60a5fa"/><text x="${p.x + p.w / 2}" y="${p.y + BH / 2 + 4}" font-size="11.5" font-weight="700" text-anchor="middle" fill="currentColor">${t(n)}</text>`; });
+    return `<div class="agdiag"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:460px;display:block;margin:6px auto;color:inherit" direction="ltr">${g}</svg></div>`; }
+  function mdToHtml(t){ const pre = []; t = String(t).replace(/```([\w+-]*)\n?([\s\S]*?)(```|$)/g, (m, lang, c) => { pre.push({lang: (lang || '').toLowerCase(), c: c.replace(/\n+$/, ''), done: m.endsWith('```') && m.length > 6}); return '\u0000' + (pre.length - 1) + '\u0000'; });
+    return mdInline(t).replace(/\u0000(\d+)\u0000(<br>)?/g, (m, n) => { const p = pre[+n]; if (p.lang === 'diagram'){ const svg = p.done ? diagramSvg(p.c) : ''; return svg || `<pre class="agpre" dir="ltr"><code>${esc(p.c)}</code></pre>`; } return `<pre class="agpre" dir="ltr"><code>${esc(p.c)}</code></pre>`; }); }
   function mdInline(t){ return esc(t).replace(/`([^`]+)`/g, '<code dir="ltr">$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
       .replace(/^\s*[-•*]\s+(.*)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m.replace(/\n/g, '') + '</ul>')
       .replace(/خطوة\s+(\d+)((?:\s*(?:و|،|,)\s*\d+)*)/g, (m, n, more) => { const ns = [n, ...(more.match(/\d+/g) || [])].map(Number); return ns.every(x => x >= 1 && x <= ST.length) ? ns.map(x => `<button type="button" class="agchip" data-k="${x - 1}">خطوة ${x} · سطر ${ST[x - 1].ln}</button>`).join(' ') : m; }).replace(/\n/g, '<br>'); }
@@ -622,7 +641,7 @@ const robot = (() => {
     const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 1500);
     const att = after._att || [], imgs = att.filter(a => a.kind === 'img').map(a => a.blob);
     const free = !!(after._free || after.dataset.free);
-    const prompt = free ? FREE_RULES + `\n\n(للمعلومية: المستخدم بيذاكر جرافيكس وOpenGL، وفاتح في البنش برنامج «${P.title}».)` + attText(att, 60000) + (imgs.length ? `\n\nالمستخدم رفع عدد ${imgs.length} صورة (مرفقة).` : '') + '\n\nالسؤال: ' + question : RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + attText(att, 60000) + (imgs.length ? `\n\nالمستخدم رفع عدد ${imgs.length} صورة مع السؤال (مرفقة). اقراها واربطها بالبنش لو ليها علاقة.` : '') + '\n\nسؤال المستخدم: ' + question;
+    const prompt = free ? FREE_RULES + `\n\n(للمعلومية: المستخدم بيذاكر جرافيكس وOpenGL.)` + freeCtx(question) + attText(att, 60000) + (imgs.length ? `\n\nالمستخدم رفع عدد ${imgs.length} صورة (مرفقة).` : '') + '\n\nالسؤال: ' + question : RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + attText(att, 60000) + (imgs.length ? `\n\nالمستخدم رفع عدد ${imgs.length} صورة مع السؤال (مرفقة). اقراها واربطها بالبنش لو ليها علاقة.` : '') + '\n\nسؤال المستخدم: ' + question;
     SAMPLE(prompt, {signal: ctl.signal, ...(imgs.length ? {images: imgs} : {}), onText: ({text}) => { ct.innerHTML = mdToHtml(text); }})
       .then(({text, truncated}) => { if (!truncated) trAdd(question, text, 'claude', !!b.dataset.free); ct.innerHTML = mdToHtml(text) + (truncated ? '<br><small>(الرد اتقطع، اسأل عن جزء أصغر)</small>' : ''); if (!truncated && b.dataset.free){ AG.saveFreeLesson(question, text); ct.insertAdjacentHTML('beforeend', '<div class="aglearn">📚 المخ المحلي هيقرا الإجابة دي لو سألته سؤال شبهه.</div>'); }
         if (!truncated && !b.dataset.free){ const n = AG.learnFromClaude(question, text); ct.insertAdjacentHTML('beforeend', `<div class="aglearn">🧠 المساعد حفظ الشرح ده${n ? ` واتعلّم يربط كلمات سؤالك بـ عدد ${n} خطوة` : ''}: لو سألت سؤال شبهه هيجاوبك بيه من غير نت.</div>`); } fixBidi(ct); wire(ct, question); })
@@ -646,7 +665,7 @@ const robot = (() => {
     'جاوب على طول بالعامية المصرية لطالب مبتدئ، في 3 لـ 6 جمل قصيرة، من غير مقدمات. ' +
     'اعتمد على «حقايق البنش» اللي في الرسالة، وخد الأرقام منها هي. لو المعلومة مش فيها قول «مش موجود في البنش». ' +
     'لما تذكر خطوة اكتب «خطوة N»، وخد رقمها من الحقايق بس، ولو مش متأكد ماتكتبش رقم. اكتب الكود بين علامتي `.' +
-    ' جاوب السؤال نفسه على طول: ماتعلّقش على «إجابة البحث المحلي» (دي ملاحظات ليك بس)، وماتتكلمش عن الخطوة اللي المستخدم واقف عليها إلا لو السؤال عنها.';
+    ' جاوب السؤال نفسه على طول: ماتعلّقش على «إجابة البحث المحلي» (دي ملاحظات ليك بس)، وماتتكلمش عن الخطوة اللي المستخدم واقف عليها إلا لو السؤال عنها.' + DIAG_RULE;
   const METHOD_RULE = ' لو الحقايق فيها «الطريقة 1» و«الطريقة 2»، اكتب كل طريقة برقمها زي ما هو مكتوب في الحقايق بالظبط (مثلاً: الطريقة 2 = VAO لكل شكل، الطريقة 1 = VAO واحد مشترك)، وماتقولش «الأولى» و«التانية» حسب ترتيب كلامك.';
   const localRules = t => LOCAL_RULES + (/الطريقة [12]/.test(t) ? METHOD_RULE : '');
   // 👍 / 👎 under a local-brain answer; rebuilt after the chat is restored from storage (the question and answer live on the bubble)
@@ -717,7 +736,7 @@ const robot = (() => {
     if (imgAtt.length){ content = [{type: 'text', text: userText}]; for (const a of imgAtt) content.push({type: 'image_url', image_url: {url: await toDataURL(a.blob)}}); }
     if (window.__agDayAll && !(after._free || after.dataset.free)) b.querySelector('.agtag').insertAdjacentText('beforeend', ' · 📅 اليوم كله');
     const free = !!(after._free || after.dataset.free); if (free){ b.dataset.free = '1'; b.querySelector('.agtag').insertAdjacentText('beforeend', ' · 🌍 حر');
-      const ft = question + attText(att, 2500) + (imgAtt.length ? `\n\n(المستخدم رفع عدد ${imgAtt.length} صورة، وهي مرفقة.)` : '');
+      const ft = freeCtx(question) + '\n\nالسؤال: ' + question + attText(att, 2500) + (imgAtt.length ? `\n\n(المستخدم رفع عدد ${imgAtt.length} صورة، وهي مرفقة.)` : '');
       if (Array.isArray(content)) content[0].text = ft; else content = ft; }
     const les = AG.lessons(question, free);
     if (les.length){ const lt = '\n\n📚 دروس اتعلّمتها قبل كده من Claude في أسئلة شبه دي (الإجابات دي مظبوطة، استخدمها لو مناسبة للسؤال):\n' + les.map(l => 'س: ' + l.q + '\nج: ' + l.a.slice(0, 700)).join('\n\n');
@@ -760,7 +779,7 @@ const robot = (() => {
     btn.disabled = true; const viaBridge = await probeBridge(); btn.disabled = false; if (viaBridge && SAMPLE){ const nb = btn; return explain(question, after, nb); }
     const tmp = document.createElement('div'); tmp.innerHTML = after.innerHTML.replace(/<div class="agfb">[\s\S]*$/, ''); const helper = (tmp.textContent || '').replace(/\s+/g, ' ').slice(0, 800);
     const att = after._att || [], nImg = att.filter(a => a.kind === 'img').length;
-    const prompt = (after._free || after.dataset.free) ? FREE_RULES + attText(att, 6000) + '\n\nالسؤال: ' + question : RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + attText(att, 6000) + (nImg ? `\n\n(هرفع عدد ${nImg} صورة مع الرسالة دي.)` : '') + '\n\nسؤال المستخدم: ' + question;
+    const prompt = (after._free || after.dataset.free) ? FREE_RULES + freeCtx(question) + attText(att, 6000) + '\n\nالسؤال: ' + question : RULES + '\n\nحقايق البنش:\n' + AG.context(question) + '\n\nإجابة المساعد المحلي (ممكن تكون ناقصة أو غلط):\n' + helper + attText(att, 6000) + (nImg ? `\n\n(هرفع عدد ${nImg} صورة مع الرسالة دي.)` : '') + '\n\nسؤال المستخدم: ' + question;
     let copied = false; try { await navigator.clipboard.writeText(prompt); copied = true; } catch (e) {}
     const a = document.createElement('a'); a.href = 'https://claude.ai/new?q=' + encodeURIComponent(prompt); a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'افتح Claude ↗';
     const n = document.createElement('div'); n.className = 'aglearn'; n.append(copied ? '✔ نسخت السؤال ومعاه حقايق البنش. ' : '', a, copied ? ' ولو لقيت الخانة فاضية، الصق.' : '', nImg ? ' 📎 الصور مابتتنقلش لوحدها: ارفعها بنفسك في شات Claude.' : '');
