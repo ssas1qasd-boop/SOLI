@@ -1,0 +1,12 @@
+angle 0
+  T * R (spin in place): center (7, 0), nose (8, 0)
+  R * T (orbit around 0): center (7, 0), nose (8, 0)
+angle 90
+  T * R (spin in place): center (7, 0), nose (7, 1)
+  R * T (orbit around 0): center (0, 7), nose (0, 8)
+angle 180
+  T * R (spin in place): center (7, 0), nose (6, 0)
+  R * T (orbit around 0): center (-7, 0), nose (-8, 0)
+angle 270
+  T * R (spin in place): center (7, 0), nose (7, -1)
+  R * T (orbit around 0): center (0, -7), nose (0, -8)

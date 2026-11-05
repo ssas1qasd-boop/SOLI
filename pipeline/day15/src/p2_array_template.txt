@@ -1,0 +1,4 @@
+Array<int, 5>: size 5, sizeof 20 bytes, numbers[4] = 40
+Array<float, 3>: size 3, sizeof 12 bytes
+Array<std::string, 2>: sizeof 64 bytes, names[1] = Cem
+std::array<int, 5>: size 5, sizeof 20 bytes

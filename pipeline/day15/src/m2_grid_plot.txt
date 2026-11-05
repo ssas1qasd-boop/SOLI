@@ -1,0 +1,3 @@
+rotation then shear : i-hat -> [1, 1]  j-hat -> [-1, 0]
+shear then rotation : i-hat -> [0, 1]  j-hat -> [-1, 1]
+saved composition.png

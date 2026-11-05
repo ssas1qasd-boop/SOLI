@@ -1,0 +1,9 @@
+5   <- made by the compiler as: void Print(T) [with T = int]
+5.5   <- made by the compiler as: void Print(T) [with T = float]
+Hello   <- made by the compiler as: void Print(T) [with T = const char*]
+Hello   <- made by the compiler as: void Print(T) [with T = std::__cxx11::basic_string<char>]
+7   <- made by the compiler as: void Print(T) [with T = int]
+Biggest(3, 9) = 9
+Biggest(2.5, 1.5) = 2.5
+Biggest<std::string>("apple", "banana") = banana
+NeverCalled has a mistake inside, but nobody called it, so no error
