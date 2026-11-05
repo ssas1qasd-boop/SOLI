@@ -1,0 +1,82 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# yomhtml 05-11 05-12   -> your usual Arabic HTML summary for every YouTube video of every day in the range,
+#                          written by Claude Code (your subscription), in Downloads/yom_html/<day>/, + one zip to upload.
+# It runs `yom` first for the transcripts. Already written summaries are skipped, so you can stop it and run it again.
+A="${1:-$(date +%d-%m)}"; B="${2:-$A}"
+command -v yom >/dev/null || { echo "X yom is missing: install it first"; exit 1; }
+yom "$A" "$B" || exit 1
+exec python - "$A" "$B" <<'PY'
+import sys, os, re, json, time, shutil, subprocess, zipfile, html
+A, B = sys.argv[1], sys.argv[2]
+H = os.path.expanduser('~/.yom'); C = os.path.join(H, 'subs')
+plan = json.load(open(os.path.join(H, 'plan.json'))); keys = list(plan); days = keys[keys.index(A):keys.index(B) + 1]
+dl = os.path.expanduser('~/storage/downloads'); ROOT = os.path.join(dl if os.path.isdir(dl) else os.path.expanduser('~'), 'yom_html')
+WORK = os.path.join(H, 'claude_empty'); os.makedirs(WORK, exist_ok=True)
+
+def claude_cmd():
+    if shutil.which('claude'): return ['claude']
+    find = ('export PATH="$HOME/.local/bin:$HOME/.claude/local:$HOME/.npm-global/bin:/usr/local/bin:$PATH"; '
+            'C=$(command -v claude || ls $HOME/.local/bin/claude $HOME/.claude/local/claude 2>/dev/null | head -1); '
+            'if [ -z "$C" ]; then echo "Claude Code is not installed in Ubuntu" >&2; exit 127; fi; cd /root && exec "$C" "$@"')
+    return ['proot-distro', 'login', 'ubuntu', '--', 'bash', '-lc', find, 'yomhtml']
+BASE = claude_cmd()
+
+CSS = """* { box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #1a1a2e; color: #eee; line-height: 1.8; padding: 20px; max-width: 800px; margin: 0 auto; }
+h1, h2, h3 { color: #00d9ff; } a { color: #ff6b6b; }
+pre, code { direction: ltr; text-align: left; background: #0d0d1a; border-radius: 8px; font-family: 'Fira Code', 'Consolas', monospace; }
+pre { padding: 15px; overflow-x: auto; border: 1px solid #333; } code { padding: 2px 6px; color: #7bed9f; } pre code { padding: 0; }
+.meta { color: #888; margin-bottom: 20px; } ul, ol { padding-right: 20px; }
+.highlight { color: #ffd700; font-weight: bold; } .warning { color: #ff6b6b; } .success { color: #7bed9f; }
+.note { background: #2a2a4e; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #00d9ff; }"""
+
+RULES = """اكتب شرح عربي بالعامية المصرية لفيديو يوتيوب تعليمي، من النص (Transcript) اللي تحت بس.
+- اكتب جسم صفحة HTML بس (من غير <html> ولا <head> ولا <style>)، وابدأ بـ <h1>.
+- بعد العنوان: <p class="meta"> فيه <strong>القناة:</strong> و <strong>المدة:</strong> و <strong>الرابط:</strong> (لينك).
+- بعد كده أقسام <h2> و <h3>: الفكرة، والأمثلة اللي في الفيديو بالترتيب، والكود اللي اتكتب في الفيديو في <pre><code> (زي ما اتقال بالظبط، ولو مش واضح قول كده).
+- استخدم <div class="note"> للملاحظات المهمة، و <span class="highlight"> للمصطلحات، وفي الآخر <h2>الخلاصة</h2>.
+- المصطلحات التقنية بالإنجليزي، وعرّف كل مصطلح أول مرة.
+- ماتألّفش حاجة مش في النص. لو حاجة مش واضحة من النص قول إنها مش واضحة.
+- آخر سطر: <p style="color: #666; font-size: 0.9em;">تم إنشاء هذا الشرح من فيديو CHANNEL على YouTube</p>
+ردّك يكون HTML بس، من غير أي كلام قبله أو بعده."""
+
+def safe(t): return re.sub(r'[^\w؀-ۿ -]+', '', t).strip().replace(' ', '_')[:60] or 'video'
+todo = []
+for d in days:
+    for col, links in plan[d].items():
+        for u in links:
+            m = re.search(r'(?:v=|youtu\.be/|shorts/)([A-Za-z0-9_-]{11})', u)
+            if m: todo.append((d, col, u, m.group(1)))
+done = 0
+for n, (d, col, u, v) in enumerate(todo, 1):
+    cf = os.path.join(C, v + '.txt')
+    if not os.path.exists(cf): print(f'[{n}/{len(todo)}] {d} {col}: no transcript (run yom again)', flush=True); continue
+    block = open(cf, encoding='utf-8').read()
+    title = (re.search(r'^TITLE: (.*)$', block, re.M) or [None, v])[1]; chan = (re.search(r'^CHANNEL: (.*)$', block, re.M) or [None, ''])[1]
+    out_dir = os.path.join(ROOT, d); os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, f'{col}_{safe(title)}.html')
+    if os.path.exists(path): print(f'[{n}/{len(todo)}] {d} {col}: already done', flush=True); continue
+    if 'TRANSCRIPT: none' in block: print(f'[{n}/{len(todo)}] {d} {col}: video has no captions, skipped', flush=True); continue
+    prompt = RULES.replace('CHANNEL', chan) + f'\n\nالرابط: {u}\n\n' + block
+    t0 = time.time()
+    try:
+        r = subprocess.run(BASE + ['-p', '--output-format', 'text', '--max-turns', '1'], input=prompt, capture_output=True, text=True, timeout=600, cwd=WORK)
+        body = r.stdout.strip()
+    except subprocess.TimeoutExpired:
+        print(f'[{n}/{len(todo)}] {d} {col}: X Claude took more than 10 minutes', flush=True); continue
+    m = re.search(r'<h1[\s\S]*', body)
+    if not m: print(f'[{n}/{len(todo)}] {d} {col}: X ' + (r.stderr.strip()[-200:] or 'no HTML in the answer'), flush=True); continue
+    body = re.sub(r'</body>[\s\S]*$', '', m.group(0)).strip().rstrip('`').strip()
+    page = (f'<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+            f'  <title>{html.escape(title)}</title>\n  <style>\n{CSS}\n  </style>\n</head>\n<body>\n{body}\n</body>\n</html>\n')
+    open(path, 'w', encoding='utf-8').write(page); done += 1
+    print(f'[{n}/{len(todo)}] {d} {col}: ok ({int(time.time() - t0)} s) {title[:50]}', flush=True)
+z = os.path.join(os.path.dirname(ROOT), 'yom_html_' + A + ('' if A == B else '_to_' + B) + '.zip')
+with zipfile.ZipFile(z, 'w', zipfile.ZIP_DEFLATED) as zf:
+    for d in days:
+        p = os.path.join(ROOT, d)
+        if os.path.isdir(p):
+            for f in sorted(os.listdir(p)): zf.write(os.path.join(p, f), d + '/' + f)
+print(f'\nOK: {done} new summaries. ZIP -> {z}')
+print('ارفع الـ zip (أو ملفات يوم واحد من الفولدر) لـ Claude')
+PY
