@@ -1,0 +1,220 @@
+@d13_p1
+[Setup] h none
+inc ctl #include × 2 | iostream · string | المكتبات | 1-2
+main ctl main() | L33 · return 0 | البداية | 33-35, 59-61
+row
+[Types + helpers] v zgpu
+en vao class Entity | Created / Destroyed + name | بيطبع | 4-19
+ca prg CreateArray() | new int[50] → return | Heap | 21-26
+fa prg FillArray(int*) | array[0] = 9 | المصفوفة من برّه | 28-31
+[Stack books] v zram
+a ram Entity a (main) | dies at the end of main | الكتاب الأول | 36
+sc ram { } · if · for | b · c · d0 · d1 die at their } | Scopes | 37-48
+hp ram { new Entity("heap") } | the pointer dies, the entity does not | Heap | 49-52
+ar ram arrays | CreateArray → 7 · delete[] ; FillArray → 9 | المصفوفات | 53-58
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> en a
+> en sc
+> en hp
+> ca ar
+> fa ar
+> sc term
+> hp term
+> ar term
+
+@d13_p2
+[Setup] h none
+inc ctl #include × 3 | iostream · chrono · memory | المكتبات | 1-3
+main ctl main() | L56 · return 0 | البداية | 56-57, 76-77
+row
+[Classes] v zgpu
+en vao class Entity | Created / Destroyed | بيطبع | 5-17
+sp prg class ScopedPtr | Entity* m_Ptr ; ~ScopedPtr() → delete m_Ptr | RAII | 19-34
+tm prg class Timer | start in constructor ; print in destructor | Timer | 36-54
+[Scopes] v zram
+s1 ram { ScopedPtr e = new Entity(); } | deleted at } | ScopedPtr | 58-62
+s2 ram { std::unique_ptr<Entity> u } | same thing from std | unique_ptr | 63-67
+s3 ram { Timer t("loop"); ... } | sum = 4950 | Timer | 68-74
+sz ram sizeof | Entity* = 8 · ScopedPtr = 8 | الحجم | 75
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> sp s1
+> en s1
+> en s2
+> tm s3
+> s1 term
+> s2 term
+> s3 term
+> sz term
+
+@d13_m1
+[Setup] h none
+np ctl import numpy as np | np.radians · np.cos · np.allclose | NumPy | 1
+row
+[Matrices] v zgpu
+rf prg def rotation(degrees) | [[cos, -sin], [sin, cos]] | الدوران | 4-6
+[Results] v zram
+r1 ram rotate (1, 0) | by 90 → (0, 1) ; by 30 → (0.866, 0.5) | دوران | 9-15
+r2 ram S · R · p | R @ (S @ p) = (-1, 2) ; S @ (R @ p) = (-2, 1) | الترتيب | 17-25
+r3 ram inverse · length | rotation(-30) = transpose ; length 1.414 | العكس | 27-30
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np rf
+> rf r1
+> rf r2
+> rf r3
+> r1 term
+> r2 term
+> r3 term
+
+@d13_m2
+[Setup] h none
+np ctl import numpy as np | np.outer · np.allclose | NumPy | 1
+row
+[Matrices] v zgpu
+rx prg def rotate_x(degrees) | x stays · (y, z) turns | 3D | 4-6
+[Results] v zram
+r1 ram rotate_x(90) @ (2, 1, 0) | (2, 0, 1) | الدوران | 9-11
+pj ram proj = (x · u) / (u · u) u | (2.8, 1.4) ; rest · u = 0 | الإسقاط | 13-18
+pm ram P = u u^T / (u · u) | P @ x · P @ P = P ; (-1, 2) → 0 | مصفوفة | 20-25
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np rx
+> rx r1
+> pj pm
+> r1 term
+> pj term
+> pm term
+
+@d13_c1
+[Setup] h none
+inc ctl #include × 2 | iostream · iomanip | المكتبات | 1-2
+main ctl main() | L42 · return 0 | البداية | 42-43, 55-56
+row
+[Solids + operations] v zgpu
+ty vao struct Vec3 | x, y, z | النقطة | 4-7
+pr prg InSphere · InBox | x² + y² + z² ≤ 1 ; 0 ≤ x ≤ 2 · y, z in ±0.5 | الأجسام | 9-17
+op prg Union · Intersect · Difference | or · and · and not | العمليات | 19-32
+rw prg Row(name, inside) | 9 points on x → # or . | Function Pointer | 34-40
+[Rows] v zram
+hd ram header | x = -1.5 … 2.5 | العناوين | 44-47
+rs ram 5 × Row | A · B · union · inter · minus | الجدول | 48-52
+q ram q = (0.5, 0.8, 0) | A 1 · B 0 · A minus B 1 | نقطة | 53-54
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> pr op
+> op rs
+> rw rs
+> pr q
+> hd term
+> rs term
+> q term
+
+@d13_c2
+[Setup] h none
+inc ctl #include × 3 | iostream · vector · algorithm | المكتبات | 1-3
+main ctl main() | L44 · return 0 | البداية | 44-45, 55-56
+row
+[Intervals] v zgpu
+ty vao struct Interval | a, b | حتة | 5-8
+it prg Intersect(A, B) | max(a) .. min(b) if a ≤ b | التقاطع | 10-21
+rg prg Regularize(A) | keep b > a only | Regularized | 23-30
+pr prg Print(name, A) | pieces + length | الطباعة | 32-42
+[Cases] v zram
+ab ram A · B · C | [0, 2] · [1, 3] · [2, 4] | الحتت | 46-48
+c1 ram A ∩ B · A ∩ C · regularized | [1, 2] ; [2, 2] → 0 pieces | لمس | 49-51
+c2 ram plate minus hole | plate ∩ not-hole → 2 pieces, length 8 | الطرح | 52-54
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ab c1
+> it c1
+> rg c1
+> rg c2
+> pr term
+> c1 term
+> c2 term
+
+@d13_t1
+[Setup (once)] h none
+main ctl main() | L52 | البداية | 52-53
+glfw ctl GLFW | glfwInit · window 960 × 480 | الشباك والـ Context | 54-67
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 69
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 147-150, 163-165
+row
+[CPU · RAM] v zram
+vtx ram GLfloat vertices | 4 corners × (x y + u v) | الأركان | 72-82
+src ram Shader text (2 strings) | texture(tex0, texCoord) | الـ Shaders | 121-140
+[GPU · Texture + VAO] v zgpu
+tex buf Texture tex[2] (letter.png) | flip 0 · flip 1 ; stbi_image_free · glGetTexImage | الـ Texture | 97-119
+vao vao VAO + vbo + ebo | slot 0 ← xy · slot 1 ← uv | الوصف | 83-95
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | tex0 = unit 0 | glUniform1i | 142-144
+win out Window "GPU copy" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 2 viewports | tex[0] left · tex[1] right | الرسم | 152-161
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · iostream · string | المكتبات | 1-5
+cs prg CompileShader() | create → source → compile | Shader واحد | 8-33
+cr prg CreateShader() | attach × 2 → link | الـ Program | 35-50
+stb ctl stb.cpp | STB_IMAGE_IMPLEMENTATION | stb_image | f1:1-2
+cl ctl Cleanup | glDeleteTextures · glDeleteProgram ; glfwTerminate | التنضيف | 167-170
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx vao
+> cs cr
+> tex prog unit 0
+> src prog
+> vao prog
+> prog win
+~ loop dr
+> tex term
+
+@d13_t2
+[Setup (once)] h none
+main ctl main() | L51 | البداية | 51-52
+glfw ctl GLFW | glfwInit · window 960 × 480 | الشباك والـ Context | 53-66
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 68
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 163-166, 172-174
+row
+[CPU · RAM] v zram
+vtx ram GLfloat vertices | 5 quads × 4 corners ; u, v from col / 4, row / 4 | الأركان | 86-113
+pix ram std::vector pixels (64 × 64) | cell color + white mark | الـ Atlas | 71-84
+src ram Shader text (2 strings) | texture(tex0, texCoord) | الـ Shaders | 137-156
+[GPU · Texture + VAO] v zgpu
+tex buf Texture 64 × 64 atlas | 4 × 4 cells · NEAREST | الـ Texture | 129-135
+vao vao VAO + vbo + ebo | slot 0 ← xy · slot 1 ← uv | الوصف | 115-127
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | tex0 = unit 0 | glUniform1i | 158-160
+win out Window "Atlas" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 1 draw call | glDrawElements(30 indices) | الرسم | 168-170
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · iostream · string | المكتبات | 1-5
+cs prg CompileShader() | create → source → compile | Shader واحد | 7-32
+cr prg CreateShader() | attach × 2 → link | الـ Program | 34-49
+cl ctl Cleanup | glDeleteTextures · glDeleteProgram ; glfwTerminate | التنضيف | 176-179
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx vao
+> cs cr
+> tex prog unit 0
+> src prog
+> vao prog
+> prog win
+~ loop dr
+> tex term
+> pix tex
+

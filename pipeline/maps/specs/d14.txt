@@ -1,0 +1,208 @@
+@d14_p1
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L8 · return 0 | البداية | 8-9, 30-31
+row
+[Type] v zgpu
+v2 vao struct Vector2 | float x, y | 8 بايت | 3-6
+[Copies] v zram
+i ram int b = a | a = 2 · b = 3 | قيمة | 10-13
+s ram Vector2 vb = va | 8 bytes copied · 2 addresses | struct | 15-18
+p ram Vector2* pb = pa | same address · both 5 | Pointer | 20-24
+r ram Vector2& ra = va | va.y = 9 ; sizeof 8 · 8 | Reference | 26-29
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> v2 s
+> v2 p
+> i term
+> s term
+> p term
+> r term
+
+@d14_p2
+[Setup] h none
+inc ctl #include × 2 | iostream · cstring | المكتبات | 1-2
+main ctl main() | L61 · return 0 | البداية | 61-62, 73-74
+row
+[class String] v zgpu
+st vao m_Buffer · m_Size | char* on the heap · length | البيانات | 4-10
+ct prg String(const char*) | strlen · new char[n + 1] ; memcpy · 0 at the end | الإنشاء | 11-17
+cc prg String(const String&) | Copied! · new buffer · memcpy | Deep Copy | 19-25
+dt prg ~String() · operator[] · Data | delete[] m_Buffer ; char& · address | الباقي | 27-43
+os prg operator<< | stream << m_Buffer | الطباعة | 45-49
+[main] v zram
+s1 ram string · second | "Cherno" ; copy → second[2] = 'a' | النسخ | 63-67
+pv ram PrintByValue × 2 | Copied! each time | بالقيمة | 51-54, 69-70
+pr ram PrintByReference × 2 | no copy | const & | 56-59, 71-72
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ct s1
+> cc s1
+> cc pv
+> os pv
+> os pr
+> s1 term
+> pv term
+> pr term
+
+@d14_m1
+[Setup] h none
+np ctl import numpy · matplotlib | np.array · plt | المكتبات | 1-4
+row
+[Shapes] v zram
+sq ram square · A | 4 corners ; A = [[2, 1], [0, 1]] | المربع | 6-10
+ar prg def area(poly) | Shoelace formula | المساحة | 13-18
+b ram B → flat | det(B) = 0 → a line | B | 20-23
+pl ram plot → image_area.png | gray square + orange image | الرسمة | 25-37
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np sq
+> sq ar
+> b ar
+> sq pl
+> b pl
+> ar term
+> pl term
+
+@d14_m2
+[Setup] h none
+np ctl import numpy as np | np.linalg.inv · solve · det | NumPy | 1
+row
+[Inverse] v zram
+iv ram A · det · inverse | ad - bc = 2 ; [[0.5, -0.5], [0, 1]] | العكس | 3-10
+bk ram A @ (1, 2) → back | (4, 2) → (1, 2) | الرجوع | 12-14
+sv ram solve A x = (5, 3) | x = (1, 3) | الحل | 16-19
+sg ram B (det 0) | Singular matrix ; (2, 0) and (0, 1) → (2, 4) | مالهاش عكس | 21-27
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np iv
+> iv bk
+> iv sv
+> iv term
+> bk term
+> sv term
+> sg term
+
+@d14_c1
+[Setup] h none
+imp ctl import os · subprocess · tempfile | ENV: fixed name + date | المكتبات | 1-7
+row
+[Helpers] v zgpu
+gt prg def git(*args) | subprocess.run(["git", ...]) | الأوامر | 10-12
+sv prg def save(text) | write site.css | الملف | 15-17
+[Repository] v zram
+in ram git init (temp folder) | empty repository | البداية | 20-22
+v1 ram v1: blue | ?? → add → A → commit | أول Commit | 24-28
+vs ram v2 · v3 · v4 | M · diff ; commit -a | 3 تعديلات | 30-35
+lg ram log · checkout first | 4 commits ; back to blue | الرجوع | 37-42
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ imp in
+> gt in
+> sv v1
+> gt v1
+> v1 vs
+> vs lg
+> in term
+> v1 term
+> vs term
+> lg term
+
+@d14_c2
+[Setup] h none
+imp ctl import hashlib · os · subprocess · tempfile | sha1 · git | المكتبات | 1-4
+row
+[Helpers] v zgpu
+gt prg def git(*args) | subprocess.run | الأوامر | 7-9
+[Objects] v zram
+hs ram header + content → sha1 | "blob 22\0" + 22 bytes ; 7614dc7… | بإيدنا | 12-16
+ho ram git hash-object a.css | same hash | git | 18-23
+ob ram 3 files · ls-files · objects | a.css = copy_v2.css ; 2 objects | مرة واحدة | 25-36
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ imp hs
+> hs ho
+> gt ho
+> ho ob
+> hs term
+> ho term
+> ob term
+
+@d14_t1
+[Setup (once)] h none
+main ctl main() | L85 | البداية | 85-86
+glfw ctl GLFW | glfwInit · window 960 × 480 | الشباك والـ Context | 87-100
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 102
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 162-165, 178-180
+row
+[CPU · RAM] v zram
+vtx ram GLfloat vertices | 4 corners × (x y + u v) | الأركان | 106-116
+src ram Shader text (2 strings) | texture(tex0, texCoord) | الـ Shaders | 137-156
+[GPU · Texture + VAO] v zgpu
+tex buf Texture red · blue | glDeleteTextures in ~Texture ; Describe(Texture) copies id 2 | الـ Texture | 51-83, 131-135
+vao vao VAO + vbo + ebo | slot 0 ← xy · slot 1 ← uv | الوصف | 117-129
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | tex0 = unit 0 | glUniform1i | 158-160
+win out Window "Texture copy" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 2 viewports | textures[i]->Bind() | الرسم | 168-177
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · iostream · string | المكتبات | 1-5
+cs prg CompileShader() | create → source → compile | Shader واحد | 7-32
+cr prg CreateShader() | attach × 2 → link | الـ Program | 34-49
+cl ctl Cleanup | glDeleteTextures · glDeleteProgram ; glfwTerminate | التنضيف | 182-185
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx vao
+> cs cr
+> tex prog unit 0
+> src prog
+> vao prog
+> prog win
+~ loop dr
+> tex term
+
+@d14_t2
+[Setup (once)] h none
+main ctl main() | L87 | البداية | 87-88
+glfw ctl GLFW | glfwInit · window 960 × 480 | الشباك والـ Context | 89-102
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 104
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 164-167, 180-182
+row
+[CPU · RAM] v zram
+vtx ram GLfloat vertices | 4 corners × (x y + u v) | الأركان | 108-118
+src ram Shader text (2 strings) | texture(tex0, texCoord) | الـ Shaders | 139-158
+[GPU · Texture + VAO] v zgpu
+tex buf class Texture (copy = delete) | Texture(const Texture&) = delete ; Describe(const Texture&) | الـ Texture | 51-85, 133-137
+vao vao VAO + vbo + ebo | slot 0 ← xy · slot 1 ← uv | الوصف | 119-131
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | tex0 = unit 0 | glUniform1i | 160-162
+win out Window "Texture reference" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 2 viewports | textures[i]->Bind() | الرسم | 170-179
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · iostream · string | المكتبات | 1-5
+cs prg CompileShader() | create → source → compile | Shader واحد | 7-32
+cr prg CreateShader() | attach × 2 → link | الـ Program | 34-49
+cl ctl Cleanup | glDeleteTextures · glDeleteProgram ; glfwTerminate | التنضيف | 184-187
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx vao
+> cs cr
+> tex prog unit 0
+> src prog
+> vao prog
+> prog win
+~ loop dr
+> tex term
+

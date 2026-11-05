@@ -1,0 +1,219 @@
+@d12_p1
+[Setup] h none
+inc ctl #include × 3 | iostream · string · cstdlib | المكتبات | 1-3
+main ctl main() | L41 · return 0 | البداية | 41-42, 61-62
+row
+[Our new / delete] v zgpu
+sz ram size_t lastSize | last size new asked for | الحجم | 5
+on prg operator new · new[] | lastSize = size ; return malloc(size) | بتحجز | 7-17
+od prg operator delete · delete[] | free(memory) | بترجّع | 19-27
+en vao class Entity | std::string name ; Entity() : name("Unknown") → prints | 32 بايت | 29-39
+[On the heap] v zram
+h1 ram new int · new int[50] | 4 · 200 bytes | من غير Constructor | 43-46
+h2 ram new Entity() · new Entity[3] | 32 · 104 (= 96 + 8) | مع Constructor | 48-51
+h3 ram malloc(sizeof(Entity)) | 32 bytes, no Entity() | حجز بس | 53-54
+fr ram delete · delete[] · free | each one with its pair | الرجوع | 56-60
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> on h1
+> on h2
+> en h2
+> sz term
+> h1 term
+> h2 term
+> h3 term
+> od fr
+
+@d12_p2
+[Setup] h none
+inc ctl #include × 2 | iostream · new | المكتبات | 1-2
+main ctl main() | L20 · return 0 | البداية | 20-21, 34-35
+row
+[Type] v zgpu
+v3 vao struct Vector3 | Vector3(x, y, z) prints this ; ~Vector3() prints this | 12 بايت | 4-18
+[Heap] v zram
+b ram int* b = new int[50] | 200 bytes | الذاكرة | 22-23
+pl ram new (b) Vector3(1, 2, 3) | same address as b ; b[0] as float = 1 | Placement new | 25-27
+dt ram v->~Vector3() · delete[] b | destructor by hand ; then free the 200 | الترتيب | 29-30
+nh ram new Vector3(4, 5, 6) · delete h | normal new / delete | المقارنة | 32-33
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> b pl
+> v3 pl
+> pl dt
+> v3 nh
+> pl term
+> dt term
+> nh term
+
+@d12_m1
+[Setup] h none
+np ctl import numpy as np | np.array · np.ones · np.zeros | NumPy | 1
+row
+[Arrays] v zram
+ab ram a · b · a16 | ndim · shape ; dtype int64 (8) · int16 (2) | المقاس والنوع | 3-8
+m ram m (2 × 7) | m[1, 5] · m[:, 2] ; m[0, 1:6:2] · m[:, 2] = [1, 2] | الوصول | 10-17
+k ram output 5 × 5 · z 3 × 3 | output[1:-1, 1:-1] = z | تمرين Keith | 19-24
+c ram x · y | y = x ; y = x.copy() | نسخة ولا لأ | 26-33
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np ab
+> ab term
+> m term
+> k term
+> c term
+
+@d12_m2
+[Setup] h none
+np ctl import numpy as np | np.matmul · np.linalg.det · np.vstack | NumPy | 1
+row
+[Math] v zram
+el ram a + 2 · a * 2 · a ** 2 | every cell | Element-wise | 3-5
+mm prg matmul · * · det | 2 × 3 @ 3 × 2 = 6s ; det(I) = 1 | الضرب | 7-13
+st ram min · max · sum (axis) | 1 · 6 · 21 ; [1 4] · [4 5 6] | الإحصاء | 15-17
+rs ram reshape · vstack · hstack | (4, 2) · ValueError ; (2, 6) | الشكل | 19-31
+bm ram data[data > 50] | [75 88 51] ; any · all | Boolean Masking | 33-37
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np el
+> el term
+> mm term
+> st term
+> rs term
+> bm term
+
+@d12_c1
+[Setup] h none
+inc ctl #include × 2 · PI | iostream · cmath | المكتبات | 1-4
+main ctl main() | L46 · return 0 | البداية | 46-47, 58-59
+row
+[Types + formula] v zgpu
+ty vao struct Range · Point | from, to ; x, y, z | الأنواع | 6-14
+at prg At(r, t, h) | x = r sin t · y = r cos t · z = h | معادلة Dr. Patil | 16-19
+va prg Value(range, i, n) | fixed → from ; else spread n samples | العينات | 21-26
+sh prg Shape(name, R, T, H) | params = free count → kind ; 3^params samples | نوع الشكل | 28-44
+[Shapes] v zram
+pt ram At(10, pi, 25) | (0, -10, 25) | النقطة | 48-49
+s6 ram 6 × Shape | point · circle · cylinder ; disk · solid · hollow | الجدول | 50-55
+ar ram areas · volumes | 1570.8 · 314.159 ; 7853.98 · 5890.49 | المعادلات | 56-57
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> at pt
+> at sh
+> va sh
+> ty sh
+> sh s6
+> pt term
+> s6 term
+> ar term
+
+@d12_c2
+[Setup] h none
+inc ctl #include × 3 | iostream · vector · cmath | المكتبات | 1-3
+main ctl main() | L29 · return 0 | البداية | 29-30, 57-58
+row
+[Types + helpers] v zgpu
+ty vao struct Vec3 · Plane | x, y, z ; n · d | الأنواع | 5-14
+ln prg Length(a, b) | sqrt(dx² + dy² + dz²) | الطول | 16-19
+in prg Inside(solid, p) | n · p > d → outside | جوه ولا برّه | 21-27
+[Three models] v zram
+v ram 8 corners v | -1 .. 1 | المكعب | 31
+w ram wireframe: 12 edges | total length = 24 | Wireframe | 33-37
+s ram surface: 6 faces | area = 24 | Surface | 39-43
+so ram solid: 6 half-spaces | inside test ; 8 of 64 cells → volume 8 | Solid | 45-56
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> v w
+> v s
+> ln w
+> ln s
+> in so
+> ty so
+> w term
+> s term
+> so term
+
+@d12_t1
+[Setup (once)] h none
+main ctl main() | L51 | البداية | 51-52
+glfw ctl GLFW | glfwInit · window 960 × 640 | الشباك والـ Context | 53-66
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 68
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 158-161, 174-176
+row
+[CPU · RAM] v zram
+vtx ram GLfloat vertices | 4 corners × (x y z w + u v) ; far corners w = 6 | الأركان | 71-81
+pix ram std::vector pixels (196,608 bytes) | (x / 16 + y / 16) % 2 → 240 or 20 | الرقعة | 96-105
+src ram Shader text (2 strings) | texture(tex0, texCoord) | الـ Shaders | 130-149
+[GPU · Texture + VAO] v zgpu
+tex buf Texture 256 × 256 + 9 mip levels | checker 16 px · REPEAT ; glGenerateMipmap · levels 256 … 1 | الـ Texture | 107-128
+vao vao VAO + vbo + ebo | slot 0 ← xy · slot 1 ← uv | الوصف | 82-94
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | tex0 = unit 0 | glUniform1i | 151-153
+win out Window "Mipmaps" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 4 viewports | minFilter[i] · aniso[i] ; NEAREST · LINEAR · trilinear · +16 | الرسم | 163-172
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · iostream · string | المكتبات | 1-5
+cs prg CompileShader() | create → source → compile | Shader واحد | 7-32
+cr prg CreateShader() | attach × 2 → link | الـ Program | 34-49
+cl ctl Cleanup | glDeleteTextures · glDeleteProgram ; glfwTerminate | التنضيف | 178-181
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx vao
+> cs cr
+> tex prog unit 0
+> src prog
+> vao prog
+> prog win
+~ loop dr
+> tex term
+> pix tex
+
+@d12_t2
+[Setup (once)] h none
+main ctl main() | L51 | البداية | 51-52
+glfw ctl GLFW | glfwInit · window 960 × 320 | الشباك والـ Context | 53-66
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 68
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 154-157, 169-171
+row
+[CPU · RAM] v zram
+vtx ram GLfloat vertices | same floor: far corners w = 6 | الأركان | 71-81
+col ram unsigned char colors[9][3] | red orange yellow … white | لون لكل مستوى | 96-100
+src ram Shader text (2 strings) | texture(tex0, texCoord) | الـ Shaders | 127-146
+[GPU · Texture + VAO] v zgpu
+tex buf Texture: 9 levels by hand | glTexImage2D(level) × 9 ; LINEAR_MIPMAP_NEAREST | الـ Texture | 101-125
+vao vao VAO + vbo + ebo | slot 0 ← xy · slot 1 ← uv | الوصف | 82-94
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | tex0 = unit 0 | glUniform1i | 148-150
+win out Window "Mip levels" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 2 viewports | aniso 1 (left) · 16 (right) | الرسم | 158-167
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · iostream · string | المكتبات | 1-5
+cs prg CompileShader() | create → source → compile | Shader واحد | 7-32
+cr prg CreateShader() | attach × 2 → link | الـ Program | 34-49
+cl ctl Cleanup | glDeleteTextures · glDeleteProgram ; glfwTerminate | التنضيف | 173-176
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx vao
+> cs cr
+> tex prog unit 0
+> src prog
+> vao prog
+> prog win
+~ loop dr
+> tex term
+> col tex
+

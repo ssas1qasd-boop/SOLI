@@ -62,6 +62,11 @@ cd /home/claude/day1/full && gcc -c glad/src/glad.c -Iglad/include -o glad.o
    ```
    الرقم `0` أو `2` في `run1.sh` هو عدد اللفات اللي هتتسجّل لبرامج الرسم.
 
+   لو البرنامج فيه لوب بكسلات كبير (زي صورة 256 × 256)، البنش هيقف عند عدد 20000 خطوة. عشان كده فيه `SKIP`: السطر اللي اللوب بيبدأ عنده، والسطر اللي بعده، والبنش بيعدي اللوب مرة واحدة:
+   ```bash
+   SKIP='[["t1_mipmaps.cpp",98,107]]' bash run1.sh d12_t1 2 "Mipmaps" "" "[]" /home/claude/day12/src/t1_mipmaps.cpp
+   ```
+
    بعد كده زوّد البرامج في `PROGS` جوه `build_steps.py`، وفي `goals.py`، وزوّد `('day12','data12')` في `edicts.py`، وشغّل:
    ```bash
    python3 build_steps.py && python3 assemble.py

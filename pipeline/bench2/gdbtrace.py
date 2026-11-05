@@ -145,8 +145,15 @@ for guard in range(20000):
         if lapno > CFG['laps'] and not closed:
             gdb.execute(f"call ((void(*)(void*,int))glfwSetWindowShouldClose)({CFG.get('window_var','window')}, 1)", to_string=True); closed = True; rec['closing'] = True
     steps.append(rec)
-    try: gdb.execute('step', to_string=True)
-    except gdb.error: break
+    skip = [s2 for s2 in CFG.get('skip', []) if s2[0] == os.path.basename(path) and s2[1] == line]
+    if skip:
+        rec['skipped'] = skip[0][2]
+        try:
+            gdb.execute(f"tbreak {path}:{skip[0][2]}", to_string=True); gdb.execute('continue', to_string=True)
+        except gdb.error: break
+    else:
+        try: gdb.execute('step', to_string=True)
+        except gdb.error: break
     # stdout produced by this step
     try:
         sz = os.path.getsize(stdout_path)

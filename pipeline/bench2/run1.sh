@@ -8,7 +8,7 @@ CC=g++; ALLC=1; for f in "${CPPS[@]}"; do case $f in *.cpp) ALLC=0;; esac; done;
 $CC -g3 -O0 "${CPPS[@]}" /home/claude/day1/full/glad.o -I/home/claude/day1/full/glad/include -lglfw -ldl -o $D/prog 2>$D/build.log || { cat $D/build.log; exit 1; }
 SRCS=$(printf '"%s",' $(for f in "$@"; do readlink -f $f; done)); SRCS="[${SRCS%,}]"
 CBJ=$(python3 -c "import json,sys;print(json.dumps([c for c in sys.argv[1].split(',') if c]))" "$CBS")
-STDJ=""; [ -n "$STDIN_FILE" ] && STDJ=",\"stdin\":\"$STDIN_FILE\""
+STDJ=""; [ -n "$STDIN_FILE" ] && STDJ=",\"stdin\":\"$STDIN_FILE\""; [ -n "$SKIP" ] && STDJ="$STDJ,\"skip\":$SKIP"
 cat > $D/cfg.json <<J
 {"out":"$D","srcs":$SRCS,"laps":$LAPS,"title":"$TITLE","callbacks":$CBJ,"clicks":$CLK$STDJ}
 J

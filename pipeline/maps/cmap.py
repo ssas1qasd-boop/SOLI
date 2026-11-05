@@ -580,7 +580,7 @@ CSS_EXTRA = '.eball{pointer-events:none;font-size:11px} .eball circle{filter:dro
 def page(day, progs, specs, warn, extra=''):
     title = 'خرائط ' + M.DAYN[day]
     def wk_links(w):
-        ds = range(1, 8) if w == 2 else range(8, 12)
+        ds = range(1, 8) if w == 2 else range(8, 15)
         return ''.join(f'<a href="day{d}.html" class="{"on" if d == day else ""}">اليوم {d if w == 2 else d - 7}</a>' for d in ds)
     nav = ''.join(f'<details class="wk"{" open" if (day >= 8) == (w == 3) else ""}><summary>الأسبوع {w}</summary><div class="wkl">{wk_links(w)}</div></details>' for w in (2, 3))
     body = []
@@ -604,9 +604,9 @@ def page(day, progs, specs, warn, extra=''):
 </main><script>{M.JS}</script></body></html>'''
 
 if __name__ == '__main__':
-    days = [int(a) for a in sys.argv[1:]] or list(range(1, 12))
+    days = [int(a) for a in sys.argv[1:]] or list(range(1, 15))
     warn = []; counts = []
-    for d in range(1, 12):
+    for d in range(1, 15):
         progs = json.load(open(M.DATA % d))['programs']; counts.append((d, len(progs)))
         if d not in days: continue
         sp_path = f'/home/claude/maps/specs/d{d}.txt'
