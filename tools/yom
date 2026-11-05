@@ -1,0 +1,57 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# yom 05-11   -> one text file with the day's 4 lectures: every link + the full transcript of every YouTube video.
+# Upload that one file to Claude and say «اعمل اليوم». (no date = today)
+D="${1:-$(date +%d-%m)}"
+exec python - "$D" <<'PY'
+import sys, os, re, json, glob, time, tempfile, urllib.request
+D = sys.argv[1]
+H = os.path.expanduser('~/.yom'); os.makedirs(H, exist_ok=True)
+PLAN = os.path.join(H, 'plan.json')
+URL = 'https://raw.githubusercontent.com/ssas1qasd-boop/SOLI/main/tools/plan.json'
+if not os.path.exists(PLAN) or time.time() - os.path.getmtime(PLAN) > 86400:
+    try: urllib.request.urlretrieve(URL, PLAN)
+    except Exception as e:
+        if not os.path.exists(PLAN): sys.exit('X can not download the plan: ' + str(e))
+plan = json.load(open(PLAN))
+if D not in plan: sys.exit('X day ' + D + ' is not in the plan (write it like 05-11)')
+try:
+    import yt_dlp
+except ImportError:
+    sys.exit('X yt-dlp is missing. Run:  pip install yt-dlp')
+
+def vtt_text(path):
+    out, last = [], ''
+    for line in open(path, encoding='utf-8', errors='replace'):
+        line = line.strip()
+        if not line or line.startswith(('WEBVTT', 'Kind:', 'Language:', 'NOTE')) or '-->' in line or re.fullmatch(r'\d+', line): continue
+        line = re.sub(r'<[^>]+>', '', line).strip()
+        if line and line != last: out.append(line); last = line
+    return ' '.join(out)
+
+tmp = tempfile.mkdtemp()
+lines = ['DAY ' + D, '']
+for col, links in plan[D].items():
+    lines.append('=' * 60); lines.append('LECTURE: ' + col)
+    for u in links:
+        lines.append('LINK: ' + u)
+        if 'youtu' not in u: continue
+        print('…', col, u, flush=True)
+        opts = {'skip_download': True, 'writesubtitles': True, 'writeautomaticsub': True, 'subtitleslangs': ['en', 'en-orig', 'en-US', 'en-GB'],
+                'subtitlesformat': 'vtt', 'outtmpl': os.path.join(tmp, '%(id)s.%(ext)s'), 'quiet': True, 'no_warnings': True}
+        try:
+            with yt_dlp.YoutubeDL(opts) as y: info = y.extract_info(u, download=True)
+            lines.append('TITLE: ' + str(info.get('title'))); lines.append('CHANNEL: ' + str(info.get('channel') or info.get('uploader')))
+            lines.append('DURATION: ' + str(info.get('duration_string') or info.get('duration')))
+            subs = sorted(glob.glob(os.path.join(tmp, info['id'] + '*.vtt')), key=lambda p: ('orig' in p, len(p)))
+            if subs: t = vtt_text(subs[0]); lines.append('TRANSCRIPT (' + os.path.basename(subs[0]) + ', ' + str(len(t.split())) + ' words):'); lines.append(t)
+            else: lines.append('TRANSCRIPT: none (the video has no English captions)')
+            print('  ok:', info.get('title'), flush=True)
+        except Exception as e:
+            lines.append('ERROR: ' + str(e)[:300]); print('  X', str(e)[:200], flush=True)
+    lines.append('')
+dl = os.path.expanduser('~/storage/downloads')
+dest = os.path.join(dl if os.path.isdir(dl) else os.path.expanduser('~'), 'yom_' + D + '.txt')
+open(dest, 'w', encoding='utf-8').write('\n'.join(lines))
+print('\nOK ->', dest)
+print('ارفع الملف ده لـ Claude وقول: اعمل اليوم')
+PY
