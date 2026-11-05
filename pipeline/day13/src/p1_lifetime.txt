@@ -1,0 +1,17 @@
+main starts
+Created Entity a
+Created Entity b
+end of the empty scope
+Destroyed Entity b
+Created Entity c
+Destroyed Entity c
+Created Entity d0
+Destroyed Entity d0
+Created Entity d1
+Destroyed Entity d1
+Created Entity heap
+end of the scope with new: heap is still alive
+CreateArray (heap): array[0] = 7
+FillArray (array made in main): array[0] = 9
+main ends
+Destroyed Entity a

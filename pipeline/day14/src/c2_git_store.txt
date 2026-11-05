@@ -1,0 +1,8 @@
+content: 22 bytes
+sha1 by hand : 7614dc7c3231c5738905a36d6216a1c628372454
+git hash-object: 7614dc7c3231c5738905a36d6216a1c628372454
+a.css        7614dc7
+copy_v2.css  7614dc7
+pink.css     77557c7
+3 files, but 2 objects stored (same content = same hash = stored once)
+inside 7614dc7: body { color: blue; }

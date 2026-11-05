@@ -1,0 +1,17 @@
+rotate (1, 0) by 90: [0. 1.]
+rotate (1, 0) by 30: [0.866025 0.5     ]
+rotation(30) =
+[[ 0.866025 -0.5     ]
+ [ 0.5       0.866025]]
+rotation(30) @ rotation(60) = rotation(90)? True
+first scale, then rotate: R @ (S @ p) = [-1.  2.]
+first rotate, then scale: S @ (R @ p) = [-2.  1.]
+R @ S =
+[[ 0. -1.]
+ [ 2.  0.]]
+S @ R =
+[[ 0. -2.]
+ [ 1.  0.]]
+rotation(-30) undoes rotation(30): [1. 1.]
+rotation(30) transposed = rotation(-30)? True
+length before = 1.4142135623730951  after rotation(30) = 1.414214

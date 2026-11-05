@@ -1,0 +1,12 @@
+level 0: 256 x 256 = 196608 bytes
+level 1: 128 x 128 = 49152 bytes
+level 2: 64 x 64 = 12288 bytes
+level 3: 32 x 32 = 3072 bytes
+level 4: 16 x 16 = 768 bytes
+level 5: 8 x 8 = 192 bytes
+level 6: 4 x 4 = 48 bytes
+level 7: 2 x 2 = 12 bytes
+level 8: 1 x 1 = 3 bytes
+all levels: 262143 bytes = 1.33333 x level 0
+
+exit=0

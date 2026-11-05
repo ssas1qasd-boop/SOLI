@@ -1,0 +1,11 @@
+rotate (2, 1, 0) around x by 90: [2. 0. 1.]
+x did not change, (y, z) turned: (1, 0) -> (0, 1)
+x . u = 7.0  u . u = 5.0
+projection of (2, 3) on the line through (2, 1): [2.8 1.4]
+x - projection = [-0.8  1.6]  (x - projection) . u = 0.0
+P = u u^T / (u . u) =
+[[0.8 0.4]
+ [0.4 0.2]]
+P @ x = [2.8 1.4]
+P @ P = P? True
+P @ (-1, 2) = [0. 0.]  (a vector at 90 degrees to the line goes to 0)

@@ -1,0 +1,6 @@
+corners of the unit square: [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]
+image under A: [[0.0, 0.0], [2.0, 0.0], [3.0, 1.0], [1.0, 1.0]]
+area before = 1.0  area after = 2.0  det(A) = 2.0
+B = [[1.0, 2.0], [2.0, 4.0]]  image: [[0.0, 0.0], [1.0, 2.0], [3.0, 6.0], [2.0, 4.0]]
+area after B = 0.0  det(B) = 0.0  -> the square became a line
+saved image_area.png

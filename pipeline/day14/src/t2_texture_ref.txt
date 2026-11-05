@@ -1,0 +1,8 @@
+Texture() made id 1
+Texture() made id 2
+Describe: id 2, glIsTexture = 1
+after Describe: red glIsTexture = 1, blue glIsTexture = 1
+~Texture() deletes id 2
+~Texture() deletes id 1
+
+exit=0

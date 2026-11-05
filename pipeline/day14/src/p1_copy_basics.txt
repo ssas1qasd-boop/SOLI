@@ -1,0 +1,5 @@
+int:      a = 2, b = 3
+struct:   va.x = 2, vb.x = 5, &va = 0x7fff9fbd2698, &vb = 0x7fff9fbd26a0
+pointer:  pa->x = 5, pb->x = 5, pa == pb: yes
+reference: va.y = 9 (ra is va, nothing was copied)
+sizeof(Vector2) = 8, sizeof(Vector2*) = 8

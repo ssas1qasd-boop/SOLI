@@ -1,0 +1,4 @@
+A inter B (overlap)  : 1 piece(s) [1, 2], length = 1
+A inter C (touching) : 1 piece(s) [2, 2], length = 0
+regularized A inter C: 0 piece(s), length = 0
+plate minus hole     : 2 piece(s) [0, 4] [6, 10], length = 8

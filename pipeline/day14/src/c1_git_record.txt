@@ -1,0 +1,12 @@
+git init: empty repository made
+status: ?? site.css
+after add: A  site.css
+changed, not added: M site.css
+['-body { color: blue; }', '+body { color: pink; }']
+log:
+c03766c v4: orange
+e846659 v3: green
+a25f620 v2: pink
+372ae88 v1: blue
+client wants the original. site.css now: body { color: blue; }
+files in the folder: ['site.css']

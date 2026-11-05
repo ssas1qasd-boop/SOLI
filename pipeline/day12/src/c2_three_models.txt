@@ -1,0 +1,4 @@
+wireframe: 12 edges, total length = 24, area = ?, volume = ?
+surface: 6 faces, area = 24, volume = ?
+solid: 6 half-spaces, (0, 0, 0) inside: 1, (1.5, 0, 0) inside: 0
+solid: 8 of 64 unit cells inside -> volume = 8

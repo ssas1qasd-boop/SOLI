@@ -1,0 +1,12 @@
+mip level 0: 256 x 256
+mip level 1: 128 x 128
+mip level 2: 64 x 64
+mip level 3: 32 x 32
+mip level 4: 16 x 16
+mip level 5: 8 x 8
+mip level 6: 4 x 4
+mip level 7: 2 x 2
+mip level 8: 1 x 1
+levels: 9, GL_MAX_TEXTURE_MAX_ANISOTROPY = 16
+
+exit=0

@@ -1,0 +1,7 @@
+new int[50] at 0x5614e7a682b0
+Vector3(1, 2, 3) at 0x5614e7a682b0
+placement new: v = 0x5614e7a682b0, same address as b: yes
+b[0] as float = 1
+~Vector3() at 0x5614e7a682b0
+Vector3(4, 5, 6) at 0x5614e7a69390
+~Vector3() at 0x5614e7a69390

@@ -1,0 +1,6 @@
+flip = 0: 8 x 8, 3 channels, first pixel in memory = (245, 245, 240)
+         CPU copy freed. read back from the GPU: 192 bytes, first pixel = (245, 245, 240)
+flip = 1: 8 x 8, 3 channels, first pixel in memory = (220, 38, 38)
+         CPU copy freed. read back from the GPU: 192 bytes, first pixel = (220, 38, 38)
+
+exit=0

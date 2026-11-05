@@ -1,0 +1,11 @@
+Created Entity
+inside the scope
+Destroyed Entity
+after the scope (ScopedPtr)
+Created Entity
+inside the scope
+Destroyed Entity
+after the scope (unique_ptr)
+sum = 4950
+Timer loop: more than 0 ns
+sizeof(Entity*) = 8, sizeof(ScopedPtr) = 8

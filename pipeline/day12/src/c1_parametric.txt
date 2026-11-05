@@ -1,0 +1,9 @@
+R = 10, theta = pi, H = 25 -> (-8.74228e-07, -10, 25)
+point     : 0 free -> point, 1 sample points, max r = 10, max z = 25
+circle    : 1 free -> curve, 3 sample points, max r = 10, max z = 0
+cylinder  : 2 free -> surface, 9 sample points, max r = 10, max z = 25
+disk      : 2 free -> surface, 9 sample points, max r = 10, max z = 0
+solid cyl.: 3 free -> solid, 27 sample points, max r = 10, max z = 25
+hollow    : 3 free -> solid, 27 sample points, max r = 10, max z = 25
+areas / volumes: cylinder 2 pi R H = 1570.8, disk pi R^2 = 314.159
+solid pi R^2 H = 7853.98, hollow pi (10^2 - 5^2) H = 5890.49

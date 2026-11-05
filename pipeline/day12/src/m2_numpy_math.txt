@@ -1,0 +1,26 @@
+a + 2 = [3 4 5 6]  a * 2 = [2 4 6 8]  a ** 2 = [ 1  4  9 16]
+a + [1, 0, 1, 0] = [2 2 4 4]
+matmul(ones 2x3, twos 3x2) =
+[[6. 6.]
+ [6. 6.]]
+ones * ones (element-wise) =
+[[1. 1. 1.]
+ [1. 1. 1.]]
+det(identity(3)) = 1.0
+min = 1  max = 6  sum = 21
+min per row (axis=1) = [1 4]  max per column (axis=0) = [4 5 6]
+reshape (4, 2) =
+[[1 2]
+ [3 4]
+ [5 6]
+ [7 8]]
+reshape (2, 3): cannot reshape array of size 8 into shape (2,3)
+vstack =
+[[1 2 3 4]
+ [5 6 7 8]]
+hstack shape = (2, 6)
+data > 50 =
+[[False  True False]
+ [ True False  True]]
+data[data > 50] = [75 88 51]
+any column > 50: [ True  True  True]  all: [False False False]

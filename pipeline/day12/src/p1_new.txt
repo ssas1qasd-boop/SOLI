@@ -1,0 +1,9 @@
+new int: 4 bytes
+new int[50]: 200 bytes
+Entity() ran
+new Entity(): 32 bytes, name = Unknown
+Entity() ran
+Entity() ran
+Entity() ran
+new Entity[3]: 104 bytes (sizeof(Entity) = 32)
+malloc(sizeof(Entity)): no "Entity() ran" above this line
