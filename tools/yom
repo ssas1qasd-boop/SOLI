@@ -55,7 +55,9 @@ def fetch(u):
             else: L.append('TRANSCRIPT: none (no English captions)')
             block = '\n'.join(L); open(cf, 'w', encoding='utf-8').write(block); return block, False
         except Exception as e:
-            err = str(e)[:300]; time.sleep(3 * (attempt + 1))
+            err = str(e)[:300]
+            if 'unavailable' in err.lower() or 'private' in err.lower() or 'removed' in err.lower(): break   # deleted video: no point retrying
+            time.sleep(90 if '429' in err or 'Too Many' in err else 3 * (attempt + 1))
     return 'ERROR: ' + err, False
 
 seen = {}
@@ -72,7 +74,7 @@ for d in days:
             if v in seen: lines.append(f'(same video as day {seen[v]}, transcript there)'); print(f'[{n}/{total}] {d} {col}: repeat', flush=True); continue
             block, cached = fetch(u); seen[v] = d; lines.append(block)
             print(f'[{n}/{total}] {d} {col}: ' + ('cached' if cached else ('X' if block.startswith('ERROR') else 'ok')) + ' ' + block.split('\n')[0][:60], flush=True)
-            if not cached: time.sleep(1)
+            if not cached: time.sleep(4)
     lines.append('')
 dl = os.path.expanduser('~/storage/downloads')
 name = 'yom_' + A + ('' if A == B else '_to_' + B) + '.txt'
