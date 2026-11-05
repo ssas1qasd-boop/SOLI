@@ -1,0 +1,14 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# shahr              -> Arabic HTML summaries for every video from today to the same day next month (one zip in Downloads)
+# shahr 05-11 05-12  -> the same for any range you choose
+# Every time: updates yom + yomhtml from GitHub first, and keeps the phone awake while it works.
+R=https://raw.githubusercontent.com/ssas1qasd-boop/SOLI/main/tools
+for t in yom yomhtml; do curl -fsSL "$R/$t" -o "$PREFIX/bin/$t.new" && mv "$PREFIX/bin/$t.new" "$PREFIX/bin/$t" && chmod +x "$PREFIX/bin/$t"; done
+command -v yt-dlp >/dev/null || python -c "import yt_dlp" 2>/dev/null || pip install yt-dlp
+[ -d ~/storage/downloads ] || termux-setup-storage
+A="${1:-$(date +%d-%m)}"
+B="${2:-$(date -d '+1 month' +%d-%m 2>/dev/null || date +%d-%m)}"
+echo "📅 من $A لـ $B"
+termux-wake-lock 2>/dev/null
+yomhtml "$A" "$B"
+termux-wake-unlock 2>/dev/null
