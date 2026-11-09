@@ -3350,10 +3350,10 @@ const robot = (() => {
       grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
       grip.addEventListener('keydown', e => { const h = box.getBoundingClientRect().height; if (e.key === 'ArrowUp'){ setH(h + 40, true); e.preventDefault(); } if (e.key === 'ArrowDown'){ setH(h - 40, true); e.preventDefault(); } });
       window.addEventListener('resize', () => { const h = box.getBoundingClientRect().height; if (h) setH(h); }); } }
-  const SCENE_RULE = ' لو السؤال عن شكل ثلاثي الأبعاد أو نقط في الفراغ (هرم، مكعب، مثلث بنقطه، كاميرا، محاور x y z، indices)، ارسمه في بلوك ```scene3d فيه JSON بس، والبنش هيحوّله لرسمة 3D تفاعلية تتلف بالإصبع. الشكل: {"title":"اسم قصير","points":[[x,y,z],...],"faces":[{"p":[رقم,رقم,رقم],"name":"وش يمين","color":"#4a9eff"}],"lines":[[رقم,رقم]],"start":0}. الأرقام في faces و lines هي ترتيب النقطة في points وبتبدأ من 0؛ و start هو رقم أول نقطة اللي يتكتب على الرسمة (مثلاً 7 لو النقط هي 7 و 8 و 9 في البرنامج). لو البرنامج فيه vertices أو indices حقيقية استخدمها هي بالظبط ماتألّفش غيرها. من 3 لـ 60 نقطة. JSON سليم من غير تعليقات. مثال هرم:\n```scene3d\n{"title":"هرم","points":[[-0.5,-0.5,0.5],[0.5,-0.5,0.5],[0.5,-0.5,-0.5],[-0.5,-0.5,-0.5],[0,0.5,0]],"faces":[{"p":[0,1,4],"name":"وش أمامي"},{"p":[1,2,4],"name":"وش يمين"},{"p":[2,3,4],"name":"وش خلفي"},{"p":[3,0,4],"name":"وش شمال"},{"p":[0,1,2,3],"name":"القاعدة"}]}\n```\nولو المستخدم طلب بنفسه رسمة 3D أو شكل مجسّم أو قال «ارسم/وريني»، ارسمه حتى لو السؤال مش عن الكود ومش موجود في البرنامج: ساعتها خد الشكل من معلوماتك العامة وقول في سطر إنه شكل توضيحي مش من التشغيل الحقيقي. ماتكتبش HTML ولا JavaScript للرسم، وماتقولش إنك مش بتعرف ترسم 3D.';
+  const SCENE_RULE = ' لو السؤال عن شكل ثلاثي الأبعاد أو نقط في الفراغ (هرم، مكعب، مثلث بنقطه، كاميرا، محاور x y z، indices)، ارسمه في بلوك ```scene3d فيه JSON بس، والبنش هيحوّله لرسمة 3D تفاعلية تتلف بالإصبع. الشكل: {"title":"اسم قصير","points":[[x,y,z],...],"faces":[{"p":[رقم,رقم,رقم],"name":"وش يمين","color":"#4a9eff"}],"lines":[[رقم,رقم]],"start":0}. الأرقام في faces و lines هي ترتيب النقطة في points وبتبدأ من 0؛ و start هو رقم أول نقطة اللي يتكتب على الرسمة (مثلاً 7 لو النقط هي 7 و 8 و 9 في البرنامج). لو البرنامج فيه vertices أو indices حقيقية استخدمها هي بالظبط ماتألّفش غيرها. من 3 لـ 60 نقطة. JSON سليم من غير تعليقات. مثال هرم:\n```scene3d\n{"title":"هرم","points":[[-0.5,-0.5,0.5],[0.5,-0.5,0.5],[0.5,-0.5,-0.5],[-0.5,-0.5,-0.5],[0,0.5,0]],"faces":[{"p":[0,1,4],"name":"وش أمامي"},{"p":[1,2,4],"name":"وش يمين"},{"p":[2,3,4],"name":"وش خلفي"},{"p":[3,0,4],"name":"وش شمال"},{"p":[0,1,2,3],"name":"القاعدة"}]}\n```\nولو السؤال عن الكاميرا (cameraPos أو cameraFront أو lookAt أو view matrix أو yaw و pitch أو WASD أو FOV)، زوّد في نفس الـ JSON "camera":{"pos":[0,0,2],"yaw":-90,"pitch":0,"fov":45} (أو "front":[0,0,-1] بدل yaw و pitch) بقيم البرنامج الحقيقية لو موجودة، والبنش هيعمل لوحتين: الكاميرا من فوق كمثلث برتقالي والمنطقة اللي شايفاها، وشباك باللي الكاميرا شايفاه بيتلف بالسحب ومعاه أزرار W A S D وقراية Position و Front. مثال كاميرا بتبص على هرم:\n```scene3d\n{"title":"الكاميرا والهرم","points":[[-0.5,-0.5,0.5],[0.5,-0.5,0.5],[0.5,-0.5,-0.5],[-0.5,-0.5,-0.5],[0,0.5,0]],"faces":[{"p":[0,1,4],"color":"#f2a03d"},{"p":[1,2,4],"color":"#4a9eff"},{"p":[2,3,4],"color":"#6cc56c"},{"p":[3,0,4],"color":"#e8678f"},{"p":[0,1,2,3],"name":"القاعدة","color":"#8d7660"}],"camera":{"pos":[0,0,2],"yaw":-90,"pitch":0,"fov":45}}\n```\nولو المستخدم طلب بنفسه رسمة 3D أو شكل مجسّم أو قال «ارسم/وريني»، ارسمه حتى لو السؤال مش عن الكود ومش موجود في البرنامج: ساعتها خد الشكل من معلوماتك العامة وقول في سطر إنه شكل توضيحي مش من التشغيل الحقيقي. ماتكتبش HTML ولا JavaScript للرسم، وماتقولش إنك مش بتعرف ترسم 3D.';
   // the user can ask for a drawing in plain words: add an explicit order to the prompt so even the small local model draws it
   const want3d = q => { q = String(q || '');
-    if (/(3\s*d|٣\s*d|ثلاث[يى]\s*الأبعاد|ثلاث[يى]\s*الابعاد|ثلاث[يى]|مجس[ّ]?م|هرم|مكعب|متوازي|منشور|كور[ةه]|(?:^|\s)(?:ال)?كر[ةه](?:\s|$)|اسطوان|أسطوان|مخروط|في\s*الفراغ|محاور\s*x|scene3d)/i.test(q))
+    if (/(3\s*d|٣\s*d|ثلاث[يى]\s*الأبعاد|ثلاث[يى]\s*الابعاد|ثلاث[يى]|مجس[ّ]?م|هرم|مكعب|متوازي|منشور|كور[ةه]|(?:^|\s)(?:ال)?كر[ةه](?:\s|$)|اسطوان|أسطوان|مخروط|في\s*الفراغ|محاور\s*x|scene3d|كاميرا|كاميره|camera|lookat|wasd)/i.test(q))
       return '\n\n(المستخدم طالب رسمة 3D صراحة: لازم يكون في ردك بلوك ```scene3d واحد على الأقل بالشكل اللي فوق. لو الشكل مش في البرنامج ارسمه من معلوماتك العامة وقول إنه توضيحي.)';
     if (/(ارسم|إرسم|ارسمل|ارسمه|ارسمها|رسم[ةه]|ورين[يى]\s*(شكل|رسم)|وضح\s*بالرسم|بالرسم|draw|diagram|visuali[sz]e)/i.test(q))
       return '\n\n(المستخدم طالب رسمة صراحة: لازم يكون في ردك رسمة. لو الفكرة فيها شكل أو نقط في الفراغ استخدم ```scene3d، ولو خطوات أو حاجة رايحة لحاجة استخدم ```diagram.)';
@@ -3450,7 +3450,13 @@ const robot = (() => {
     const Ln = (Array.isArray(o.lines) ? o.lines : []).slice(0, 120).filter(l => Array.isArray(l) && l.length >= 2 && ok(l[0]) && ok(l[1]));
     const names = Array.isArray(o.labels) ? o.labels.map(x => String(x).slice(0, 12)) : null;
     const base = Number.isInteger(o.start) ? o.start : 0;   // first point number (e.g. 7 when the shape uses indices 7, 8, 9)
-    return {title: String(o.title || '').slice(0, 60), P, F, L: Ln, names, base, showLabels: o.labels !== false, axes: o.axes !== false};
+    let cam = null; const c0 = o.camera;
+    if (c0 && typeof c0 === 'object' && !Array.isArray(c0)){ const pos = Array.isArray(c0.pos || c0.position) ? (c0.pos || c0.position).slice(0, 3).map(num) : [0, 0, 3];
+      const fr = Array.isArray(c0.front) ? c0.front.map(num) : null;   // a front vector works too, it becomes yaw / pitch
+      const yaw = fr ? Math.atan2(fr[2], fr[0]) * 180 / Math.PI : (c0.yaw != null ? num(c0.yaw) : -90), pitch = fr ? Math.asin(Math.max(-1, Math.min(1, fr[1] / (Math.hypot(...fr) || 1)))) * 180 / Math.PI : num(c0.pitch);
+      cam = {pos: pos.length === 3 ? pos : [0, 0, 3], yaw, pitch: Math.max(-89, Math.min(89, pitch)), fov: Math.max(20, Math.min(120, c0.fov != null ? num(c0.fov) : 45))}; }
+    else if (Array.isArray(c0) && c0.length >= 3) cam = {pos: c0.slice(0, 3).map(num), yaw: -90, pitch: 0, fov: 45};
+    return {title: String(o.title || '').slice(0, 60), P, F, L: Ln, names, base, showLabels: o.labels !== false, axes: o.axes !== false, cam};
   }
   function s3css(){ if (document.getElementById('ag3dcss')) return; const st = document.createElement('style'); st.id = 'ag3dcss';
     st.textContent = '.ag3d{margin:8px 0;border:1px solid var(--rule,#444);border-radius:10px;padding:6px;background:var(--paper,transparent)}' +
@@ -3507,10 +3513,82 @@ const robot = (() => {
     cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
     cv.addEventListener('wheel', e => { e.preventDefault(); st.zoom = Math.max(.4, Math.min(4, st.zoom * (e.deltaY < 0 ? 1.1 : .9))); draw(); }, {passive: false});
     box._draw = draw; requestAnimationFrame(draw); return box; }
+  // ---------- scene3d + "camera": two panels like an OpenGL camera lesson — 1) the scene from above with the camera and what it can see, 2) what the camera sees; drag = look around, W A S D = walk
+  function s3cam(S){ s3css();
+    const C = S.cam, box = document.createElement('div'); box.className = 'ag3d ag3cam'; box.dir = 'rtl';
+    box.innerHTML = (S.title ? `<div class="ag3t">${esc(S.title)}</div>` : '') +
+      '<div class="ag3h" style="opacity:.85;font-size:.8rem">1) الكاميرا من فوق (الشكل في النص، والكاميرا المثلث البرتقالي)</div><canvas class="ag3top"></canvas>' +
+      '<div class="ag3h" style="opacity:.85;font-size:.8rem;margin-top:8px">2) الشباك: اللي الكاميرا شايفاه (اسحب عليه بإصبعك عشان تلف الكاميرا)</div><canvas class="ag3view"></canvas>' +
+      '<div class="ag3b ag3wasd"></div><div class="ag3i" dir="ltr"></div><div class="ag3b ag3fb"></div>';
+    const top = box.querySelector('.ag3top'), view = box.querySelector('.ag3view'), info = box.querySelector('.ag3i'), wasd = box.querySelector('.ag3wasd'), fb = box.querySelector('.ag3fb');
+    const gt = top.getContext('2d'), gv = view.getContext('2d');
+    const P = S.P, mn = [0, 1, 2].map(a => Math.min(...P.map(p => p[a]))), mx = [0, 1, 2].map(a => Math.max(...P.map(p => p[a])));
+    const ext = Math.max(1e-6, ...mx.map((v, a) => v - mn[a])), step = ext * .08;
+    const D = d => d * Math.PI / 180, R2 = v => (Math.abs(v) < .005 ? 0 : v).toFixed(2);
+    const V0 = {pos: C.pos.slice(), yaw: C.yaw, pitch: C.pitch}; let cam = {pos: C.pos.slice(), yaw: C.yaw, pitch: C.pitch}, sel = -1;
+    const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], nrm = a => { const l = Math.hypot(...a) || 1; return a.map(v => v / l); };
+    const basis = () => { const f = nrm([Math.cos(D(cam.yaw)) * Math.cos(D(cam.pitch)), Math.sin(D(cam.pitch)), Math.sin(D(cam.yaw)) * Math.cos(D(cam.pitch))]); const r = nrm(cross(f, [0, 1, 0])); return {f, r, u: cross(r, f)}; };
+    const size = (cv, ratio) => { const dpr = window.devicePixelRatio || 1, W = cv.clientWidth || 300, H = Math.round(Math.min(300, W * ratio));
+      if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)){ cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.height = H + 'px'; }
+      const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); return [W, H]; };
+    const fade = k => sel < 0 || sel === k;
+    function drawTop(){ const [W, H] = size(top, .62), fg = getComputedStyle(box).color || '#ddd', {f} = basis();
+      // fit the shape and the camera, x to the right and z downwards (as seen from above)
+      const xs = P.map(p => p[0]).concat(cam.pos[0]), zs = P.map(p => p[2]).concat(cam.pos[2]);
+      const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cz = (Math.min(...zs) + Math.max(...zs)) / 2;
+      const span = Math.max(ext, Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs)) * 1.5, s = Math.min(W, H) / span;
+      const T = p => [W / 2 + (p[0] - cx) * s, H / 2 + (p[2] - cz) * s];
+      gt.globalAlpha = .35; gt.strokeStyle = fg; gt.lineWidth = 1; gt.setLineDash([2, 4]); const o = T([0, 0, 0]);
+      gt.beginPath(); gt.moveTo(0, o[1]); gt.lineTo(W, o[1]); gt.moveTo(o[0], 0); gt.lineTo(o[0], H); gt.stroke(); gt.setLineDash([]); gt.globalAlpha = .8; gt.fillStyle = fg; gt.font = '11px sans-serif';
+      gt.fillText('x', W - 12, o[1] - 5); gt.fillText('z', o[0] + 5, H - 5); gt.globalAlpha = 1;
+      // what the camera can see, as a wedge on the floor
+      const half = D(C.fov) / 2 * (view.clientWidth || 300) / Math.max(1, view.clientHeight || 240), fy = Math.atan2(f[2], f[0]), L = span * .62, c0 = T(cam.pos);
+      gt.beginPath(); gt.moveTo(...c0); gt.lineTo(c0[0] + Math.cos(fy - half) * L * s, c0[1] + Math.sin(fy - half) * L * s); gt.lineTo(c0[0] + Math.cos(fy + half) * L * s, c0[1] + Math.sin(fy + half) * L * s); gt.closePath();
+      gt.fillStyle = 'rgba(245,158,11,.16)'; gt.fill(); gt.strokeStyle = 'rgba(245,158,11,.55)'; gt.stroke();
+      S.F.map((F, k) => ({F, k, y: F.p.reduce((a, i) => a + P[i][1], 0) / F.p.length})).sort((a, b) => a.y - b.y).forEach(({F, k}) => {
+        gt.beginPath(); F.p.forEach((i, j) => j ? gt.lineTo(...T(P[i])) : gt.moveTo(...T(P[i]))); gt.closePath(); gt.globalAlpha = fade(k) ? .8 : .15; gt.fillStyle = F.color; gt.fill();
+        gt.globalAlpha = fade(k) ? .9 : .2; gt.strokeStyle = fg; gt.lineWidth = .8; gt.stroke(); }); gt.globalAlpha = 1;
+      gt.strokeStyle = fg; gt.globalAlpha = .7; for (const [a, b] of S.L){ gt.beginPath(); gt.moveTo(...T(P[a])); gt.lineTo(...T(P[b])); gt.stroke(); } gt.globalAlpha = 1;
+      // the camera: a small orange triangle and an arrow where it looks
+      const ax = Math.cos(fy), az = Math.sin(fy), tip = [c0[0] + ax * 34, c0[1] + az * 34];
+      gt.strokeStyle = '#f59e0b'; gt.fillStyle = '#f59e0b'; gt.lineWidth = 2; gt.beginPath(); gt.moveTo(...c0); gt.lineTo(...tip); gt.stroke();
+      gt.beginPath(); gt.moveTo(...tip); gt.lineTo(tip[0] - ax * 9 - az * 5, tip[1] - az * 9 + ax * 5); gt.lineTo(tip[0] - ax * 9 + az * 5, tip[1] - az * 9 - ax * 5); gt.fill();
+      gt.beginPath(); gt.moveTo(c0[0] + ax * 6, c0[1] + az * 6); gt.lineTo(c0[0] - ax * 6 - az * 6, c0[1] - az * 6 + ax * 6); gt.lineTo(c0[0] - ax * 6 + az * 6, c0[1] - az * 6 - ax * 6); gt.fill(); }
+    function drawView(){ const [W, H] = size(view, .75), fg = getComputedStyle(box).color || '#ddd', {f, r, u} = basis(), fl = (H / 2) / Math.tan(D(C.fov) / 2), near = ext * .02;
+      gv.strokeStyle = fg; gv.globalAlpha = .3; gv.strokeRect(.5, .5, W - 1, H - 1); gv.globalAlpha = 1;
+      const toCam = p => { const d = sub(p, cam.pos); return [dot(d, r), dot(d, u), dot(d, f)]; }, scr = q => [W / 2 + q[0] / q[2] * fl, H / 2 - q[1] / q[2] * fl];
+      const clip = poly => { const out = []; for (let i = 0; i < poly.length; i++){ const a = poly[i], b = poly[(i + 1) % poly.length], ia = a[2] >= near, ib = b[2] >= near;
+          if (ia) out.push(a); if (ia !== ib){ const t = (near - a[2]) / (b[2] - a[2]); out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, near]); } } return out; };
+      const Q = P.map(toCam);
+      S.F.map((F, k) => ({F, k, z: F.p.reduce((a, i) => a + Q[i][2], 0) / F.p.length})).sort((a, b) => b.z - a.z).forEach(({F, k}) => { const poly = clip(F.p.map(i => Q[i])); if (poly.length < 3) return;
+        gv.beginPath(); poly.forEach((q, j) => j ? gv.lineTo(...scr(q)) : gv.moveTo(...scr(q))); gv.closePath(); gv.globalAlpha = fade(k) ? .88 : .15; gv.fillStyle = F.color; gv.fill();
+        gv.globalAlpha = fade(k) ? .6 : .15; gv.strokeStyle = '#fff'; gv.lineWidth = .8; gv.stroke(); }); gv.globalAlpha = 1;
+      gv.strokeStyle = fg; gv.lineWidth = 1.4; for (const [a, b] of S.L){ const seg = clip([Q[a], Q[b]]); if (seg.length >= 2){ gv.beginPath(); gv.moveTo(...scr(seg[0])); gv.lineTo(...scr(seg[1])); gv.stroke(); } }
+      if (S.showLabels) Q.forEach((q, i) => { if (q[2] < near || (sel >= 0 && !S.F[sel].p.includes(i))) return; const [x, y] = scr(q); if (x < -20 || y < -20 || x > W + 20 || y > H + 20) return;
+        const t = S.names && S.names[i] != null ? S.names[i] : String(S.base + i); gv.font = 'bold 10px sans-serif'; const w = Math.max(16, gv.measureText(t).width + 8);
+        gv.fillStyle = 'rgba(20,20,28,.8)'; gv.beginPath(); gv.arc(x, y, w / 2, 0, 7); gv.fill(); gv.fillStyle = '#fff'; gv.textAlign = 'center'; gv.textBaseline = 'middle'; gv.fillText(t, x, y + .5); gv.textAlign = 'start'; gv.textBaseline = 'alphabetic'; });
+      gv.fillStyle = fg; gv.globalAlpha = .5; gv.fillRect(W / 2 - 5, H / 2 - .5, 10, 1); gv.fillRect(W / 2 - .5, H / 2 - 5, 1, 10); gv.globalAlpha = 1;
+      const v3 = v => '<bdi dir="ltr">(' + v.map(R2).join(', ') + ')</bdi>'; info.style.whiteSpace = 'normal';
+      info.innerHTML = '<div dir="rtl" style="text-align:right">مكانها (Position): ' + v3(cam.pos) + '</div><div dir="rtl" style="text-align:right">بتبص ناحية (Front): ' + v3(f) + '</div><div dir="rtl" style="text-align:right">yaw <bdi dir="ltr">' + cam.yaw.toFixed(0) + '°</bdi> · pitch <bdi dir="ltr">' + cam.pitch.toFixed(0) + '°</bdi></div>'; }
+    const draw = () => { drawTop(); drawView(); };
+    const move = k => { const {f, r} = basis(); const d = {w: f, s: f.map(v => -v), a: r.map(v => -v), d: r}[k]; cam.pos = cam.pos.map((v, i) => v + d[i] * step); draw(); };
+    [['w', 'W · قدام'], ['s', 'S · ورا'], ['a', 'A · شمال'], ['d', 'D · يمين']].forEach(([k, t]) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.style.flex = '1';
+      let rep = 0; const stop = () => { clearInterval(rep); rep = 0; };
+      b.addEventListener('pointerdown', e => { e.preventDefault(); move(k); stop(); rep = setInterval(() => move(k), 90); }); ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stop)); wasd.appendChild(b); });
+    const mk = (html, fn, cls) => { const b = document.createElement('button'); b.type = 'button'; if (cls) b.className = cls; b.innerHTML = html; b.onclick = fn; fb.appendChild(b); return b; };
+    mk('رجّع الكاميرا', () => { cam = {pos: V0.pos.slice(), yaw: V0.yaw, pitch: V0.pitch}; draw(); });
+    S.F.forEach((F, k) => mk(`<i style="background:${F.color}"></i>${esc(F.name || ('وش ' + (k + 1)))}`, () => { sel = sel === k ? -1 : k; [...fb.querySelectorAll('.ag3f')].forEach((b, j) => b.classList.toggle('on', j === sel)); draw(); }, 'ag3f'));
+    let last = null; view.tabIndex = 0;
+    view.addEventListener('pointerdown', e => { view.setPointerCapture(e.pointerId); last = [e.clientX, e.clientY]; });
+    view.addEventListener('pointermove', e => { if (!last) return; cam.yaw += (e.clientX - last[0]) * .35; cam.pitch = Math.max(-89, Math.min(89, cam.pitch - (e.clientY - last[1]) * .35)); last = [e.clientX, e.clientY]; draw(); });
+    ['pointerup', 'pointercancel'].forEach(ev => view.addEventListener(ev, () => { last = null; }));
+    view.addEventListener('keydown', e => { const k = e.key.toLowerCase(); if ('wasd'.includes(k) && k.length === 1){ move(k); e.preventDefault(); } });
+    view.style.cursor = 'grab'; box._draw = draw; requestAnimationFrame(draw); return box; }
   // the answer is redrawn many times while it streams in: keep one built scene per source and move it back in, so it keeps its rotation
   const S3_CACHE = new Map();
   function s3mount(root){ (root || document).querySelectorAll('.ag3slot').forEach(slot => { const key = slot.dataset.s || ''; let box = S3_CACHE.get(key);
-      if (!box){ const S = s3parse(decodeURIComponent(key)); if (!S){ slot.outerHTML = '<div class="ag3wait">⚠️ الشكل اللي المساعد وصفه مش مفهوم، فماقدرتش أرسمه.</div>'; return; } box = s3build(S); S3_CACHE.set(key, box); if (S3_CACHE.size > 40) S3_CACHE.delete(S3_CACHE.keys().next().value); }
+      if (!box){ const S = s3parse(decodeURIComponent(key)); if (!S){ slot.outerHTML = '<div class="ag3wait">⚠️ الشكل اللي المساعد وصفه مش مفهوم، فماقدرتش أرسمه.</div>'; return; } box = S.cam ? s3cam(S) : s3build(S); S3_CACHE.set(key, box); if (S3_CACHE.size > 40) S3_CACHE.delete(S3_CACHE.keys().next().value); }
       slot.replaceWith(box); if (box._draw) requestAnimationFrame(box._draw); }); }
   new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && (n.classList.contains('ag3slot') || n.querySelector('.ag3slot'))){ s3mount(); return; } })
     .observe(document.documentElement, {childList: true, subtree: true});
