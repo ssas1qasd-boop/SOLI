@@ -3347,7 +3347,8 @@ const robot = (() => {
       grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
       grip.addEventListener('keydown', e => { const h = box.getBoundingClientRect().height; if (e.key === 'ArrowUp'){ setH(h + 40, true); e.preventDefault(); } if (e.key === 'ArrowDown'){ setH(h - 40, true); e.preventDefault(); } });
       window.addEventListener('resize', () => { const h = box.getBoundingClientRect().height; if (h) setH(h); }); } }
-  const DIAG_RULE = ' لو رسمة هتوضح الفكرة (خطوات، أو حاجة رايحة لحاجة، أو أجزاء متوصلة)، ارسمها في بلوك ```diagram وكل سطر فيه «اسم -> اسم : كلمتين»، والأسماء قصيرة (من 1 لـ 4 كلمات)، ومن 2 لـ 8 أسطر. مثال:\n```diagram\nnew -> malloc : تحجز\nmalloc -> Constructor : بعدها\n```\nالبنش هيحوّلها لرسمة. ماتقولش إنك مش بتعرف ترسم.';
+  const SCENE_RULE = ' لو السؤال عن شكل ثلاثي الأبعاد أو نقط في الفراغ (هرم، مكعب، مثلث بنقطه، كاميرا، محاور x y z، indices)، ارسمه في بلوك ```scene3d فيه JSON بس، والبنش هيحوّله لرسمة 3D تفاعلية تتلف بالإصبع. الشكل: {"title":"اسم قصير","points":[[x,y,z],...],"faces":[{"p":[رقم,رقم,رقم],"name":"وش يمين","color":"#4a9eff"}],"lines":[[رقم,رقم]],"start":0}. الأرقام في faces و lines هي ترتيب النقطة في points وبتبدأ من 0؛ و start هو رقم أول نقطة اللي يتكتب على الرسمة (مثلاً 7 لو النقط هي 7 و 8 و 9 في البرنامج). لو البرنامج فيه vertices أو indices حقيقية استخدمها هي بالظبط ماتألّفش غيرها. من 3 لـ 60 نقطة. JSON سليم من غير تعليقات. مثال هرم:\n```scene3d\n{"title":"هرم","points":[[-0.5,-0.5,0.5],[0.5,-0.5,0.5],[0.5,-0.5,-0.5],[-0.5,-0.5,-0.5],[0,0.5,0]],"faces":[{"p":[0,1,4],"name":"وش أمامي"},{"p":[1,2,4],"name":"وش يمين"},{"p":[2,3,4],"name":"وش خلفي"},{"p":[3,0,4],"name":"وش شمال"},{"p":[0,1,2,3],"name":"القاعدة"}]}\n```\nماتكتبش HTML ولا JavaScript للرسم، وماتقولش إنك مش بتعرف ترسم 3D.';
+  const DIAG_RULE = ' لو رسمة هتوضح الفكرة (خطوات، أو حاجة رايحة لحاجة، أو أجزاء متوصلة)، ارسمها في بلوك ```diagram وكل سطر فيه «اسم -> اسم : كلمتين»، والأسماء قصيرة (من 1 لـ 4 كلمات)، ومن 2 لـ 8 أسطر. مثال:\n```diagram\nnew -> malloc : تحجز\nmalloc -> Constructor : بعدها\n```\nالبنش هيحوّلها لرسمة. ماتقولش إنك مش بتعرف ترسم.' + SCENE_RULE;
   const FREE_RULES = 'انت مساعد ذكي ودود بيتكلم بالعامية المصرية. جاوب على أي سؤال من معلوماتك العامة، بوضوح وبجمل قصيرة. لو مش متأكد من معلومة قول كده بصراحة، وماتألّفش مصادر. اكتب الكود بين علامات `.' +
     ' لو في الرسالة «من البرنامج المفتوح»، ابدأ بأقرب حاجة في البرنامج ده للسؤال: اذكر السطر أو الخطوة (مثلاً «خطوة 12» أو «سطر 18») واستخدم أسماء المتغيرات والدوال اللي فيه، وبعدها كمّل من معلوماتك العامة. ماتكتبش كود جديد من برّه البرنامج إلا لو السؤال طالب كده صراحة.' + DIAG_RULE;
   const freeCtx = q => { try { return '\n\nمن البرنامج المفتوح «' + P.title + '» (أقرب سطور وخطوات للسؤال، من التشغيل الحقيقي):\n' + AG.context(q, {short: true}); } catch (e) { return ''; } };
@@ -3424,8 +3425,88 @@ const robot = (() => {
       if (lab) g += `<text x="${(x1 + x2) / 2 + 4}" y="${up ? A.y - 4 : (y1 + y2) / 2 + 4}" font-size="10.5" fill="#f59e0b" text-anchor="start">${t(lab)}</text>`; }
     N.forEach((n, k) => { const p = pos[k]; g += `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${BH}" rx="7" fill="rgba(37,99,235,.18)" stroke="#60a5fa"/><text x="${p.x + p.w / 2}" y="${p.y + BH / 2 + 4}" font-size="11.5" font-weight="700" text-anchor="middle" fill="currentColor">${t(n)}</text>`; });
     return `<div class="agdiag"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:460px;display:block;margin:6px auto;color:inherit" direction="ltr">${g}</svg></div>`; }
+  // ---------- ```scene3d: an interactive 3D shape inside a chat answer (the model only DESCRIBES it as JSON; the bench draws it, nothing it writes is run)
+  const S3_COLORS = ['#4a9eff', '#e8678f', '#6cc56c', '#f2a03d', '#a98bd8', '#3fc1c9', '#d9b44a', '#8d7660'];
+  function s3parse(src){
+    let o; const s = String(src).trim().replace(/^[^{]*/, '').replace(/[^}]*$/, '');
+    try { o = JSON.parse(s); } catch (e){ try { o = JSON.parse(s.replace(/,\s*([\]}])/g, '$1').replace(/'/g, '"')); } catch (e2){ return null; } }
+    if (!o || !Array.isArray(o.points) || !o.points.length) return null;
+    const num = v => (typeof v === 'number' && isFinite(v)) ? v : (isFinite(parseFloat(v)) ? parseFloat(v) : 0);
+    const P = o.points.slice(0, 120).map(p => Array.isArray(p) ? [num(p[0]), num(p[1]), num(p[2])] : (p && typeof p === 'object' ? [num(p.x), num(p.y), num(p.z)] : null));
+    if (P.some(p => !p)) return null;
+    const ok = i => Number.isInteger(i) && i >= 0 && i < P.length;
+    const F = (Array.isArray(o.faces) ? o.faces : []).slice(0, 80).map((f, k) => { const idx = Array.isArray(f) ? f : (f && (f.p || f.idx || f.points)); if (!Array.isArray(idx) || idx.length < 3 || !idx.every(ok)) return null;
+      return {p: idx, color: (f && typeof f.color === 'string' && /^#[0-9a-f]{3,8}$|^[a-z]{3,20}$/i.test(f.color)) ? f.color : S3_COLORS[k % S3_COLORS.length], name: (f && f.name ? String(f.name) : '').slice(0, 30)}; }).filter(Boolean);
+    const Ln = (Array.isArray(o.lines) ? o.lines : []).slice(0, 120).filter(l => Array.isArray(l) && l.length >= 2 && ok(l[0]) && ok(l[1]));
+    const names = Array.isArray(o.labels) ? o.labels.map(x => String(x).slice(0, 12)) : null;
+    const base = Number.isInteger(o.start) ? o.start : 0;   // first point number (e.g. 7 when the shape uses indices 7, 8, 9)
+    return {title: String(o.title || '').slice(0, 60), P, F, L: Ln, names, base, showLabels: o.labels !== false, axes: o.axes !== false};
+  }
+  function s3css(){ if (document.getElementById('ag3dcss')) return; const st = document.createElement('style'); st.id = 'ag3dcss';
+    st.textContent = '.ag3d{margin:8px 0;border:1px solid var(--rule,#444);border-radius:10px;padding:6px;background:var(--paper,transparent)}' +
+      '.ag3d canvas{display:block;width:100%;touch-action:none;border-radius:8px;cursor:grab}.ag3d .ag3t{font-weight:700;font-size:.85rem;margin:2px 4px 4px}' +
+      '.ag3d .ag3b{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.ag3d .ag3b button{font:inherit;font-size:.78rem;padding:4px 9px;border-radius:8px;border:1px solid var(--rule,#555);background:transparent;color:inherit;cursor:pointer}' +
+      '.ag3d .ag3b button.on{border-color:#f59e0b;color:#f59e0b}.ag3d .ag3b i{display:inline-block;width:.8em;height:.8em;border-radius:3px;margin-inline-end:5px;vertical-align:-1px}' +
+      '.ag3d .ag3i{font-size:.78rem;margin-top:6px;direction:ltr;text-align:left;font-family:monospace;white-space:pre-wrap;opacity:.9}.ag3d .ag3h{font-size:.72rem;opacity:.6;margin:4px 4px 0}' +
+      '.ag3wait{font-size:.8rem;opacity:.7;margin:6px 0}'; document.head.appendChild(st); }
+  function s3build(S){ s3css();
+    const box = document.createElement('div'); box.className = 'ag3d'; box.dir = 'rtl';
+    box.innerHTML = (S.title ? `<div class="ag3t">${esc(S.title)}</div>` : '') + '<canvas></canvas><div class="ag3h">اسحب بإصبعك عشان تلفه، وإصبعين عشان تقرّب.</div><div class="ag3b"></div><div class="ag3i" dir="ltr" hidden></div>';
+    const cv = box.querySelector('canvas'), bar = box.querySelector('.ag3b'), info = box.querySelector('.ag3i'), g = cv.getContext('2d');
+    // fit the shape: centre of its box at 0, biggest side = 2
+    const mn = [0, 1, 2].map(a => Math.min(...S.P.map(p => p[a]))), mx = [0, 1, 2].map(a => Math.max(...S.P.map(p => p[a])));
+    const c = mn.map((v, a) => (v + mx[a]) / 2), sz = Math.max(1e-6, ...mx.map((v, a) => v - mn[a])) / 2;
+    const V = S.P.map(p => p.map((v, a) => (v - c[a]) / sz)); const RM = Math.max(.2, ...V.map(p => Math.hypot(...p)));   // fits at any angle
+    const V0 = {yaw: -.6, pitch: .45, zoom: 1}; let st = {...V0}, auto = false, sel = -1, raf = 0;
+    const lab = i => S.names && S.names[i] != null ? S.names[i] : String(S.base + i);
+    const fmt = p => '(' + p.map(v => (+v.toFixed(3)).toString()).join(', ') + ')';
+    function draw(){ const dpr = window.devicePixelRatio || 1, W = cv.clientWidth || 300, H = Math.round(Math.min(320, W * .8));
+      if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)){ cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.height = H + 'px'; }
+      g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+      const fg = getComputedStyle(box).color || '#ddd', cy = Math.cos(st.yaw), sy = Math.sin(st.yaw), cp = Math.cos(st.pitch), sp = Math.sin(st.pitch), R = Math.min(W, H) * .4 * st.zoom / RM;
+      const pr = p => { const x1 = p[0] * cy + p[2] * sy, z1 = -p[0] * sy + p[2] * cy, y2 = p[1] * cp - z1 * sp, z2 = p[1] * sp + z1 * cp, k = 4 / (4 - z2);
+        return {x: W / 2 + x1 * R * k, y: H / 2 - y2 * R * k, z: z2}; };
+      if (S.axes){ const o = pr([-c[0] / sz, -c[1] / sz, -c[2] / sz]); [['x', '#e5534b', [1, 0, 0]], ['y', '#57ab5a', [0, 1, 0]], ['z', '#539bf5', [0, 0, 1]]].forEach(([n, col, d]) => {
+        const e = pr(d.map((v, a) => (v * 1.3) + (-c[a] / sz))); g.strokeStyle = col; g.globalAlpha = .55; g.lineWidth = 1.2; g.setLineDash([4, 3]); g.beginPath(); g.moveTo(o.x, o.y); g.lineTo(e.x, e.y); g.stroke();
+        g.setLineDash([]); g.globalAlpha = .9; g.fillStyle = col; g.font = '11px sans-serif'; g.fillText(n, e.x + 3, e.y - 3); }); g.globalAlpha = 1; }
+      const Q = V.map(pr);
+      const faces = S.F.map((f, k) => ({f, k, z: f.p.reduce((s, i) => s + Q[i].z, 0) / f.p.length})).sort((a, b) => a.z - b.z);
+      for (const {f, k} of faces){ g.beginPath(); f.p.forEach((i, j) => j ? g.lineTo(Q[i].x, Q[i].y) : g.moveTo(Q[i].x, Q[i].y)); g.closePath();
+        g.globalAlpha = sel < 0 ? .72 : (sel === k ? .92 : .14); g.fillStyle = f.color; g.fill(); g.globalAlpha = sel < 0 || sel === k ? .95 : .3; g.strokeStyle = sel === k ? '#fff' : f.color; g.lineWidth = sel === k ? 2 : 1; g.stroke(); }
+      g.globalAlpha = .85; g.strokeStyle = fg; g.lineWidth = 1.5; for (const [a, b] of S.L){ g.beginPath(); g.moveTo(Q[a].x, Q[a].y); g.lineTo(Q[b].x, Q[b].y); g.stroke(); } g.globalAlpha = 1;
+      const hot = sel >= 0 ? new Set(S.F[sel].p) : null;
+      if (S.showLabels) Q.forEach((q, i) => { if (hot && !hot.has(i)) return; const t = lab(i); g.font = 'bold 11px sans-serif'; const w = Math.max(18, g.measureText(t).width + 10);
+        g.fillStyle = 'rgba(20,20,28,.85)'; g.strokeStyle = fg; g.lineWidth = 1; g.beginPath(); g.arc(q.x, q.y, w / 2, 0, 7); g.fill(); g.stroke(); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, q.x, q.y + .5); g.textAlign = 'start'; g.textBaseline = 'alphabetic'; });
+      else Q.forEach(q => { g.fillStyle = fg; g.beginPath(); g.arc(q.x, q.y, 2.5, 0, 7); g.fill(); }); }
+    function loop(){ raf = 0; if (!box.isConnected && !box._kept) return; if (auto){ st.yaw += .012; draw(); raf = requestAnimationFrame(loop); } }
+    function setAuto(v){ auto = v; bAuto.classList.toggle('on', v); if (v && !raf) raf = requestAnimationFrame(loop); }
+    function showFace(k){ sel = sel === k ? -1 : k; [...bar.querySelectorAll('.ag3f')].forEach((b, j) => b.classList.toggle('on', j === sel));
+      if (sel < 0){ info.hidden = true; } else { const f = S.F[sel]; info.hidden = false; info.textContent = 'indices: ' + f.p.map(lab).join(', ') + '\n' + f.p.map(i => lab(i) + ': ' + fmt(S.P[i])).join('\n'); } draw(); }
+    const mk = (html, fn, cls) => { const b = document.createElement('button'); b.type = 'button'; if (cls) b.className = cls; b.innerHTML = html; b.onclick = fn; bar.appendChild(b); return b; };
+    const bAuto = mk('لف تلقائي', () => setAuto(!auto));
+    mk('رجّعه زي ما كان', () => { st = {...V0}; setAuto(false); if (sel >= 0) showFace(sel); else draw(); });
+    S.F.forEach((f, k) => mk(`<i style="background:${f.color}"></i>${esc(f.name || ('وش ' + (k + 1)))}`, () => showFace(k), 'ag3f'));
+    // drag = rotate, two fingers / wheel = zoom
+    const pts = new Map(); let last = null, pinch = 0;
+    cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); setAuto(false); last = [e.clientX, e.clientY];
+      if (pts.size === 2){ const [a, b] = [...pts.values()]; pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); } });
+    cv.addEventListener('pointermove', e => { if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pts.size === 2){ const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) st.zoom = Math.max(.4, Math.min(4, st.zoom * d / pinch)); pinch = d; draw(); return; }
+      st.yaw += (e.clientX - last[0]) * .01; st.pitch = Math.max(-1.5, Math.min(1.5, st.pitch + (e.clientY - last[1]) * .01)); last = [e.clientX, e.clientY]; draw(); });
+    const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = 0; if (pts.size === 1) last = [...pts.values()][0]; };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    cv.addEventListener('wheel', e => { e.preventDefault(); st.zoom = Math.max(.4, Math.min(4, st.zoom * (e.deltaY < 0 ? 1.1 : .9))); draw(); }, {passive: false});
+    box._draw = draw; requestAnimationFrame(draw); return box; }
+  // the answer is redrawn many times while it streams in: keep one built scene per source and move it back in, so it keeps its rotation
+  const S3_CACHE = new Map();
+  function s3mount(root){ (root || document).querySelectorAll('.ag3slot').forEach(slot => { const key = slot.dataset.s || ''; let box = S3_CACHE.get(key);
+      if (!box){ const S = s3parse(decodeURIComponent(key)); if (!S){ slot.outerHTML = '<div class="ag3wait">⚠️ الشكل اللي المساعد وصفه مش مفهوم، فماقدرتش أرسمه.</div>'; return; } box = s3build(S); S3_CACHE.set(key, box); if (S3_CACHE.size > 40) S3_CACHE.delete(S3_CACHE.keys().next().value); }
+      slot.replaceWith(box); if (box._draw) requestAnimationFrame(box._draw); }); }
+  new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && (n.classList.contains('ag3slot') || n.querySelector('.ag3slot'))){ s3mount(); return; } })
+    .observe(document.documentElement, {childList: true, subtree: true});
+  window.addEventListener('resize', () => S3_CACHE.forEach(b => { if (b.isConnected && b._draw) b._draw(); }));
   function mdToHtml(t){ const pre = []; t = String(t).replace(/```([\w+-]*)\n?([\s\S]*?)(```|$)/g, (m, lang, c) => { pre.push({lang: (lang || '').toLowerCase(), c: c.replace(/\n+$/, ''), done: m.endsWith('```') && m.length > 6}); return '\u0000' + (pre.length - 1) + '\u0000'; });
-    return mdInline(t).replace(/\u0000(\d+)\u0000(<br>)?/g, (m, n) => { const p = pre[+n]; if (p.lang === 'diagram'){ const svg = p.done ? diagramSvg(p.c) : ''; return svg || `<pre class="agpre" dir="ltr"><code>${esc(p.c)}</code></pre>`; } return `<pre class="agpre" dir="ltr"><code>${esc(p.c)}</code></pre>`; }); }
+    return mdInline(t).replace(/\u0000(\d+)\u0000(<br>)?/g, (m, n) => { const p = pre[+n]; if (p.lang === 'scene3d') return p.done ? `<div class="ag3slot" data-s="${encodeURIComponent(p.c)}"></div>` : '<div class="ag3wait">🧊 بيرسم شكل 3D…</div>'; if (p.lang === 'diagram'){ const svg = p.done ? diagramSvg(p.c) : ''; return svg || `<pre class="agpre" dir="ltr"><code>${esc(p.c)}</code></pre>`; } return `<pre class="agpre" dir="ltr"><code>${esc(p.c)}</code></pre>`; }); }
   function mdInline(t){ return esc(t).replace(/`([^`]+)`/g, '<code dir="ltr">$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
       .replace(/^\s*[-•*]\s+(.*)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m.replace(/\n/g, '') + '</ul>')
       .replace(/خطوة\s+(\d+)((?:\s*(?:و|،|,)\s*\d+)*)/g, (m, n, more) => { const ns = [n, ...(more.match(/\d+/g) || [])].map(Number); return ns.every(x => x >= 1 && x <= ST.length) ? ns.map(x => `<button type="button" class="agchip" data-k="${x - 1}">خطوة ${x} · سطر ${ST[x - 1].ln}</button>`).join(' ') : m; }).replace(/\n/g, '<br>'); }
