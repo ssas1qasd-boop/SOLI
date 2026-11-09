@@ -1,0 +1,8 @@
+vector: found London after 5 string comparisons
+cityMap["London"].Population = 8900000
+std::map order: Berlin Lol-town London Melbourne Paris
+size before cityMap["Cairo"] = 5, after = 6 (Cairo population 0)
+find("Tokyo") == end(): not there, nothing inserted, size 6
+at("Tokyo") threw std::out_of_range
+after erase("Cairo"): size 5
+unordered_map has 5 cities, Berlin = 3500000

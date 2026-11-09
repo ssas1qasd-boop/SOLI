@@ -639,7 +639,7 @@ body{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
   const cache = {}; let shownDay = null;
   const progs = () => { try { return (window.__bench && window.__bench.progs()) || []; } catch (e) { return []; } };
   const cur = () => { const ps = progs(); const id = location.hash.slice(1); return ps.find(p => p.id === id) || ps[0] || null; };
-  const dname = d => d >= 8 ? 'الأسبوع 3 · اليوم ' + (d - 7) : 'الأسبوع 2 · اليوم ' + d;
+  const dname = d => d >= 15 ? 'الأسبوع 4 · اليوم ' + (d - 14) : d >= 8 ? 'الأسبوع 3 · اليوم ' + (d - 7) : 'الأسبوع 2 · اليوم ' + d;
   const label = () => { const p = cur(); dayEl.textContent = p ? dname(shownDay && !pane.hidden ? shownDay : p.day) : ''; };
   setInterval(label, 1000);
   function openProg(p){

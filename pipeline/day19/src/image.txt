@@ -1,0 +1,6 @@
+corners: [[0, 0], [2, 0], [0, 1]] -> [[0, 0], [4, 0], [1, 1]]
+t = 0.0 : A @ point on edge = [4. 0.]  same point between the new corners = [4. 0.]
+t = 0.25 : A @ point on edge = [3.25 0.25]  same point between the new corners = [3.25 0.25]
+t = 0.5 : A @ point on edge = [2.5 0.5]  same point between the new corners = [2.5 0.5]
+t = 1.0 : A @ point on edge = [1. 1.]  same point between the new corners = [1. 1.]
+area before = 1.0  after = 2.0  |det(A)| = 2.0

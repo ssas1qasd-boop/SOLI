@@ -1,0 +1,212 @@
+@d16_p1
+[Setup] h none
+inc ctl #include × 3 | iostream · string · cstring | المكتبات | 1-3
+main ctl main() | L39 · return 0 | البداية | 39-40, 57-58
+row
+[Templates (blueprints)] v zgpu
+sw prg template Swap(T&, T&) | temp = a ; a = b · b = temp | تبديل لأي نوع | 5-11
+mx prg template Max(T, T) | [Max<T>] · a > b ? a : b | الأكبر | 13-18
+sp prg Max<const char*> | strcmp(a, b) > 0 | تخصيص للنصوص | 20-25
+pl prg int Max(int, int) | plain function wins | الدالة العادية | 27-31
+ad prg template Add(A, B) | auto → a + b | نوعين مختلفين | 33-37
+[main] v zram
+sx ram Swap ints · strings | x=2 y=1 ; right · left | التبديل | 41-46
+mc ram Max × 4 | (3, 9) · <int>(3, 9) ; (2.5, 1.5) · apple / banana | مين اتنادى؟ | 48-53
+ac ram Add · sizeof | 2.5 · 3 ; 8 bytes · 4 bytes | النوع الناتج | 55-56
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> sw sx
+> pl mc plain
+> mx mc
+> sp mc banana
+> ad ac
+> sx term
+> mc term
+> ac term
+
+@d16_p2
+[Setup] h none
+inc ctl #include × 2 | iostream · cstddef | المكتبات | 1-2
+main ctl main() | L25 · return 0 | البداية | 25-26, 36-37
+row
+[Templates (deduction)] v zgpu
+cnt prg Count(T (&)[N]) | return N | العدد من النوع | 4-8
+sum prg Sum(const T (&)[N]) | for i < N · total += | المجموع | 10-17
+sh prg Show(const T&) | value · sizeof(T) | الحجم | 19-23
+[main] v zram
+arr ram int[5] · float[3] | 4 8 15 16 23 ; 0.5 1.5 2.5 | المصفوفات | 27-28
+cs ram Count · Sum | 5 · 66 ; 3 · 4.5 | T و N اتعرفوا لوحدهم | 29-30
+shw ram Show × 4 | 42 · 3.5 · 'A' ; <long long>(42) | الحجم بالبايت | 32-35
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> arr cs
+> cnt cs
+> sum cs
+> sh shw
+> cs term
+> shw term
+
+@d16_t1
+[Setup (once)] h none
+main ctl main() | L53 | البداية | 53-54
+glfw ctl GLFW | glfwInit · window 960 × 480 | الشباك والـ Context | 55-68
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 70-71
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 139-142, 154-156
+row
+[CPU · RAM] v zram
+vtx ram vertices[] · indices[] | 4 corners (xy + rgb) ; 6 indices | المستطيل | 73-82
+mat ram glm::mat4 × 2 | rotate(90.0f) ← radians! ; rotate(radians(90)) · scale 0.5 | الغلطة والصح | 97-103
+chk ram corner × M | (0.5, -0.25) · degrees(90) | نتيجة الحساب | 105-110
+src ram Shader text (2 strings) | transform * vec4(aPos, 0, 1) | الـ Shaders | 112-131
+[GPU · VAO] v zgpu
+vao vao VAO + vbo + ebo | slot 0 ← xy · slot 1 ← rgb | الوصف | 83-95
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | uniform transform | الـ uniform | 133-137
+win out Window "GLM" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 2 viewports | glUniformMatrix4fv · value_ptr ; glDrawElements 6 | الرسم | 144-152
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · glm × 3 | المكتبات | 1-7
+cs prg CompileShader() | create → source → compile | Shader واحد | 9-34
+cr prg CreateShader() | attach × 2 → link | الـ Program | 36-51
+cl ctl Cleanup | glDeleteProgram ; glfwTerminate | التنضيف | 158-161
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx vao
+> cs cr
+> src prog
+> mat chk
+> mat prog transform
+> vao prog
+> prog win
+~ loop dr
+> chk term
+
+@d16_t2
+[Setup] h none
+inc ctl #include × 5 | iostream · glm · matrix_transform ; type_ptr · string_cast | المكتبات | 1-6
+main ctl main() | L8 · return 0 | البداية | 8-9, 33-34
+row
+[Vectors] v zram
+vec ram vec3 a · b | (1, 2, 3) · (4, 5, 6) | المتجهات | 10-11
+vop prg + · dot · cross · length | (5, 7, 9) · 32 ; (-3, 6, -3) · 3.74 | العمليات | 12-14
+[Matrices] v zgpu
+tr ram T = translate(7, 3, 5) | T * (1, -1, 2, 1) = (8, 2, 7) | الإزاحة | 16-17
+mem vao value_ptr(T) · T[3] | p[12..14] = 7, 3, 5 ; column-major | ترتيب الذاكرة | 19-21
+ord ram T * R vs R * T | (7, 4, 5) · (-3, 8, 5) | الترتيب بيفرق | 23-28
+ch prg rotate(T, …) == T * R | yes · sizeof 12 · 64 | السلسلة | 30-32
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> vec vop
+> tr mem
+> tr ord
+> ord ch
+> vop term
+> mem term
+> ord term
+> ch term
+
+@d16_m1
+[Setup] h none
+np ctl import numpy as np | np.array · @ | NumPy | 1
+row
+[Column by column] v zram
+ab ram A (2×3) · B (3×4) | shapes → AB is (2, 4) | الأشكال | 3-5
+col prg for k: A @ b_k | (5, -1) · (2, 1) · (0, -2) · (6, 4) | عمود عمود | 7-11
+st ram column_stack → AB | same as A @ B: True | الحاصل | 12-15
+ba ram try B @ A | mismatch → ValueError | الترتيب مش مسموح | 17-20
+cp ram A @ (B @ x) = (AB) @ x | (-1, -9) ; R4 → R3 → R2 | التركيب | 22-24
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np ab
+> ab col
+> col st
+> ab ba
+> st cp
+> col term
+> st term
+> ba term
+> cp term
+
+@d16_m2
+[Setup] h none
+np ctl import numpy as np | np.zeros · np.outer | NumPy | 1
+row
+[Three ways to multiply] v zram
+ab ram A · B · shapes | m, n = 2, 3 ; n, k = 3, 4 | المصفوفات | 3-6
+w1 prg 1. row · column | A[i, :] @ B[:, j] | صف × عمود | 8-13
+w2 prg 2. A × each column | column_stack | عمود عمود | 15-17
+w3 prg 3. sum of outers | outer(A[:, p], B[p, :]) | مجموع outer | 19-23
+eq ram all equal · count | True ; 24 = 2 × 4 × 3 | نفس النتيجة | 25-26
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np ab
+> ab w1
+> ab w2
+> ab w3
+> w1 eq
+> w2 eq
+> w3 eq
+> w1 term
+> w2 term
+> w3 term
+> eq term
+
+@d16_c1
+[Setup] h none
+inc ctl #include × 2 | iostream · cmath | المكتبات | 1-2
+main ctl main() | L29 · return 0 | البداية | 29-30, 52-53
+row
+[Types + helpers] v zgpu
+ty vao Vec4 · Mat4 | x, y, z, w ; Vec4 row[4] | الأنواع | 4-7, 14-17
+dt prg Dot(a, b) | x·x + y·y + z·z + w·w | الضرب النقطي | 9-12
+ap prg Apply(M, v) | 4 dots, one per row | صف × متجه | 19-22
+tl prg Translation(x, y, z) | 4th column = (x, y, z, 1) | الإزاحة | 24-27
+[main] v zram
+d ram dot((1, 2, 3), (4, 5, 6)) | 32 | ضرب نقطي | 31-33
+rw ram T rows · v | -0.5 · -1.25 · 0 · 1 | كل صف = رقم | 35-37
+fr m2 4 frames | sin(frame · π/2) · 0.5 ; triangle moves ± 0.5 | الحركة | 39-51
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ty dt
+> dt d
+> tl rw
+> dt rw
+> ap fr
+> tl fr
+> d term
+> rw term
+> fr term
+
+@d16_c2
+[Setup] h none
+inc ctl #include × 2 | iostream · cmath | المكتبات | 1-2
+main ctl main() | L19 · return 0 | البداية | 19-20, 32-33
+row
+[Types + helpers] v zgpu
+ty vao Vec3 | x, y, z | النقطة | 4-7
+ds prg Distance(a, b) | sqrt(dx² + dy² + dz²) | المسافة | 9-12
+ed prg Edges(name, v) | 3 edges of the triangle | الأضلاع | 14-17
+[main] v zram
+me ram mesh[3] | (0,0,0) · (3,0,0) · (0,4,0) | المثلث الأصلي | 21-22
+al ram move all 3 | + (2, 1, -5) each | الشكل ماتغيرش | 24-27
+on ram move only #1 | one point moves | الشكل اتشوّه | 29-31
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ty me
+> ds ed
+> ed me
+> me al
+> me on
+> me term
+> al term
+> on term

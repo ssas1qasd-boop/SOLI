@@ -1,0 +1,7 @@
+iterator:        1 2 3 4 5 
+reverse_iterator: 5 4 3 2 1
+after erasing even values: 1 3 5
+sum of values with const_iterator = 7, map["Cherno"] = 5
+std::map<CityRecord, int> after 3 inserts: size 2
+  Paris 2100000 -> 259
+  Berlin 3500000 -> 865

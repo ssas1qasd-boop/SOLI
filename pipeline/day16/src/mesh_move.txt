@@ -1,0 +1,3 @@
+original    : edges 3, 5, 4
+move all 3  : edges 3, 5, 4
+move only #1: edges 7.14143, 7.68115, 4

@@ -1,0 +1,4 @@
+"stressed" -> naive "desserts", in_place "desserts", with_swap "desserts", std::reverse "desserts"
+"racecar" -> naive "racecar", in_place "racecar", with_swap "racecar", std::reverse "racecar"
+"" -> naive "", in_place "", with_swap "", std::reverse ""
+why check empty(): size_t 0 - 1 = 18446744073709551615

@@ -1,0 +1,12 @@
+time = 0 s
+  container 1 (translate, rotate) corner (0.5, 0.5) -> (1, 0)
+  swapped (rotate, translate)  corner (0.5, 0.5) -> (1, 0)
+  container 2 (scale by sin)    corner (0.5, 0.5) -> (-0.5, 0.5)
+time = 0.7854 s
+  container 1 (translate, rotate) corner (0.5, 0.5) -> (0.5, 0.21)
+  swapped (rotate, translate)  corner (0.5, 0.5) -> (0.71, 0.71)
+  container 2 (scale by sin)    corner (0.5, 0.5) -> (-0.15, 0.85)
+time = 1.5708 s
+  container 1 (translate, rotate) corner (0.5, 0.5) -> (0, 0)
+  swapped (rotate, translate)  corner (0.5, 0.5) -> (0, 1)
+  container 2 (scale by sin)    corner (0.5, 0.5) -> (0, 1)

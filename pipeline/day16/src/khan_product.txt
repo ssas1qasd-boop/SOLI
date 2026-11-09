@@ -1,0 +1,12 @@
+A is (2, 3)  B is (3, 4)  -> A @ B is (2, 4)
+A @ b1 = [ 5 -1]
+A @ b2 = [2 1]
+A @ b3 = [ 0 -2]
+A @ b4 = [6 4]
+AB =
+[[ 5  2  0  6]
+ [-1  1 -2  4]]
+same as A @ B: True
+B @ A: matmul: Input operand 1 has a mismatch in its core dimension 0, with gufunc signature
+T then S: A @ (B @ x) = [-1 -9]  (AB) @ x = [-1 -9]
+x lives in R4, B @ x in R3, A @ (B @ x) in R2

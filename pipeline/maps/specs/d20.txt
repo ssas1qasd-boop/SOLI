@@ -1,0 +1,207 @@
+@d20_p1
+[Setup] h none
+inc ctl #include × 4 | iostream · string ; algorithm · utility | المكتبات | 1-4
+main ctl main() | L52 · return 0 | البداية | 52-53, 64-65
+row
+[namespace reverse_string] v zgpu
+nv prg naive(input) | new string · loop from the end | النسخة الجديدة | 6-15
+ip prg in_place(input) | left / right · temp swap | في نفس المكان | 17-32
+sw prg with_swap(input) | std::swap(left++, right--) | بالـ swap | 34-43
+sr prg reverse_string(input) | std::reverse(begin, end) | المكتبة | 45-50
+[main] v zram
+wd m2 3 words × 4 ways | stressed → desserts ; racecar · "" | المقارنة | 54-61
+zr ram size_t zero - 1 | 18446744073709551615 | ليه empty() | 62-63
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> nv wd
+> ip wd
+> sw wd
+> sr wd
+> wd term
+> zr term
+
+@d20_p2
+[Setup] h none
+inc ctl #include × 6 | iostream · string · vector ; algorithm · memory · utility | المكتبات | 1-6
+main ctl main() | L29 · return 0 | البداية | 29-30, 51-52
+row
+[Tools] v zgpu
+rs vao struct Resource | constructor acquire · destructor release | الـ RAII | 8-13
+sq prg constexpr Square(x) | x * x at compile time | وقت الـ compile | 15-18
+tp prg template SortAndPrint<T> | std::sort → print | قالب واحد | 20-27
+[main] v zram
+sc m2 scope { file · unique_ptr texture } | acquire × 2 → release in reverse | الترتيب | 31-36
+mv ram std::move(big) | same buffer · old 0 · new 1000 | النقل | 38-41
+ce ram static_assert + constexpr | Square(12) = 144 | الثابت | 43-45
+tt ram SortAndPrint<int> · <string> | 1 2 5 9 ; auto glm map vector | نوعين | 47-50
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> rs sc
+> sq ce
+> tp tt
+> sc term
+> mv term
+> ce term
+> tt term
+
+@d20_t1
+[Setup (once)] h none
+main ctl main() | L107 | البداية | 107-108
+glfw ctl GLFW | glfwInit · window 960 × 360 | الشباك والـ Context | 109-122
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 124-125
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 226-229, 241-243
+row
+[CPU · RAM] v zram
+mf ram struct Matrix4f · Identity() | float m[4][4] | المصفوفة | 53-61
+rot prg RotationX · Y · Z · Scale | cos / sin by hand | بإيدنا | 63-92
+mul prg operator* | row × column | الضرب | 94-105
+vtx ram GLfloat vertices[] | 36 corners · 6 colours | المكعب | 127-170
+cmp m2 3 models vs glm::rotate | R(40°) * Scale(0.45) ; biggest difference tiny | المقارنة | 182-196
+src ram Shader text (2 strings) | model * vec4(aPos, 1) · flip z | الـ Shaders | 198-218
+[GPU · VAO] v zgpu
+vao vao VAO + vbo | slot 0 ← xyz · slot 1 ← rgb | الوصف | 171-180
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | uniform model · DEPTH_TEST | الـ uniform | 220-224
+win out Window "Hand Rotations" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 3 viewports | glUniformMatrix4fv GL_TRUE · glDrawArrays 36 | الرسم | 231-239
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · cmath · glm × 2 | المكتبات | 1-7
+cs prg CompileShader() | create → source → compile | Shader واحد | 9-34
+cr prg CreateShader() | attach × 2 → link | الـ Program | 36-51
+cl ctl Cleanup | glDeleteProgram ; glfwTerminate | التنضيف | 245-248
+~ main glfw
+~ glfw glad
+~ glad loop
+> mf rot
+> rot cmp
+> mul cmp
+> vtx vao
+> cs cr
+> src prog
+> cmp prog model
+> vao prog
+> prog win
+~ loop dr
+> cmp term
+
+@d20_t2
+[Setup] h none
+inc ctl #include × 4 | iostream · cmath · glm ; matrix_transform | المكتبات | 1-4
+main ctl main() | L79 · return 0 | البداية | 79-80, 95-96
+row
+[Matrices by hand] v zgpu
+mf ram struct Matrix4f · Identity() | float m[4][4] | المصفوفة | 6-14
+rot prg RotationX · Y · Z · Scale | cos / sin | الدوران | 16-45
+tr prg Translation(x, y, z) | last column | الإزاحة | 47-52
+mul prg operator* | row × column | الضرب | 54-65
+ap prg Apply(name, M, x, y, z) | M * (x, y, z, 1) · round | التطبيق | 67-77
+[main] v zram
+ch m2 Rz * Ry * Rx vs glm | difference 1.19e-07 ; (0, 1, 0) → (0, 1, 0) | السلسلة | 81-89
+o ram RotationZ(90) * (3, 0, 0) | → (0, 3, 0) around the origin | حوالين الأصل | 91
+pv m2 T(3) R T(-3) | centre stays (3, 0, 0) ; corner → (3, 1, 0) | حوالين نفسه | 92-94
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> mf rot
+> rot ch
+> mul ch
+> tr pv
+> rot o
+> ap o
+> ap pv
+> ch term
+> o term
+> pv term
+
+@d20_m1
+[Setup] h none
+np ctl import numpy as np | column_stack · @ · det | NumPy | 1
+row
+[Two maps] v zram
+fn prg reflect_y · stretch_y | (-x, y) ; (x, 2y) | الدالتين | 4-9
+rs ram R · S from e1, e2 | [[-1,0],[0,1]] · [[1,0],[0,2]] | المصفوفتين | 12-16
+c m2 C = S @ R | [[-1,0],[0,2]] · reflect first | التركيب | 18-19
+tri ram triangle @ C.T | (3,2) (-3,2) (3,-2) → (-3,4) (3,4) (-3,-4) | الشكل | 21-23
+dt m2 det R · S · C | -1 · 2 · -2 → mirrored | المحدد | 24
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np fn
+> fn rs
+> rs c
+> c tri
+> rs dt
+> c dt
+> rs term
+> c term
+> tri term
+> dt term
+
+@d20_m2
+[Setup] h none
+np ctl import numpy as np | outer · allclose · det | NumPy | 1
+row
+[Projection on a line] v zram
+vx ram v = (2, 1) · x = (1, 3) | the line · the point | المعطيات | 3-4
+pj ram (x·v / v·v) v | (2, 1) | القانون | 6-7
+p m2 P = v vᵀ / v·v | [[0.8, 0.4], [0.4, 0.2]] ; P @ x = (2, 1) | المصفوفة | 9-13
+pr m2 checks | P @ P = P ; x − Proj ⊥ v ; det P = 0 | الخواص | 15-18
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np vx
+> vx pj
+> vx p
+> p pr
+> pj pr
+> pj term
+> p term
+> pr term
+
+@d20_c1
+[Setup] h none
+inc ctl #include × 2 | iostream · cmath | المكتبات | 1-2
+main ctl main() | L4 · return 0 | البداية | 4-5, 35-36
+row
+[main] v zram
+pt ram px[3] · py[3] | (1,0) (0,1) (-1,0) | المثلث | 6-7
+t30 ram turn 30 | 0.5236 copied twice per line | رقم سحري | 9-16
+t60 ram turn 60 | 1.0472 · same loop again | تكرار | 18-25
+t90 ram turn 90 | 1.5708 · same loop again | تكرار تاني | 27-34
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> pt t30
+> pt t60
+> pt t90
+> t30 term
+> t60 term
+> t90 term
+
+@d20_c2
+[Setup] h none
+inc ctl #include × 2 | iostream · cmath | المكتبات | 1-2
+main ctl main() | L38 · return 0 | البداية | 38-39, 43-44
+row
+[Named pieces] v zgpu
+pnt vao struct Point · Pi | x, y · 3.14159265 | الأسماء | 4-9
+rad prg ToRadians(degrees) | degrees * Pi / 180 | التحويل | 11-14
+rz prg RotateZ(p, radians) | x c − y s ; x s + y c | الدوران | 16-20
+r2 prg Round2(v) | 2 decimals | التقريب | 22-25
+pt prg PrintTurn(points, n, deg) | loop once for every angle | الطباعة | 27-36
+[main] v zram
+tri m2 triangle · { 30, 60, 90 } | same 3 lines as before | الاستدعاء | 40-42
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> pnt rz
+> rad pt
+> rz pt
+> r2 pt
+> pnt tri
+> pt tri
+> tri term

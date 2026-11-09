@@ -1,0 +1,8 @@
+Vertex fixed[5]: always 5 vertices, 60 bytes
+size 3: (1, 2, 3) (4, 5, 6) (7, 8, 9)
+size 3: (1, 2, 0) (4, 5, 0) (7, 8, 0)
+after for (Vertex v ...) v.x = 100: first x = 1
+after for (Vertex& v ...) v.x = 100: first x = 100
+size 2: (100, 2, 0) (100, 8, 0)
+&vertices[1] - &vertices[0] = 12 bytes (contiguous)
+size 0:

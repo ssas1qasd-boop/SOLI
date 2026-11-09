@@ -1,0 +1,7 @@
+1. GLFW mouse (600, 150) -> window from the bottom (600, 450)
+2. NDC (0.5, 0.5)
+3. focal length 2.41421, view space ray (0.276142, 0.207107, -1)
+   Anton (inverse projection): (0.276142, 0.207107, -1)
+4. object view z -5, intersection in view space (1.38071, 1.03553, -5)
+5. new world position (1.38071, 1.03553, 0)
+check: the object projects back to mouse (600, 150)

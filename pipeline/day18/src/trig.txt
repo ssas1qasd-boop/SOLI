@@ -1,0 +1,6 @@
+start (0.866, 0.5) at 30 degrees, turn 45
+formula:      (0.259, 0.966)
+cos/sin(75):  (0.259, 0.966)
+60 frames x 6 degrees = 360 degrees (one full turn per second at 60 fps)
+hand Rx, Ry (row by row) vs glm::rotate: biggest difference 5.96046e-08
+Rx row 1 = (0, 0, -1), Ry row 2 = (-1, 0, 0)

@@ -1,0 +1,5 @@
+chain Rz * Ry * Rx vs glm: biggest difference 1.19209e-07
+chain * (0, 1, 0) = (0, 1, 0)
+RotationZ(90) * (3, 0, 0)          = (0, 3, 0)
+T(3) R T(-3) * centre (3, 0, 0)    = (3, 0, 0)
+T(3) R T(-3) * corner (4, 0, 0)    = (3, 1, 0)

@@ -1,0 +1,5 @@
+a + b = (5, 7, 9)  3 x 4 bytes = 12
+a . b = 32
+p (int, 2) = (3, 4)  2 x 4 bytes = 8
+p . p = 25
+std::pair pair(1, 2.5): second = 2.5, std::vector list = {1, 2, 3}: size 3

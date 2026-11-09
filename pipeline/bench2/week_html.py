@@ -8,7 +8,8 @@ SHIM = '''<script>(() => { const real = window.fetch ? window.fetch.bind(window)
     if (el) { const t = n.endsWith('.json') ? el.textContent : JSON.parse(el.textContent);
       return Promise.resolve(new Response(t, {status: 200, headers: {'Content-Type': n.endsWith('.json') ? 'application/json' : 'text/html'}})); }
     return real ? real(u, ...a) : Promise.reject(new Error(n)); }; })();</script>'''
-for week, days in ((2, range(1, 8)), (3, range(8, 15))):
+for week, days in ((2, range(1, 8)), (3, range(8, 15)), (4, range(15, 21))):
+    if not all(__import__('os').path.exists(f'out_days/data_day{d}.json') for d in days): continue
     blobs, names = [], []
     for d in days:
         nm = f'data_day{d}.json'; names.append(nm)
@@ -16,6 +17,8 @@ for week, days in ((2, range(1, 8)), (3, range(8, 15))):
         mp = f'maps_day{d}.html'
         blobs.append(f'<script type="application/json" id="f-{mp}">' + json.dumps(open('out_days/' + mp).read(), ensure_ascii=False).replace('</', '<\\/') + '</script>')
     body = src.replace(f'const names = {names_old};', f'const names = {json.dumps(names)};', 1)
+    KICK = {2: 'الأسبوع 2 · محاضرات الرسم والـ CAD · كل الأيام', 3: 'الأسبوع 3 · محاضرات الرسم والـ CAD · كل الأيام', 4: 'الأسبوع 4 · Templates والتحويلات · كل الأيام'}
+    body = body.replace('الأسبوع 2 و 3 · محاضرات الرسم والـ CAD · كل الأيام', KICK[week]).replace('<title>بنش كل الأيام</title>', f'<title>بنش الأسبوع {week}</title>')
     if body.lstrip().lower().startswith('<meta charset="utf-8">'): body = body.lstrip()[len('<meta charset="utf-8">'):]
     out = SKEL + SHIM + ''.join(blobs) + body
     fn = f'/home/claude/bench2/Bench_Week{week}.html'

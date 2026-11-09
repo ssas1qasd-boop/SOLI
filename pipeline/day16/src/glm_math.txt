@@ -1,0 +1,10 @@
+a + b = vec3(5.000000, 7.000000, 9.000000)
+dot(a, b) = 32, cross(a, b) = vec3(-3.000000, 6.000000, -3.000000)
+length(a) = 3.74166
+translate(7, 3, 5) * (1, -1, 2, 1) = vec4(8.000000, 2.000000, 7.000000, 1.000000)
+value_ptr: p[12], p[13], p[14] = 7, 3, 5  (column-major: the 4th column is stored last)
+T[3] (the 4th column) = vec4(7.000000, 3.000000, 5.000000, 1.000000)
+T * R * (1, 0, 0, 1) = (7, 4, 5)
+R * T * (1, 0, 0, 1) = (-3, 8, 5)
+glm::rotate(T, ...) == T * R ? yes
+sizeof(glm::vec3) = 12, sizeof(glm::mat4) = 64

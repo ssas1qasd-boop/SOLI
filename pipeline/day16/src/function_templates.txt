@@ -1,0 +1,8 @@
+Swap ints: x = 2, y = 1
+Swap strings: s1 = right, s2 = left
+  [plain int Max] 9
+  [Max<T>] 9
+  [Max<T>] 2.5
+  [Max<const char*> special] banana
+Add(2, 0.5) = 2.5, Add(1, 2) = 3
+sizeof(Add(2, 0.5)) = 8, sizeof(Add(1, 2)) = 4

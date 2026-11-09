@@ -1,0 +1,7 @@
+(T o S)(x + y)      = [ 3 -6 -3 12]
+(T o S)(x) + (T o S)(y) = [ 3 -6 -3 12]
+(T o S)(c x)        = [20 -4 16 44]
+c (T o S)(x)        = [20 -4 16 44]
+move(x + y) = [1 2 8]  move(x) + move(y) = [3 2 8]
+move(0) = [2 0 0] -> not linear: the origin moved
+4x4 with w = 1: [3 2 3 1]  the same move, now a matrix product

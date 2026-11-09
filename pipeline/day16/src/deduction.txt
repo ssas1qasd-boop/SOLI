@@ -1,0 +1,6 @@
+Count(numbers) = 5, Sum = 66
+Count(halves) = 3, Sum = 4.5
+42 (4 bytes)
+3.5 (8 bytes)
+A (1 bytes)
+42 (8 bytes)

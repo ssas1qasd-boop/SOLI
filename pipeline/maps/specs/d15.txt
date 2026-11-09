@@ -1,0 +1,208 @@
+@d15_p1
+[Setup] h none
+inc ctl #include × 2 | iostream · string | المكتبات | 1-2
+main ctl main() | L22 · return 0 | البداية | 22-23, 34-35
+row
+[Templates (blueprints)] v zgpu
+pr prg template Print(T) | __PRETTY_FUNCTION__ | نسخة لكل نوع | 4-8
+bg prg template Biggest(T, T) | a > b ? a : b | الأكبر | 10-14
+nc prg template NeverCalled(T) | value.ThisDoesNotExist() | محدش ناداها | 16-20
+[main] v zram
+calls ram Print × 5 | 5 · 5.5f · "Hello" ; <std::string> · <int>(7.9) | 4 أنواع | 24-28
+big ram Biggest × 3 | (3, 9) = 9 · (2.5, 1.5) ; <std::string> banana | الأكبر | 30-32
+msg ram NeverCalled message | no error | مفيش نسخة | 33
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> pr calls
+> bg big
+> nc msg
+> calls term
+> big term
+> msg term
+
+@d15_p2
+[Setup] h none
+inc ctl #include × 3 | iostream · string · array | المكتبات | 1-3
+main ctl main() | L23 · return 0 | البداية | 23-24, 41-42
+row
+[class Array<T, N>] v zgpu
+cls vao T m_Data[N] | N fixed at compile time | البيانات | 5-10
+gs prg GetSize · operator[] | return N ; m_Data[index] | الدوال | 11-21
+[main] v zram
+ai ram Array<int, 5> | i * 10 · sizeof 20 | أرقام | 25-28
+af ram Array<float, 3> | 1.5f · sizeof 12 | float | 30-32
+as ram Array<std::string, 2> | Cherno · Cem · sizeof 64 | نصوص | 34-37
+sa ram std::array<int, 5> | same size 20 | المكتبة | 39-40
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> cls ai
+> gs ai
+> cls af
+> cls as
+> ai term
+> af term
+> as term
+> sa term
+
+@d15_t1
+[Setup (once)] h none
+main ctl main() | L90 | البداية | 90-91
+glfw ctl GLFW | glfwInit · window 640 × 640 | الشباك والـ Context | 92-105
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 107-108
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 163-166, 177-179
+row
+[CPU · RAM] v zram
+vtx ram GLfloat house[] | 9 corners (x, y) | البيت | 110-114
+mat ram Mat3 × 3 | Rotate(90) ; T(c) R T(-c) · T S | المصفوفات | 124-133
+src ram Shader text (2 strings) | u_M * vec3(aPos, 1) | الـ Shaders | 135-152
+[GPU · VAO] v zgpu
+vao vao VAO + vbo | slot 0 ← xy | الوصف | 115-122
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | u_M · u_Color | الـ uniforms | 154-161
+win out Window "Transform 2D" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 4 houses | glUniformMatrix3fv · glUniform4f ; glDrawArrays 9 | الرسم | 168-176
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · iostream · string · cmath | المكتبات | 1-5
+cs prg CompileShader() | create → source → compile | Shader واحد | 7-32
+cr prg CreateShader() | attach × 2 → link | الـ Program | 34-49
+mf prg Mat3 · Multiply | Translate · Rotate · Scale | المصفوفات 3×3 | 51-80
+pm prg PrintMat() | 3 rows | الطباعة | 82-88
+cl ctl Cleanup | glDeleteProgram ; glfwTerminate | التنضيف | 181-184
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx vao
+> mf mat
+> cs cr
+> src prog
+> mat prog u_M
+> vao prog
+> prog win
+~ loop dr
+> mat term
+> pm term
+
+@d15_t2
+[Setup] h none
+inc ctl #include × 2 | iostream · cmath | المكتبات | 1-2
+main ctl main() | L58 · return 0 | البداية | 58-59, 80-81
+row
+[Types + helpers] v zgpu
+ty vao Mat3 · Vec3 | x, y, w | الأنواع | 4-12
+mu prg Multiply · Apply | row × column | الضرب | 14-29
+ro prg Rotate · Transpose | cos −sin ; swap i, j | الدوران | 31-44
+rd prg Round · Print | 3 decimals | الطباعة | 46-56
+[main] v zram
+m ram M = T(3, 2) R(90) | | التركيب | 60-63
+pd ram position w = 1 · direction w = 0 | (3, 3) · (0, 1) | النقطة والاتجاه | 65-70
+tr ram R(30) R(30)^T | identity ; R^T = R(-30) | العكس | 72-73
+sk ram skew = R(45) S R(-45) | (1, 1) → (2, 2) | الـ Skew | 75-79
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ty m
+> mu m
+> ro m
+> mu pd
+> ro tr
+> mu sk
+> rd term
+> m term
+> pd term
+> tr term
+> sk term
+
+@d15_m1
+[Setup] h none
+np ctl import numpy as np | np.array · @ | NumPy | 1
+row
+[Composition] v zram
+mt ram rotation · shear · î · ĵ | [[0, -1], [1, 0]] · [[1, 1], [0, 1]] | المصفوفات | 3-6
+one prg one vector at a time | shear @ (rotation @ î) = (1, 1) ; ĵ → (-1, 0) | خطوة خطوة | 8-10
+cmp ram composition = shear @ rotation | [[1, -1], [1, 0]] | مصفوفة واحدة | 11-13
+col prg M2 @ columns of M1 | (2, 1) · (0, -2) = M2 @ M1 | عمود عمود | 15-24
+ord ram shear @ R vs R @ shear | same? False | الترتيب بيفرق | 26-30
+as ram (A @ B) @ C = A @ (B @ C) | [[-1, 5], [-1, 3]] | التجميع مسموح | 32-35
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np mt
+> mt one
+> one cmp
+> mt ord
+> one term
+> cmp term
+> col term
+> ord term
+> as term
+
+@d15_m2
+[Setup] h none
+np ctl import numpy · matplotlib | np.array · plt (Agg) | المكتبات | 1-4
+row
+[Grid plot] v zram
+ord ram 2 orders | shear @ R · R @ shear | الترتيبين | 6-8
+grid ram grid lines | k = -3 … 3 ; horizontal + vertical | الشبكة | 10-14
+pl m2 for each order | M @ line · î green · ĵ red | الرسم | 16-28
+sv ram savefig composition.png | 2 panels | الصورة | 29-31
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np ord
+> ord pl
+> grid pl
+> pl sv
+> pl term
+> sv term
+
+@d15_c1
+[Setup] h none
+inc ctl #include <iostream> | std::cout | المكتبة | 1
+main ctl main() | L33 · return 0 | البداية | 33-34, 57-58
+row
+[Types + helpers] v zgpu
+ty vao Vec4 · Mat4 | x, y, z, w ; float m[4][4] | الأنواع | 3-11
+ap prg Apply(M, v) | out[i] += m[i][k] · in[k] | الضرب | 13-21
+tl prg Translate(tx, ty, tz) | 4th column = (tx, ty, tz, 1) | الإزاحة | 23-26
+pr prg Print(name, v) | (x, y, z, w) | الطباعة | 28-31
+[main] v zram
+t ram T = translate(7, 3, 5) | 4 rows | المصفوفة | 35-38
+vx ram vertex w = 1 | (1, -1, 2) → (8, 2, 7) | النقطة بتتحرك | 40-42
+nm ram normal w = 0 | (0, 0, 1) → (0, 0, 1) ; w = 1 (wrong) → (7, 3, 6) | الاتجاه مابيتحركش | 44-49
+fr m2 5 frames | 0% … 100% ; (1, -1, 2) → (8, 2, 7) | الحركة | 51-56
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> tl t
+> t vx
+> ap vx
+> ap nm
+> ap fr
+> pr term
+> t term
+> fr term
+
+@d15_c2
+[Setup] h none
+inc ctl #include × 2 | iostream · cmath | المكتبات | 1-2
+main ctl main() | L38 · return 0 | البداية | 38-39, 48-49
+row
+[Types + helpers] v zgpu
+ty vao Mat4 | float m[4][4] | النوع | 4-7
+mu prg Multiply(a, b) | r[i][j] += a[i][k] · b[k][j] | الضرب | 9-17
+tl prg Translate · RotateZ | (7, 0, 0) ; cos −sin | الإزاحة والدوران | 19-29
+wh prg Where(name, M) | center = column 4 ; nose = col 1 + col 4 | المكان | 31-36
+[main] v zram
+lp m2 angle 0 · 90 · 180 · 270 | T * R → spin in place ; R * T → orbit around 0 | الترتيب بيفرق | 40-47
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ty mu
+> tl lp
+> mu lp
+> wh lp
+> lp term

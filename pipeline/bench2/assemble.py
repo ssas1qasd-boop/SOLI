@@ -17,7 +17,7 @@ for dd in _days:
     nm = f'data_day{dd}.json'; _names.append(nm)
     open('out_days/' + nm, 'w').write(json.dumps({'programs': [p for p in _d['programs'] if p['day'] == dd]}, ensure_ascii=False, separators=(',', ':')))
 import shutil as _sh
-for _d2 in range(1, 15):
+for _d2 in range(1, 21):
     if os.path.exists(f'/home/claude/maps/out/day{_d2}.html'): _sh.copyfile(f'/home/claude/maps/out/day{_d2}.html', f'out_days/maps_day{_d2}.html')
 bootjs = js.replace('(() => {\n', 'window.__benchBoot = () => {\n', 1)
 assert bootjs.rstrip().endswith('})();'); bootjs = bootjs.rstrip()[:-len('})();')] + '};\n'

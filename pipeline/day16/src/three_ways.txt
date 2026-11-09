@@ -1,0 +1,11 @@
+1. row i . column j:
+[[ 5  2  0  6]
+ [-1  1 -2  4]]
+2. A times each column of B:
+[[ 5  2  0  6]
+ [-1  1 -2  4]]
+3. sum of (column p of A) x (row p of B):
+[[ 5  2  0  6]
+ [-1  1 -2  4]]
+all equal to A @ B: True
+multiplications: 24 = 2 x 4 x 3

@@ -1,0 +1,219 @@
+@d18_p1
+[Setup] h none
+inc ctl #include × 2 | iostream · vector | المكتبات | 1-2
+main ctl main() | L23 · return 0 | البداية | 23-24, 51-52
+row
+[Types + helpers] v zgpu
+vx vao struct Vertex | x, y, z | النقطة | 4-7
+op prg operator<< | (x, y, z) | الطباعة | 9-13
+sh prg Show(vertices) | size + every vertex | عرض الـ vector | 15-21
+[main] v zram
+fx ram Vertex fixed[5] | always 5 · 60 bytes | ثابت | 25-26
+pb ram push_back × 3 | (1,2,3) (4,5,6) (7,8,9) | الإضافة | 28-32
+ix ram vertices[i].z = 0 | size 3 · z → 0 | التعديل بالـ index | 34-36
+rf ram copy vs reference | Vertex v → x = 1 ; Vertex& v → x = 100 | النسخة والمرجع | 38-43
+er ram erase · clear | size 2 · 12 bytes apart ; size 0 | الحذف | 45-50
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> vx pb
+> pb ix
+> ix rf
+> rf er
+> op sh
+> sh term
+> fx term
+> rf term
+> er term
+
+@d18_p2
+[Setup] h none
+inc ctl #include × 2 | iostream · vector | المكتبات | 1-2
+main ctl main() | L22 · return 0 | البداية | 22-23, 61-62
+row
+[struct Vertex] v zgpu
+cnt ram int copies = 0 | global counter | العداد | 4
+vx vao Vertex(x, y, z) | constructor | البناء | 6-14, 20
+cp prg copy constructor | copies++ | النسخ | 15-19
+[main] v zram
+pl ram push_back only | capacity 1 → 2 → 4 ; 6 copies | من غير reserve | 24-30
+rs ram reserve + push_back | 3 copies | reserve | 32-38
+em ram reserve + emplace_back | 0 copies | جوه الـ vector على طول | 40-46
+gr m2 100 push_backs | capacity 1 2 4 8 … 128 | بيتضاعف | 48-60
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> cp cnt
+> vx pl
+> cnt pl
+> cnt rs
+> cnt em
+> pl term
+> rs term
+> em term
+> gr term
+
+@d18_t1
+[Setup (once)] h none
+main ctl main() | L53 | البداية | 53-54
+glfw ctl GLFW | glfwInit · window 960 × 400 | الشباك والـ Context | 55-68
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 70-71
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 175-178, 190-192
+row
+[CPU · RAM] v zram
+vtx ram GLfloat vertices[] | 36 corners · 6 colours | المكعب | 73-116
+bas m2 3 basis matrices | identity · rotate y · shear ; columns = i, j, k | الأعمدة = الأساس | 128-133
+mdl m2 3 models + print | tilt * mat4(linear) * scale 0.4 ; (1, 2, 3) → (3, 2, -1) | الـ model | 135-145
+src ram Shader text (2 strings) | model * vec4(aPos, 1) | الـ Shaders | 147-167
+[GPU · VAO] v zgpu
+vao vao VAO + vbo | slot 0 ← xyz · slot 1 ← rgb | الوصف | 117-126
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | uniform model · DEPTH_TEST | الـ uniform | 169-173
+win out Window "Basis 3D" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 3 viewports | glUniformMatrix4fv(value_ptr) · glDrawArrays 36 | الرسم | 180-188
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · glm × 3 | المكتبات | 1-7
+cs prg CompileShader() | create → source → compile | Shader واحد | 9-34
+cr prg CreateShader() | attach × 2 → link | الـ Program | 36-51
+cl ctl Cleanup | glDeleteProgram ; glfwTerminate | التنضيف | 194-197
+~ main glfw
+~ glfw glad
+~ glad loop
+> vtx vao
+> bas mdl
+> cs cr
+> src prog
+> mdl prog model
+> vao prog
+> prog win
+~ loop dr
+> mdl term
+
+@d18_t2
+[Setup] h none
+inc ctl #include × 4 | iostream · cmath · glm ; matrix_transform | المكتبات | 1-4
+main ctl main() | L11 · return 0 | البداية | 11-12, 29-30
+row
+[Helper] v zgpu
+pr prg Print(name, v) | round to 3 decimals | الطباعة | 6-9
+[main] v zram
+m ram M (3 columns) · v | (0,0,-1) (0,1,0) (1,0,0) · (1, 2, 3) | المصفوفة أعمدة | 13-14
+col ram M * v = 1·M[0] + 2·M[1] + 3·M[2] | (3, 2, -1) both | عمود عمود | 16-17
+gl ram glm::rotate(90, y) | column 0 = (0, 0, -1) · column 2 = (1, 0, 0) | نفس الأعمدة | 19-21
+sh m2 shear and order | (5, 2, -1) twice ; M * shear = (3, 2, -3) | التركيب | 23-28
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> m col
+> m gl
+> m sh
+> pr term
+> col term
+> gl term
+> sh term
+
+@d18_m1
+[Setup] h none
+np ctl import numpy as np | @ · shape | NumPy | 1
+row
+[Two maps] v zram
+ab ram A (2 × 3) · B (4 × 2) | S: R3 → R2 ; T: R2 → R4 | الدالتين | 3-10
+ts ram x → S(x) → T(S(x)) | (1, 2, 3) → (5, -1) → (5, -1, 4, 11) | خطوة خطوة | 12-15
+c m2 C = B @ A (4 × 3) | C @ x = T(S(x)) : True | مصفوفة واحدة | 17-20
+er ram A @ B | ValueError : shapes don't fit | الترتيب | 22-25
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np ab
+> ab ts
+> ab c
+> ts c
+> ab er
+> ab term
+> ts term
+> c term
+> er term
+
+@d18_m2
+[Setup] h none
+np ctl import numpy as np | @ · append | NumPy | 1
+row
+[Linear maps] v zram
+ab ram A · B | 2 × 3 · 4 × 2 | المصفوفات | 3-4
+fn prg S · T · TS | A @ x ; B @ y ; T(S(x)) | الدوال | 7-16
+lin m2 linearity checks | TS(x + y) = TS(x) + TS(y) ; TS(4x) = 4 TS(x) | خطي | 19-25
+mv ram move(p) = p + (2, 0, 0) | move(0) = (2, 0, 0) → not linear | الإزاحة | 28-33
+h4 ram 4 × 4 with w = 1 | M @ (1, 2, 3, 1) = (3, 2, 3, 1) | الحل | 35-37
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np ab
+> ab fn
+> fn lin
+> mv h4
+> lin term
+> mv term
+> h4 term
+
+@d18_c1
+[Setup (once)] h none
+main ctl main() | L65 | البداية | 65-66
+glfw ctl GLFW | glfwInit · window 960 × 320 | الشباك والـ Context | 67-80
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 82-83
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 143-146, 158-160
+row
+[CPU · RAM] v zram
+rz prg RotationZ(angle) | struct Matrix4f · rows c -s ; s c | المصفوفة بإيدنا | 51-63
+vtx ram GLfloat vertices[] | 3 corners · rgb | المثلث | 85-89
+snap m2 41 frames · 3 snapshots | angle += 0.0785 · bounce at ±1.5708 ; keep frames 0, 20, 40 | الـ Ping-Pong | 101-115
+src ram Shader text (2 strings) | gRotation * vec4(aPos, 1) | الـ Shaders | 117-136
+[GPU · VAO] v zgpu
+vao vao VAO + vbo | slot 0 ← xyz · slot 1 ← rgb | الوصف | 90-99
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | uniform gRotation | الـ uniform | 138-141
+win out Window "Rotation Z" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 3 viewports | glUniformMatrix4fv GL_TRUE · glDrawArrays 3 | الرسم | 148-156
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · cmath | المكتبات | 1-5
+cs prg CompileShader() | create → source → compile | Shader واحد | 7-32
+cr prg CreateShader() | attach × 2 → link | الـ Program | 34-49
+cl ctl Cleanup | glDeleteProgram ; glfwTerminate | التنضيف | 162-165
+~ main glfw
+~ glfw glad
+~ glad loop
+> rz snap
+> vtx vao
+> cs cr
+> src prog
+> snap prog gRotation
+> vao prog
+> prog win
+~ loop dr
+> snap term
+
+@d18_c2
+[Setup] h none
+inc ctl #include × 4 | iostream · cmath · glm ; matrix_transform | المكتبات | 1-4
+main ctl main() | L8 · return 0 | البداية | 8-9, 37-38
+row
+[Helper] v zgpu
+r prg R(v) | round to 3 decimals | التقريب | 6
+[main] v zram
+ad m2 30° + 45° formula | (0.866, 0.5) → (0.259, 0.966) = cos/sin(75) | قانون الجمع | 10-16
+fr ram 60 frames × 6° | 360 degrees | دورة في الثانية | 18-21
+rxy m2 hand Rx · Ry vs glm | biggest difference 5.96e-08 ; Rx row 1 = (0, 0, -1) | صف صف | 23-36
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> r ad
+> ad fr
+> fr rxy
+> ad term
+> fr term
+> rxy term

@@ -1,0 +1,8 @@
+Push(1): ok
+Push(2): ok
+Push(3): ok
+Push(4): ok
+Push(5): full
+size 4 of 4, Pop() = 4, size now 3
+Stack<std::string, 2>: Pop() = Cem, then Cherno
+sizeof(Stack<int>) = 20, sizeof(Stack<int, 100>) = 404

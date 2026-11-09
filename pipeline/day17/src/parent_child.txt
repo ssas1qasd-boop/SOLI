@@ -1,0 +1,11 @@
+table at the origin:
+  chair at (1.5, 0)
+  chair at (0, 1.5)
+  chair at (-1.5, 0)
+  chair at (0, -1.5)
+table moved to (10, 5) and turned 45:
+  table at (10, 5)
+  chair at (11.06, 6.06)
+  chair at (8.94, 6.06)
+  chair at (8.94, 3.94)
+  chair at (11.06, 3.94)

@@ -1,0 +1,7 @@
+push_back #1: capacity 1, copies so far 1
+push_back #2: capacity 2, copies so far 3
+push_back #3: capacity 4, copies so far 6
+push_back only:          6 copies
+reserve + push_back:     3 copies
+reserve + emplace_back:  0 copies
+capacity steps for 100 push_backs: 1 2 4 8 16 32 64 128

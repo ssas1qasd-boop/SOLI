@@ -1,0 +1,6 @@
+reflect across the y-axis R = [[-1, 0], [0, 1]]
+stretch y by 2            S = [[1, 0], [0, 2]]
+reflect first, then stretch: C = S @ R = [[-1, 0], [0, 2]]
+triangle corners: [[3, 2], [-3, 2], [3, -2]]
+after C:          [[-3, 4], [3, 4], [-3, -4]]
+det R = -1  det S = 2  det C = -2 (negative = mirrored)

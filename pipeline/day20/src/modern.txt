@@ -1,0 +1,10 @@
+RAII:
+  acquire file
+  acquire texture
+  leaving the scope
+  release texture
+  release file
+move: same buffer? yes, old size now 0, new size 1000
+constexpr Square(12) = 144 (checked by static_assert at compile time)
+one template, two types: 1 2 5 9 
+                         auto glm map vector 

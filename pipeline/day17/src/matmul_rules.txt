@@ -1,0 +1,9 @@
+np.matmul(A, B) = [[4, 1], [2, 2]]  A @ B = [[4, 1], [2, 2]]
+A @ v (v is 1-D, treated as a column) = [1 2]  shape (2,)
+v @ B (v treated as a row) = [8 5]
+v @ v (1-D with 1-D = dot product) = 5
+stack of matrices: (2, 2, 4) @ (2, 4, 2) -> (2, 2, 2)
+broadcast: (2, 2, 4) @ (4, 2) -> (2, 2, 2)
+np.matmul(A, 3): matmul: Input operand 1 does not have enough dimensions (has 0
+A * 3 (multiply every cell) = [[3, 0], [0, 3]]
+np.dot shape: (9, 5, 7, 9, 5, 3)  np.matmul shape: (9, 5, 7, 3)

@@ -1,0 +1,9 @@
+Proj_L(x) = (x . v / v . v) v = [2. 1.]
+P = v v^T / (v . v) =
+[[0.8 0.4]
+ [0.4 0.2]]
+P @ x = [2. 1.]
+P[:, 0] = Proj(e1) = [0.8 0.4]  P[:, 1] = Proj(e2) = [0.4 0.2]
+P @ P == P: True (projecting twice changes nothing)
+x - Proj(x) = [-1.  2.]  dot with v = 0.0 (perpendicular)
+det P = 0.0 (the plane is flattened onto a line)

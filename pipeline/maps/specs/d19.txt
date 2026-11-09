@@ -1,0 +1,235 @@
+@d19_p1
+[Setup] h none
+inc ctl #include × 6 | iostream · string · vector ; map · unordered_map · cstdint | المكتبات | 1-6
+main ctl main() | L15 · return 0 | البداية | 15-16, 62-63
+row
+[Type] v zgpu
+cr vao struct CityRecord | Name · Population · Lat / Long | المدينة | 8-13
+[main] v zram
+vec ram vector<CityRecord> × 5 | loop + == "London" → 5 comparisons | البحث في vector | 17-30
+mp m2 std::map<string, CityRecord> | cityMap[name] = city ; sorted : Berlin … Paris | الـ map | 32-40
+br ram cityMap["Cairo"] | size 5 → 6 · population 0 | [] بيضيف | 42-44
+fd ram find · at · erase | find == end ; at → out_of_range ; size 5 | من غير إضافة | 46-58
+um ram unordered_map | 5 cities · Berlin = 3500000 | الـ hash | 60-61
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> cr vec
+> vec mp
+> mp br
+> br fd
+> mp um
+> vec term
+> mp term
+> br term
+> fd term
+> um term
+
+@d19_p2
+[Setup] h none
+inc ctl #include × 5 | iostream · string · vector ; map · unordered_map | المكتبات | 1-5
+main ctl main() | L18 · return 0 | البداية | 18-19, 57-58
+row
+[Type] v zgpu
+cr vao struct CityRecord | Name · Population | المدينة | 7-11, 16
+lt prg operator< | compare Population only | الترتيب | 12-15
+[main] v zram
+it ram iterator · reverse_iterator | 1 2 3 4 5 ; 5 4 3 2 1 | المشي | 20-27
+er m2 it = erase(it) | evens gone → 1 3 5 | الحذف وانت ماشي | 29-39
+ci ram const_iterator on unordered_map | Cherno 5 + C++ 2 = 7 | القراية بس | 41-48
+fm m2 std::map<CityRecord, int> | Madrid = Berlin (3500000) → size 2 ; Paris 259 · Berlin 865 | المفتاح المتساوي | 50-56
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> it er
+> lt fm
+> cr fm
+> it term
+> er term
+> ci term
+> fm term
+
+@d19_t1
+[Setup (once)] h none
+main ctl main() | L63 | البداية | 63-64
+glfw ctl GLFW | glfwInit · window 1000 × 250 | الشباك والـ Context | 65-78
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 80-81
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 137-140, 152-154
+row
+[CPU · RAM] v zram
+bar prg AddBar() | segment a → b · 6 corners · thickness | الخط | 54-61
+vtx ram vector<float> vertices | grid 7 × 7 · i green · j red | الشبكة | 83-91
+st m2 4 matrices | identity · rotation ; shear * rotation · rotation * shear | التركيب | 104-109
+src ram Shader text (2 strings) | 0.3 * (linear * aPos) | الـ Shaders | 111-130
+[GPU · VAO] v zgpu
+vao vao VAO + vbo | slot 0 ← xy · slot 1 ← rgb | الوصف | 93-102
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | uniform mat2 linear | الـ uniform | 132-135
+win out Window "Composition" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+dr m2 4 viewports | glUniformMatrix2fv · glDrawArrays count | الرسم | 142-150
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · glm × 3 | المكتبات | 1-8
+cs prg CompileShader() | create → source → compile | Shader واحد | 10-35
+cr prg CreateShader() | attach × 2 → link | الـ Program | 37-52
+cl ctl Cleanup | glDeleteProgram ; glfwTerminate | التنضيف | 156-159
+~ main glfw
+~ glfw glad
+~ glad loop
+> bar vtx
+> vtx vao
+> cs cr
+> src prog
+> st prog linear
+> vao prog
+> prog win
+~ loop dr
+> st term
+
+@d19_t2
+[Setup] h none
+inc ctl #include × 2 | iostream · glm | المكتبات | 1-2
+main ctl main() | L9 · return 0 | البداية | 9-10, 30-31
+row
+[Helper] v zgpu
+sh prg Show(name, m) | rows + columns | الطباعة | 4-7
+[main] v zram
+m ram M1 · M2 (columns) | (1,1) (-2,0) · (0,1) (2,0) | المصفوفتين | 11-14
+col ram M2 * each column of M1 | (2, 1) · (0, -2) | عمود عمود | 16-18
+pr m2 M2 * M1 vs M1 * M2 | [2 0 ; 1 -2] ≠ [-2 2 ; 0 2] | الترتيب بيفرق | 19-20
+as m2 (AB)C v = A(BC) v = A(B(Cv)) | (2, 2) three times | التجميع | 22-29
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> m col
+> col pr
+> m pr
+> sh term
+> col term
+> pr term
+> as term
+
+@d19_m1
+[Setup] h none
+np ctl import numpy as np | column_stack · @ | NumPy | 1
+row
+[Linear map] v zram
+t prg T(x) | (x1 + 3x2, 5x2 − x1, 4x1 + x2) | الدالة | 4-6
+e ram e1 · e2 → T(e1) · T(e2) | (1, -1, 4) · (3, 5, 1) | الأساس | 9-11
+a m2 A = [T(e1) T(e2)] | 3 × 2 → R2 to R3 | المصفوفة | 13-16
+ck ram 3 vectors | A @ x = T(x) each time | التأكيد | 18-20
+f ram F(x) = (x1·x2, x1 + 1) | (6, 3) ≠ (0, 7) → not linear | مش خطية | 23-30
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np t
+> t e
+> e a
+> a ck
+> t ck
+> e term
+> a term
+> ck term
+> f term
+
+@d19_m2
+[Setup] h none
+np ctl import numpy as np | @ · det | NumPy | 1
+row
+[Image of a shape] v zram
+a ram A · triangle | [[2,1],[0,1]] · (0,0) (2,0) (0,1) | المصفوفة والشكل | 3-5
+im m2 triangle @ A.T | → (0,0) (4,0) (1,1) | الصورة | 6-7
+ed ram edge points t = 0 … 1 | A @ point = point between new corners | الخط بيفضل خط | 9-12
+ar prg area(c) | abs(cross) / 2 | المساحة | 15-17
+dt m2 area 1 → 2 | = abs(det A) = 2 | المحدد | 20
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ np a
+> a im
+> a ed
+> im ar
+> ar dt
+> im term
+> ed term
+> dt term
+
+@d19_c1
+[Setup] h none
+inc ctl #include × 4 | iostream · cmath · glm ; matrix_transform | المكتبات | 1-4
+main ctl main() | L6 · return 0 | البداية | 6-7, 45-46
+row
+[Camera] v zgpu
+pv vao Projection · View | 45° · 800 / 600 ; eye (0, 0, 5) | الكاميرا | 8-12
+[main] v zram
+ms ram mouse (600, 150) | flip y → (600, 450) | الماوس | 14-17
+nd ram NDC | (0.5, 0.5) | من -1 لـ 1 | 19-22
+ry m2 view space ray | focal 2.41421 → (0.276, 0.207, -1) ; = inverse projection | الشعاع | 24-30
+hit ram hit at object depth | view z -5 → (1.38, 1.04, -5) | التقاطع | 32-35
+wd m2 inverse(View) | world (1.38071, 1.03553, 0) | رجوع للعالم | 37-38
+bk ram project back | → mouse (600, 150) | التأكيد | 40-44
+[Terminal] v zloop
+term out Terminal | $term | اللي اتطبع | -
+~ inc main
+> ms nd
+> nd ry
+> pv ry
+> ry hit
+> hit wd
+> wd bk
+> pv bk
+> ms term
+> nd term
+> ry term
+> hit term
+> wd term
+> bk term
+
+@d19_c2
+[Setup (once)] h none
+main ctl main() | L64 | البداية | 64-65
+glfw ctl GLFW | glfwInit · window 800 × 600 | الشباك والـ Context | 66-79
+glad ctl GLAD | gladLoadGLLoader | دوال الكارت | 81-82
+loop ctl while loop | !glfwWindowShouldClose · Esc | كل لفة = فريم | 192-195, 219-221
+row
+[CPU · RAM] v zram
+drg prg DragTheObject() | mouse → NDC → ray → hit → world | السحب | 54-62
+vtx ram GLfloat vertices[] | 36 corners · 6 colours | المكعب | 84-127
+crs ram GLfloat cross[] | 12 corners · white | علامة الماوس | 139-144
+cam m2 projection · view · 3 positions | cube 1 → (1.38071, 1.03553, 0) | أول سحبة | 156-163
+src ram Shader text (2 strings) | mvp * vec4(aPos, 1) | الـ Shaders | 165-184
+[GPU · VAO] v zgpu
+vao vao VAO + vbo | cube · slot 0 ← xyz · slot 1 ← rgb | الوصف | 128-137
+cvao vao crossVao + crossVbo | same layout | وصف العلامة | 145-154
+[GPU · Program → screen] v zgpu
+prog prg Program (shader) | uniform mvp · DEPTH_TEST | الـ uniform | 186-190
+win out Window "Drag" | $img | اللي بتشوفه | -
+term out Terminal | $term | اللي اتطبع | -
+row
+[Render loop (each frame)] h zloop
+mb ctl left button held | glfwGetCursorPos → DragTheObject | السحب كل فريم | 196-200
+dr m2 3 cubes + cross | projection * view * model ; atMouse · 12 corners | الرسم | 202-217
+row
+[Helpers + cleanup] g3 zloop
+inc ctl #include | glad · GLFW · cmath · glm × 3 | المكتبات | 1-8
+cs prg CompileShader() | create → source → compile | Shader واحد | 10-35
+cr prg CreateShader() | attach × 2 → link | الـ Program | 37-52
+cl ctl Cleanup | glDeleteProgram ; glfwTerminate | التنضيف | 223-226
+~ main glfw
+~ glfw glad
+~ glad loop
+> drg cam
+> vtx vao
+> crs cvao
+> cs cr
+> src prog
+> cam prog mvp
+> vao prog
+> cvao prog
+> prog win
+~ loop mb
+> drg mb
+> mb dr
+~ loop dr
+> cam term
