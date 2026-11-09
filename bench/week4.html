@@ -3358,7 +3358,7 @@ const robot = (() => {
     if (/(ارسم|إرسم|ارسمل|ارسمه|ارسمها|رسم[ةه]|ورين[يى]\s*(شكل|رسم)|وضح\s*بالرسم|بالرسم|draw|diagram|visuali[sz]e)/i.test(q))
       return '\n\n(المستخدم طالب رسمة صراحة: لازم يكون في ردك رسمة. لو الفكرة فيها شكل أو نقط في الفراغ استخدم ```scene3d، ولو خطوات أو حاجة رايحة لحاجة استخدم ```diagram.)';
     return ''; };
-  const DIAG_RULE = ' لو رسمة هتوضح الفكرة (خطوات، أو حاجة رايحة لحاجة، أو أجزاء متوصلة)، ارسمها في بلوك ```diagram وكل سطر فيه «اسم -> اسم : كلمتين»، والأسماء قصيرة (من 1 لـ 4 كلمات)، ومن 2 لـ 8 أسطر. مثال:\n```diagram\nnew -> malloc : تحجز\nmalloc -> Constructor : بعدها\n```\nالبنش هيحوّلها لرسمة. ماتقولش إنك مش بتعرف ترسم.' + SCENE_RULE;
+  const DIAG_RULE = ' لو رسمة هتوضح الفكرة (خطوات، أو حاجة رايحة لحاجة، أو أجزاء متوصلة)، ارسمها في بلوك ```diagram وكل سطر فيه «اسم -> اسم : كلمتين»، والأسماء قصيرة (من 1 لـ 3 كلمات، ومن غير أقواس ولا أرقام طويلة)، وكلام السهم بعد «:» كلمة أو اتنين بس (مش جملة)، ومن 2 لـ 8 أسطر. ماتطلّعش أكتر من 3 أسهم من نفس الاسم: لو الخطوات ورا بعض اعملها سلسلة (أ -> ب، ب -> ج) مش كلها طالعة من اسم واحد. ماتحطش إحداثيات أو أرقام نقط أو indices كأسماء في diagram: دي مكانها بلوك scene3d. ماتكتبش نفس الكلام برّه الرسمة وجواها، وماتحطش أكتر من رسمة diagram واحدة في الرد إلا لو اتطلب. مثال:\n```diagram\nnew -> malloc : تحجز\nmalloc -> Constructor : بعدها\n```\nالبنش هيحوّلها لرسمة. ماتقولش إنك مش بتعرف ترسم.' + SCENE_RULE;
   const FREE_RULES = 'انت مساعد ذكي ودود بيتكلم بالعامية المصرية. جاوب على أي سؤال من معلوماتك العامة، بوضوح وبجمل قصيرة. لو مش متأكد من معلومة قول كده بصراحة، وماتألّفش مصادر. اكتب الكود بين علامات `.' +
     ' لو في الرسالة «من البرنامج المفتوح»، ابدأ بأقرب حاجة في البرنامج ده للسؤال: اذكر السطر أو الخطوة (مثلاً «خطوة 12» أو «سطر 18») واستخدم أسماء المتغيرات والدوال اللي فيه، وبعدها كمّل من معلوماتك العامة. ماتكتبش كود جديد من برّه البرنامج إلا لو السؤال طالب كده صراحة.' + DIAG_RULE;
   const freeCtx = q => { try { return '\n\nمن البرنامج المفتوح «' + P.title + '» (أقرب سطور وخطوات للسؤال، من التشغيل الحقيقي):\n' + AG.context(q, {short: true}); } catch (e) { return ''; } };
@@ -3419,22 +3419,48 @@ const robot = (() => {
     'اعتمد بس على «حقايق البنش» اللي تحت (دي من التشغيل الحقيقي)؛ ماتألّفش أرقام ولا قيم ولا أسطر مش موجودة. لو المعلومة مش موجودة في الحقايق، قول كده بصراحة. ' +
     'لما تذكر خطوة اكتبها بالشكل «خطوة 12» عشان تتحول لزرار. قبل أي رقم معناه عدد اكتب كلمة «عدد» (مثلاً: عدد 3 Buffers)، واستخدم «رقم» للأرقام اللي هي أسماء (VAO رقم 3). ' +
     'خلّي الرد من 4 لـ 10 سطور، ومن غير عناوين كبيرة. الكود اكتبه بين علامتي `.' + DIAG_RULE;
-  function diagramSvg(src){ const E = [], N = []; const id = x => { x = x.trim().slice(0, 28); if (!x) return -1; let k = N.indexOf(x); if (k < 0){ N.push(x); k = N.length - 1; } return k; };
+  function diagramSvg(src){ const E = [], N = []; const id = x => { x = x.trim().slice(0, 40); if (!x) return -1; let k = N.indexOf(x); if (k < 0){ N.push(x); k = N.length - 1; } return k; };
     for (const raw of String(src).split('\n')){ const L = raw.replace(/^[-*•\s]+/, ''); const m = /^(.+?)\s*(?:->|→|=>)\s*(.+?)(?:\s*[:：]\s*(.*))?$/.exec(L);
-      if (m){ const a = id(m[1]), b = id(m[2]); if (a >= 0 && b >= 0) E.push([a, b, (m[3] || '').trim().slice(0, 26)]); } else if (L.trim()) id(L); }
-    if (!N.length || N.length > 14) return '';
+      if (m){ const a = id(m[1]), b = id(m[2]); if (a >= 0 && b >= 0) E.push([a, b, (m[3] || '').trim().slice(0, 30)]); } else if (L.trim()) id(L); }
+    if (!N.length || N.length > 16) return '';
+    // text width without a canvas: Arabic letters are narrower than bold Latin
+    const tw = (s, fs) => [...s].reduce((w, ch) => w + (/[\u0600-\u06ff]/.test(ch) ? .52 : /[A-Z0-9MW]/.test(ch) ? .68 : .56), 0) * fs;
     const lvl = N.map(() => 0); for (let it = 0; it < N.length; it++) for (const [a, b] of E) if (a !== b && lvl[b] < lvl[a] + 1 && lvl[a] + 1 < N.length) lvl[b] = lvl[a] + 1;
-    const rows = []; N.forEach((n, k) => { (rows[lvl[k]] = rows[lvl[k]] || []).push(k); });
-    const W = 330, BH = 30, GY = 52, pos = []; let y = 10;
-    rows.filter(Boolean).forEach(r => { const bw = Math.min(150, (W - 10 * (r.length + 1)) / r.length); r.forEach((k, j) => { pos[k] = {x: 10 + j * (bw + 10) + (W - 10 - r.length * (bw + 10)) / 2, y, w: bw}; }); y += BH + GY; });
-    const H = y - GY + 10; const t = s0 => esc(s0);
-    let g = `<defs><marker id="agar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>`;
-    for (const [a, b, lab] of E){ const A = pos[a], B = pos[b]; const x1 = A.x + A.w / 2, y1 = A.y + BH, x2 = B.x + B.w / 2, y2 = B.y;
-      const up = y2 <= y1; const d = up ? `M${x1} ${A.y + BH / 2} C ${x1 + 60} ${A.y - 20}, ${x2 + 60} ${y2 + BH + 20}, ${x2 + B.w / 2} ${B.y + BH / 2}` : `M${x1} ${y1} L${x2} ${y2}`;
-      g += `<path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" marker-end="url(#agar)" opacity=".75"/>`;
-      if (lab) g += `<text x="${(x1 + x2) / 2 + 4}" y="${up ? A.y - 4 : (y1 + y2) / 2 + 4}" font-size="10.5" fill="#f59e0b" text-anchor="start">${t(lab)}</text>`; }
-    N.forEach((n, k) => { const p = pos[k]; g += `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${BH}" rx="7" fill="rgba(37,99,235,.18)" stroke="#60a5fa"/><text x="${p.x + p.w / 2}" y="${p.y + BH / 2 + 4}" font-size="11.5" font-weight="700" text-anchor="middle" fill="currentColor">${t(n)}</text>`; });
-    return `<div class="agdiag"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:460px;display:block;margin:6px auto;color:inherit" direction="ltr">${g}</svg></div>`; }
+    const byLvl = []; N.forEach((n, k) => { (byLvl[lvl[k]] = byLvl[lvl[k]] || []).push(k); });
+    // at most 3 boxes side by side: a wider level is split into more rows, so names never squeeze into each other
+    // a level with more than 4 names is split into sub-rows that sit close together (one group), the lower one shifted into the gaps
+    const rows = []; byLvl.filter(Boolean).forEach(r => { const per = r.length > 4 ? Math.ceil(r.length / Math.ceil(r.length / 4)) : 4;
+      for (let i = 0; i < r.length; i += per) rows.push({ks: r.slice(i, i + per), sub: i > 0, last: i + per >= r.length, per}); });
+    const W = 340, GX = 12, hasLab = E.some(e => e[2]), GY = hasLab ? 70 : 46, pos = []; let y = 10;
+    // each name: shrink the font, then use two lines, then cut with …
+    const fit = (s, w) => { for (const fs of [12, 11, 10]) if (tw(s, fs) <= w - 10) return {fs, lines: [s]};
+      const words = s.split(/\s+/); if (words.length > 1){ for (const fs of [11, 10]){ let best = null;
+          for (let i = 1; i < words.length; i++){ const l1 = words.slice(0, i).join(' '), l2 = words.slice(i).join(' '); const m = Math.max(tw(l1, fs), tw(l2, fs)); if (!best || m < best.m) best = {m, lines: [l1, l2]}; }
+          if (best.m <= w - 10) return {fs, lines: best.lines}; } }
+      let c = s; while (c.length > 2 && tw(c + '…', 10) > w - 10) c = c.slice(0, -1); return {fs: 10, lines: [c + '…']}; };
+    rows.forEach(R => { const r = R.ks, cols = Math.max(r.length, R.sub ? R.per : 1), bw = Math.min(160, (W - GX * (cols + 1)) / cols), F = r.map(k => fit(N[k], bw)), bh = F.some(f => f.lines.length > 1) ? 40 : 30;
+      let x0 = (W - (r.length * bw + (r.length - 1) * GX)) / 2; if (R.sub && r.length < R.per) x0 = Math.min(x0, (W - (R.per * bw + (R.per - 1) * GX)) / 2 + (bw + GX) / 2);
+      r.forEach((k, j) => { pos[k] = {x: x0 + j * (bw + GX), y, w: bw, h: bh, f: F[j]}; }); y += bh + (R.last ? GY : 12); });
+    let H = y - GY + 10; const t = s0 => esc(s0);
+    let lines = '', labs = ''; const taken = []; N.forEach((n, k) => taken.push({x: pos[k].x - 2, y: pos[k].y - 2, w: pos[k].w + 4, h: pos[k].h + 4}));
+    const hit = r => taken.some(o => r.x < o.x + o.w && o.x < r.x + r.w && r.y < o.y + o.h && o.y < r.y + r.h), notes = [];
+    for (const [a, b, lab] of E){ const A = pos[a], B = pos[b]; const x1 = A.x + A.w / 2, y1 = A.y + A.h, x2 = B.x + B.w / 2, y2 = B.y, up = y2 <= y1;
+      const d = up ? `M${A.x + A.w} ${A.y + A.h / 2} C ${Math.min(W - 4, A.x + A.w + 50)} ${A.y - 24}, ${Math.min(W - 4, B.x + B.w + 50)} ${B.y + B.h + 24}, ${B.x + B.w} ${B.y + B.h / 2}` : `M${x1} ${y1} L${x2} ${y2}`;
+      lines += `<path d="${d}" fill="none" stroke="currentColor" stroke-width="1.6" marker-end="url(#agar)" opacity=".7"/>`;
+      if (!lab) continue;
+      // the edge's words sit on a small dark tag along the arrow; try a few spots, and if every spot overlaps something, put a number on the arrow and the words under the drawing
+      const fs = 10.5, lw = tw(lab, fs) + 10, lh = 16; let spot = null;
+      const cand = up ? [[Math.min(W - lw / 2 - 2, Math.max(A.x + A.w, B.x + B.w) + 8), (A.y + B.y + B.h) / 2]] : [.5, .35, .65, .22, .78].map(f => [x1 + (x2 - x1) * f, y1 + (y2 - y1) * f]);
+      for (const [cx, cy] of cand){ const r = {x: Math.max(2, Math.min(W - lw - 2, cx - lw / 2)), y: cy - lh / 2, w: lw, h: lh}; if (!hit(r)){ spot = r; break; } }
+      if (spot){ taken.push(spot); labs += `<rect x="${spot.x}" y="${spot.y}" width="${spot.w}" height="${lh}" rx="5" fill="rgba(15,17,23,.88)" stroke="rgba(245,158,11,.5)"/><text x="${spot.x + spot.w / 2}" y="${spot.y + lh / 2 + 3.6}" font-size="${fs}" fill="#f59e0b" text-anchor="middle">${t(lab)}</text>`; }
+      else { notes.push(lab); const n = notes.length, [cx, cy] = up ? cand[0] : [x1 + (x2 - x1) * .5, y1 + (y2 - y1) * .5];
+        labs += `<circle cx="${cx}" cy="${cy}" r="8" fill="rgba(15,17,23,.92)" stroke="#f59e0b"/><text x="${cx}" y="${cy + 3.5}" font-size="10" font-weight="700" fill="#f59e0b" text-anchor="middle">${n}</text>`; } }
+    let boxes = ''; N.forEach((n, k) => { const p = pos[k], f = p.f, n2 = f.lines.length;
+      boxes += `<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="7" fill="rgba(23,37,64,.95)" stroke="#60a5fa"/>`;
+      f.lines.forEach((ln, i) => { boxes += `<text x="${p.x + p.w / 2}" y="${p.y + p.h / 2 + (i - (n2 - 1) / 2) * (f.fs + 2) + f.fs * .36}" font-size="${f.fs}" font-weight="700" text-anchor="middle" fill="currentColor">${t(ln)}</text>`; }); });
+    const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:460px;display:block;margin:6px auto;color:inherit" direction="ltr"><defs><marker id="agar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>${lines}${boxes}${labs}</svg>`;
+    const leg = notes.length ? '<div dir="rtl" style="font-size:.8rem;margin:2px 8px 6px;color:#f59e0b;text-align:right">' + notes.map((s, i) => `<div>${i + 1}. ${t(s)}</div>`).join('') + '</div>' : '';
+    return `<div class="agdiag">${svg}${leg}</div>`; }
   // ---------- ```scene3d: an interactive 3D shape inside a chat answer (the model only DESCRIBES it as JSON; the bench draws it, nothing it writes is run)
   const S3_COLORS = ['#4a9eff', '#e8678f', '#6cc56c', '#f2a03d', '#a98bd8', '#3fc1c9', '#d9b44a', '#8d7660'];
   function s3parse(src){
