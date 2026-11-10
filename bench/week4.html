@@ -3355,13 +3355,19 @@ const robot = (() => {
   const want3d = q => { q = String(q || '');
     if (/(3\s*d|٣\s*d|ثلاث[يى]\s*الأبعاد|ثلاث[يى]\s*الابعاد|ثلاث[يى]|مجس[ّ]?م|هرم|مكعب|متوازي|منشور|كور[ةه]|(?:^|\s)(?:ال)?كر[ةه](?:\s|$)|اسطوان|أسطوان|مخروط|في\s*الفراغ|محاور\s*x|scene3d|كاميرا|كاميره|camera|lookat|wasd)/i.test(q))
       return '\n\n(المستخدم طالب رسمة 3D صراحة: لازم يكون في ردك بلوك ```scene3d واحد على الأقل بالشكل اللي فوق. لو الشكل مش في البرنامج ارسمه من معلوماتك العامة وقول إنه توضيحي.)';
-    if (/(ارسم|إرسم|ارسمل|ارسمه|ارسمها|رسم[ةه]|ورين[يى]\s*(شكل|رسم)|وضح\s*بالرسم|بالرسم|draw|diagram|visuali[sz]e)/i.test(q))
+    if (/(ارسم|إرسم|ارسمل|ارسمه|ارسمها|رسم[ةه]|ورين[يى]\s*(شكل|رسم)|وضح\s*بالرسم|بالرسم|\bdraw\b|\bdiagram\b|visuali[sz]e)/i.test(q))
       return '\n\n(المستخدم طالب رسمة صراحة: لازم يكون في ردك رسمة. لو الفكرة فيها شكل أو نقط في الفراغ استخدم ```scene3d، ولو خطوات أو حاجة رايحة لحاجة استخدم ```diagram.)';
     return ''; };
-  const DIAG_RULE = ' لو رسمة هتوضح الفكرة (خطوات، أو حاجة رايحة لحاجة، أو أجزاء متوصلة)، ارسمها في بلوك ```diagram وكل سطر فيه «اسم -> اسم : كلمتين»، والأسماء قصيرة (من 1 لـ 3 كلمات، ومن غير أقواس ولا أرقام طويلة)، وكلام السهم بعد «:» كلمة أو اتنين بس (مش جملة)، ومن 2 لـ 8 أسطر. ماتطلّعش أكتر من 3 أسهم من نفس الاسم: لو الخطوات ورا بعض اعملها سلسلة (أ -> ب، ب -> ج) مش كلها طالعة من اسم واحد. ماتحطش إحداثيات أو أرقام نقط أو indices كأسماء في diagram: دي مكانها بلوك scene3d. ماتكتبش نفس الكلام برّه الرسمة وجواها، وماتحطش أكتر من رسمة diagram واحدة في الرد إلا لو اتطلب. مثال:\n```diagram\nnew -> malloc : تحجز\nmalloc -> Constructor : بعدها\n```\nالبنش هيحوّلها لرسمة. ماتقولش إنك مش بتعرف ترسم.' + SCENE_RULE;
+  const DIAG_RULE = ' لو السؤال محتاج شرح ورسمة هتوضح الفكرة (خطوات، أو حاجة رايحة لحاجة، أو أجزاء متوصلة)، ارسمها في بلوك ```diagram وكل سطر فيه «اسم -> اسم : كلمتين»، والأسماء قصيرة (من 1 لـ 3 كلمات، ومن غير أقواس ولا أرقام طويلة)، وكلام السهم بعد «:» كلمة أو اتنين بس (مش جملة)، ومن 2 لـ 8 أسطر. ماتطلّعش أكتر من 3 أسهم من نفس الاسم: لو الخطوات ورا بعض اعملها سلسلة (أ -> ب، ب -> ج) مش كلها طالعة من اسم واحد. ماتحطش إحداثيات أو أرقام نقط أو indices كأسماء في diagram: دي مكانها بلوك scene3d. ماتكتبش نفس الكلام برّه الرسمة وجواها، وماتحطش أكتر من رسمة diagram واحدة في الرد إلا لو اتطلب. مثال:\n```diagram\nnew -> malloc : تحجز\nmalloc -> Constructor : بعدها\n```\nالبنش هيحوّلها لرسمة. ماتقولش إنك مش بتعرف ترسم.' + SCENE_RULE;
   const FREE_RULES = 'انت مساعد ذكي ودود بيتكلم بالعامية المصرية. جاوب على أي سؤال من معلوماتك العامة، بوضوح وبجمل قصيرة. لو مش متأكد من معلومة قول كده بصراحة، وماتألّفش مصادر. اكتب الكود بين علامات `.' +
+    ' جاوب على قد السؤال بس: السؤال البسيط (معلومة واحدة زي عاصمة أو تاريخ أو تعريف) جاوبه في سطر أو اتنين، من غير رسمة ومن غير معلومات جانبية. ماتجيبش سيرة البنش أو البرنامج أو الكود ولا ترسم عنهم إلا لو السؤال عنهم.' +
     ' لو في الرسالة «من البرنامج المفتوح»، ابدأ بأقرب حاجة في البرنامج ده للسؤال: اذكر السطر أو الخطوة (مثلاً «خطوة 12» أو «سطر 18») واستخدم أسماء المتغيرات والدوال اللي فيه، وبعدها كمّل من معلوماتك العامة. ماتكتبش كود جديد من برّه البرنامج إلا لو السؤال طالب كده صراحة.' + DIAG_RULE;
-  const freeCtx = q => { try { return '\n\nمن البرنامج المفتوح «' + P.title + '» (أقرب سطور وخطوات للسؤال، من التشغيل الحقيقي):\n' + AG.context(q, {short: true}); } catch (e) { return ''; } };
+  // a free question gets the open program only when it is plausibly about code/graphics, so «what is the capital of X» stays clean
+  const aboutProg = q => { q = String(q || '');
+    if (/البرنامج|الكود|كود|السطر|سطر\s*\d|الخطو[ةه]|خطو[ةه]\s*\d|المتغير|الدال[ةه]|الشيدر|shader|buffer|vao|vbo|opengl|gl[A-Z]|matrix|مصفوف|كاميرا|camera|ر[أا]س|vertex|pixel|بكسل|texture|uniform|pointer|مؤشر|\.cpp|\.py|main/i.test(q)) return true;
+    try { const top = (AG.search(q, {pid: P.id, kinds: ['step', 'line'], n: 1})[0] || {}).d; if (!top || !top.code) return false;
+      const qt = AG.toks(q).filter(t => t[0] !== '§' && t.length > 2 && /[a-z_]/i.test(t)); const ct = new Set(AG.toks(top.code)); return qt.some(t => ct.has(t)); } catch (e) { return false; } };
+  const freeCtx = q => { if (!aboutProg(q)) return ''; try { return '\n\nمن البرنامج المفتوح «' + P.title + '» (أقرب سطور وخطوات للسؤال، من التشغيل الحقيقي):\n' + AG.context(q, {short: true}); } catch (e) { return ''; } };
   function freeAsk(text, att){ const wait = bubble('bot', '<div class="aglearn">🌍 سؤال حر: الإجابة هتيجي من معلومات النموذج العامة، مش من التشغيل الحقيقي.</div><div class="agfb">' +
       (LOCAL.ok ? '<button type="button" class="aglocal">🧠 اسأل المخ المحلي</button>' : '') + (SAMPLE ? '<button type="button" class="agmore">✨ اسأل Claude</button>' : '') + (!SAMPLE && !ONCLAUDE ? '<button type="button" class="agext">✨ اسأل Claude</button>' : '') + '</div>');
     wait.dataset.free = '1'; wait._att = att; wait._free = true;
@@ -3645,6 +3651,7 @@ const robot = (() => {
   const LOCAL_KEY = 'benchHelperLocalBrain';
   const LOCAL = (() => { let c = {}; try { c = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}'); } catch (e) {} return {url: c.url || 'http://127.0.0.1:8080', think: !!c.think, ok: false, model: ''}; })();
   const saveLocal = () => { try { localStorage.setItem(LOCAL_KEY, JSON.stringify({url: LOCAL.url, think: LOCAL.think})); } catch (e) {} };
+  const LOCAL_MAX = 7000; // longest answer the local model may write (thinking included)
   async function probeLocal(){ try { const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 2500);
       const r = await fetch(LOCAL.url.replace(/\/$/, '') + '/v1/models', {signal: ctl.signal}); clearTimeout(t);
       if (!r.ok) throw 0; const j = await r.json(); LOCAL.model = String(((j.data || [])[0] || {}).id || 'local').split('/').pop().replace(/\.gguf$/i, ''); LOCAL.ok = true; }
@@ -3732,7 +3739,7 @@ const robot = (() => {
     if (les.length){ const lt = '\n\n📚 دروس اتعلّمتها قبل كده من Claude في أسئلة شبه دي (الإجابات دي مظبوطة، استخدمها لو مناسبة للسؤال):\n' + les.map(l => 'س: ' + l.q + '\nج: ' + l.a.slice(0, 700)).join('\n\n');
       if (Array.isArray(content)) content[0].text = lt + '\n\n' + content[0].text; else content = lt + '\n\n' + content;
       b.querySelector('.agtag').insertAdjacentText('beforeend', ` · 📚 عدد ${les.length} درس من Claude`); }
-    const body = {messages: [{role: 'system', content: free ? FREE_RULES : localRules(Array.isArray(content) ? content.map(c => c.text || '').join(' ') : content)}, {role: 'user', content}], stream: true, temperature: .5, max_tokens: LOCAL.think ? 2500 : 1200,
+    const body = {messages: [{role: 'system', content: free ? FREE_RULES : localRules(Array.isArray(content) ? content.map(c => c.text || '').join(' ') : content)}, {role: 'user', content}], stream: true, temperature: .5, max_tokens: LOCAL_MAX,
       reasoning_format: 'deepseek', reasoning_control: true, chat_template_kwargs: {enable_thinking: LOCAL.think}};
     if (!LOCAL.think) body.reasoning_effort = 'none';
     const t0 = performance.now(); let n = 0, first = 0, fin = '';
@@ -3754,7 +3761,7 @@ const robot = (() => {
         if (!ans.trim()) ct.innerHTML = '<small>خلص من غير ما يكتب إجابة. جرّب «جاوب على طول» من 🧠.</small>';
         const sec = (performance.now() - t0) / 1000;
         ct.insertAdjacentHTML('beforeend', `<div class="agstat">عدد ${n} توكن في ${sec.toFixed(1)} ثانية${first ? ` · أول كلمة بعد ${((first - t0) / 1000).toFixed(1)} ثانية` : ''}</div>`);
-        if (fin === 'length') ct.insertAdjacentHTML('beforeend', `<div class="agstat">✂️ الرد وصل لأقصى طول (عدد ${LOCAL.think ? 2500 : 1200} توكن). اسأل عن جزء أصغر، أو قول له «كمّل».</div>`);
+        if (fin === 'length') ct.insertAdjacentHTML('beforeend', `<div class="agstat">✂️ الرد وصل لأقصى طول (عدد ${LOCAL_MAX} توكن). اسأل عن جزء أصغر، أو قول له «كمّل».</div>`);
         if (ans.trim()){ b.dataset.q = question; b.dataset.a = ans.trim(); localFeedback(b); judgeBtn(b); }
         fixBidi(ct); wire(ct, question); })
       .catch(e => { if (e && e.name === 'AbortError'){ ct.insertAdjacentHTML('beforeend', '<br><small>وقّفته.</small>'); return; }
