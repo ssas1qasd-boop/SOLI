@@ -220,10 +220,18 @@ const CAMSIM = (() => {
     new ResizeObserver(() => { size(); show(); }).observe(root);
   }
   // slots in the chat: <div class="agcsslot"></div>; rebuilt after the chat is restored from storage
-  function mountAll(r){ (r || document).querySelectorAll('.agcsslot').forEach(s => { if (s._m) return; s._m = 1; try { mount(s, typeof P !== 'undefined' ? P : null); } catch (e) { s.innerHTML = '<small>المحاكي وقع: ' + esc(e.message) + '</small>'; } }); }
+  function mountAll(r){ (r || document).querySelectorAll('.agcsslot').forEach(s => { if (s._m) return; s._m = 1; try { mountAny(s, typeof P !== 'undefined' ? P : null); } catch (e) { s.innerHTML = '<small>المحاكي وقع: ' + esc(e.message) + '</small>'; } }); }
   new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && (n.classList.contains('agcsslot') || n.querySelector('.agcsslot'))){ mountAll(); return; } })
     .observe(document.documentElement, {childList: true, subtree: true});
   const RULE = ' البرنامج ده فيه كاميرا والبنش جواه محاكي حقيقي ليها: لو السؤال عن تحريك الكاميرا أو W/A/S/D أو الماوس أو إزاي المصفوفة بتتغير، جاوب في جملتين واكتب في الآخر بلوك فاضي ```camsim``` (سطرين: ```camsim ثم ```) والبنش هيفتح المحاكي بالأرقام الحقيقية.';
-  return {detect, wants, mount, mountAll, rule: p => detect(p) ? RULE : ''};
+  // other programs (fixed numbers / mouse): PSIM. CAMSIM is the single door the chat uses for both.
+  const ps = P => (typeof PSIM !== 'undefined' && PSIM.detect(P)) || null;
+  const any = P => detect(P) || ps(P);
+  const mountAny = (slot, P) => (!detect(P) && ps(P)) ? PSIM.mount(slot, P) : mount(slot, P);
+  const label = P => detect(P) ? '🎥 افتح محاكي الكاميرا' : ps(P) ? PSIM.label(P) : '';
+  const intro = P => detect(P) ? 'ده محاكي بيشغّل كود الكاميرا بتاع البرنامج ده نفسه: نفس الأرقام اللي في <code>Camera.h</code> و <code>main.cpp</code>. دوس على الزراير أو اسحب على الصورة، وتحت هتلاقي السطور اللي اتنفذت في كل فريم بأرقامها.'
+    : 'ده محاكي بيشغّل البرنامج ده نفسه: الأرقام اللي فوق متقرية من سطور الكود. غيّر أي رقم كأنك عدّلت السطر وشغلت تاني، وهتشوف السطر بعد التعديل، والترمينال، والسطور اللي اتنفذت بأرقامها.';
+  const wantsAny = (q, P) => wants(q) || (!detect(P) && ps(P) && /محاكي|محاكى|simulat/i.test(String(q || '')));
+  return {detect: any, wants: wantsAny, mount: mountAny, mountAll, label, intro, rule: p => detect(p) ? RULE : ps(p) ? PSIM.rule(p) : ''};
 })();
 window.CAMSIM = CAMSIM;
