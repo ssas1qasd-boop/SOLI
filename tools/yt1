@@ -8,6 +8,12 @@ U="$1"; D="${2:-single}"
 python -c "import yt_dlp" 2>/dev/null || pip install yt-dlp
 exec python - "$U" "$D" <<'PY'
 import sys, os, re, glob, time, shutil, tempfile, subprocess, html
+def download_dir():
+    # the phone's Download folder, from Termux (~/storage/downloads) or from Ubuntu/proot (/sdcard/Download)
+    for p in (os.path.expanduser('~/storage/downloads'), '/sdcard/Download', '/storage/emulated/0/Download'):
+        if os.path.isdir(p) and os.access(p, os.W_OK): return p
+    print('⚠ مش قادر أوصل لفولدر Download، فهحفظ في البيت (~) ومش هتلاقيه في الملفات. اكتب termux-setup-storage ووافق على الإذن وشغّل تاني.', flush=True)
+    return os.path.expanduser('~')
 U, D = sys.argv[1], sys.argv[2]
 m = re.search(r'(?:v=|youtu\.be/|shorts/|live/|embed/)([A-Za-z0-9_-]{11})', U)
 if not m: sys.exit('X ده مش رابط فيديو يوتيوب')
@@ -51,8 +57,7 @@ if 'TRANSCRIPT: none' in block: sys.exit('X الفيديو ده مفيهوش ت�
 title = (re.search(r'^TITLE: (.*)$', block, re.M) or [None, v])[1]
 chan = (re.search(r'^CHANNEL: (.*)$', block, re.M) or [None, ''])[1]
 def safe(t): return re.sub(r'[^\w؀-ۿ -]+', '', t).strip().replace(' ', '_')[:60] or 'video'
-dl = os.path.expanduser('~/storage/downloads')
-out_dir = os.path.join(dl if os.path.isdir(dl) else os.path.expanduser('~'), 'yom_html', D); os.makedirs(out_dir, exist_ok=True)
+out_dir = os.path.join(download_dir(), 'yom_html', D); os.makedirs(out_dir, exist_ok=True); print('📁', out_dir, flush=True)
 path = os.path.join(out_dir, safe(title) + '.html')
 if os.path.exists(path): sys.exit('OK (موجود من قبل) -> ' + path)
 

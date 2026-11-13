@@ -6,6 +6,12 @@
 A="${1:-$(date +%d-%m)}"; B="${2:-$A}"
 exec python - "$A" "$B" <<'PY'
 import sys, os, re, json, glob, time, tempfile, urllib.request
+def download_dir():
+    # the phone's Download folder, from Termux (~/storage/downloads) or from Ubuntu/proot (/sdcard/Download)
+    for p in (os.path.expanduser('~/storage/downloads'), '/sdcard/Download', '/storage/emulated/0/Download'):
+        if os.path.isdir(p) and os.access(p, os.W_OK): return p
+    print('⚠ مش قادر أوصل لفولدر Download، فهحفظ في البيت (~) ومش هتلاقيه في الملفات. اكتب termux-setup-storage ووافق على الإذن وشغّل تاني.', flush=True)
+    return os.path.expanduser('~')
 A, B = sys.argv[1], sys.argv[2]
 H = os.path.expanduser('~/.yom'); C = os.path.join(H, 'subs'); os.makedirs(C, exist_ok=True)
 PLAN = os.path.join(H, 'plan.json')
@@ -76,9 +82,9 @@ for d in days:
             print(f'[{n}/{total}] {d} {col}: ' + ('cached' if cached else ('X' if block.startswith('ERROR') else 'ok')) + ' ' + block.split('\n')[0][:60], flush=True)
             if not cached: time.sleep(4)
     lines.append('')
-dl = os.path.expanduser('~/storage/downloads')
+dl = download_dir()
 name = 'yom_' + A + ('' if A == B else '_to_' + B) + '.txt'
-dest = os.path.join(dl if os.path.isdir(dl) else os.path.expanduser('~'), name)
+dest = os.path.join(dl, name)
 open(dest, 'w', encoding='utf-8').write('\n'.join(lines))
 bad = sum(1 for l in lines if l.startswith('ERROR'))
 print(f'\nOK -> {dest}  ({os.path.getsize(dest) // 1024} KB, {bad} errors)')

@@ -7,10 +7,16 @@ command -v yom >/dev/null || { echo "X yom is missing: install it first"; exit 1
 yom "$A" "$B" || exit 1
 exec python - "$A" "$B" <<'PY'
 import sys, os, re, json, time, shutil, subprocess, zipfile, html
+def download_dir():
+    # the phone's Download folder, from Termux (~/storage/downloads) or from Ubuntu/proot (/sdcard/Download)
+    for p in (os.path.expanduser('~/storage/downloads'), '/sdcard/Download', '/storage/emulated/0/Download'):
+        if os.path.isdir(p) and os.access(p, os.W_OK): return p
+    print('⚠ مش قادر أوصل لفولدر Download، فهحفظ في البيت (~) ومش هتلاقيه في الملفات. اكتب termux-setup-storage ووافق على الإذن وشغّل تاني.', flush=True)
+    return os.path.expanduser('~')
 A, B = sys.argv[1], sys.argv[2]
 H = os.path.expanduser('~/.yom'); C = os.path.join(H, 'subs')
 plan = json.load(open(os.path.join(H, 'plan.json'))); keys = list(plan); days = keys[keys.index(A):keys.index(B) + 1]
-dl = os.path.expanduser('~/storage/downloads'); ROOT = os.path.join(dl if os.path.isdir(dl) else os.path.expanduser('~'), 'yom_html')
+ROOT = os.path.join(download_dir(), 'yom_html'); print('📁 الملفات هتتحفظ في:', ROOT, flush=True)
 WORK = os.path.join(H, 'claude_empty'); os.makedirs(WORK, exist_ok=True)
 
 def claude_cmd():
