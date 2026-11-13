@@ -1701,7 +1701,7 @@ const robot = (() => {
   const LOCAL_KEY = 'benchHelperLocalBrain';
   const LOCAL = (() => { let c = {}; try { c = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}'); } catch (e) {} return {url: c.url || 'http://127.0.0.1:8080', think: !!c.think, ok: false, model: '', ctx: 0}; })();
   const saveLocal = () => { try { localStorage.setItem(LOCAL_KEY, JSON.stringify({url: LOCAL.url, think: LOCAL.think})); } catch (e) {} };
-  const LOCAL_MAX = 7000; // longest answer the local model may write (thinking included)
+  const LOCAL_MAX = 3000; // longest answer the local model may write (thinking included)
   async function probeLocal(){ try { const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 2500);
       const r = await fetch(LOCAL.url.replace(/\/$/, '') + '/v1/models', {signal: ctl.signal}); clearTimeout(t);
       if (!r.ok) throw 0; const j = await r.json(); LOCAL.model = String(((j.data || [])[0] || {}).id || 'local').split('/').pop().replace(/\.gguf$/i, ''); LOCAL.ok = true;
