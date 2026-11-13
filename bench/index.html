@@ -3488,8 +3488,8 @@ const PSIM = (() => {
 .ps .psr input[type=number]{width:72px;font:12px ui-monospace,Menlo,Consolas,monospace;padding:3px;border-radius:6px;border:1px solid rgba(127,127,127,.45);background:rgba(0,0,0,.2);color:inherit}
 .ps .psv input[type=number]{width:62px}
 .ps h5{margin:10px 2px 3px;font-size:12.5px}
-.ps pre{direction:ltr;text-align:left;font:11.5px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;margin:0;background:rgba(0,0,0,.28);border-radius:8px;padding:8px;max-height:330px;overflow:auto}
-.ps.psfull pre{max-height:none}.ps .term{background:#05080b;color:#d7f7d0}.ps .term .ch{color:#ff9d6e}
+.ps pre{min-height:0;height:auto;direction:ltr;text-align:left;font:11.5px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;margin:0;background:rgba(0,0,0,.28);border-radius:8px;padding:8px;max-height:330px;overflow:auto}
+.ps.psfull pre{max-height:none}.ps .psterm{background:#05080b;color:#d7f7d0;min-height:0;height:auto}.ps .psterm .ch{color:#ff9d6e}
 .ps .ln{color:#7fb6ff}.ps .cd{opacity:.6}.ps .ok{color:#7ddc8a}.ps .no{opacity:.55}.ps .hd{color:#ffcc66;font-weight:bold}.ps .chg{color:#ff9d6e}
 .ps .ed del{color:#ff8080;text-decoration:none;opacity:.7}.ps .ed ins{color:#7ddc8a;text-decoration:none}`;
     document.head.appendChild(s); }
@@ -3587,7 +3587,7 @@ const PSIM = (() => {
     root.innerHTML = `<div class="psh"><b>${d.title} · ${esc(P.title || '')}</b><button type="button" data-a="full">⛶ كبّر</button><button type="button" data-a="reset">↺ من الأول</button></div>
 <div class="pscap">${d.intro}</div><canvas class="pc1" style="height:${isDrag || two ? 'auto' : '260px'}"></canvas>${two ? '<canvas class="pc2" style="height:200px"></canvas>' : ''}${d.legend ? `<div class="pscap">${d.legend}</div>` : ''}
 <div class="psin"></div><h5>✏️ السطور اللي اتغيرت في <code>${esc(cfg.file)}</code></h5><pre class="ed"></pre>
-<h5>🖥️ الترمينال (اللي البرنامج بيطبعه)</h5><pre class="term"></pre><h5>🔎 السطور اللي اتنفذت بأرقامها</h5><pre class="log"></pre>`;
+<h5>🖥️ الترمينال (اللي البرنامج بيطبعه)</h5><pre class="psterm"></pre><h5>🔎 السطور اللي اتنفذت بأرقامها</h5><pre class="log"></pre>`;
     slot.appendChild(root);
     const cv = root.querySelector('.pc1'), cv2 = root.querySelector('.pc2'), inn = root.querySelector('.psin');
     const aspect = () => { if (isDrag || two){ const w = cv.clientWidth || 300; cv.style.height = Math.round(w * (cfg.S ? cfg.S.H / cfg.S.W : .75)) + 'px'; } };
@@ -3612,7 +3612,7 @@ const PSIM = (() => {
       const ed = [...touched.values()].sort((a, b) => a.l.ln - b.l.ln).filter(t => t.text !== t.l.code);
       root.querySelector('.ed').innerHTML = ed.length ? ed.map(t => `<span class="ln">${esc(cfg.file)}:${t.l.ln}</span>\n<del>- ${esc(t.l.code.trim())}</del>\n<ins>+ ${esc(t.text.trim())}</ins>`).join('\n') : '<span class="no">لسه زي الكود الأصلي. حرّك أي رقم فوق.</span>';
       inn.querySelectorAll('.psp').forEach(b => { const p = d.params.find(q => q.k === b.dataset.k); b.classList.toggle('ch', !p.view && !same(V[p.k], V0[p.k])); });
-      root.querySelector('.term').innerHTML = r.out.map((l, i) => l === base[i] ? esc(l) : `<span class="ch">${esc(l)}</span>`).join('\n') + (r.out.length !== base.length ? `\n<span class="no">(عدد السطور ${r.out.length} بدل ${base.length})</span>` : '');
+      root.querySelector('.psterm').innerHTML = r.out.map((l, i) => l === base[i] ? esc(l) : `<span class="ch">${esc(l)}</span>`).join('\n') + (r.out.length !== base.length ? `\n<span class="no">(عدد السطور ${r.out.length} بدل ${base.length})</span>` : '');
       root.querySelector('.log').innerHTML = r.log.map(([k, t, cl]) => { const l = cfg.L[k]; return (l ? `<span class="ln">${esc(cfg.file)}:${l.ln}</span> <span class="cd">${esc(l.code.trim())}</span>\n` : '') + `<span class="${cl || ''}">  ${esc(t).replace(/\n/g, '\n  ')}</span>`; }).join('\n');
       draw(); }
     function draw(){ if (!last || !root.isConnected) return; aspect(); const f = PIC[cfg.file]; if (f) f(cv, last, cv2, cam); }
