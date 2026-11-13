@@ -11,7 +11,7 @@ const PSIMDEFS = (() => {
   // ===================== d19_c2: drag.cpp — drag a cube with the mouse
   D['drag.cpp'] = {
     test: /DragTheObject/, title: '🖱️ محاكي سحب المكعب', mode: 'drag',
-    intro: 'اسحب بصباعك على الشباك = الماوس الشمال متداس. البرنامج بيحرك المكعب اللي رقمه <code>picked</code> لحد ما يبقى تحت الماوس.',
+    intro: 'اسحب بصباعك على الشباك = الماوس الشمال متداس. البرنامج بيحرك المكعب اللي رقمه <code>picked</code> لحد ما يبقى تحت الماوس. المؤشرات تحت = تعديل السطور 159 و 161 وتشغيل البرنامج من الأول، فالمكعب يرجع للمكان اللي الأرقام دي بتقول عليه.',
     lines: {fn: /glm::vec3 DragTheObject/, ndcx: /float ndcX\s*=/, ndcy: /float ndcY\s*=/, focal: /float focalLength\s*=/, ray: /glm::vec3 ray\(/, hit: /glm::vec3 hit\s*=/, back: /return glm::vec3\(glm::inverse\(view\)/,
       proj: /glm::mat4 projection\s*=/, view: /glm::mat4 view\s*=/, pos: /glm::vec3 positions\[3\]/, picked: /int picked\s*=/, vz: /float objectViewZ\s*=/, m0: /double mouseX\s*=/, first: /^\s{0,6}positions\[picked\]\s*=\s*DragTheObject/, loopw: /while \(!glfwWindowShouldClose/, print: /std::cout << "cube "/,
       press: /glfwGetMouseButton\(window, GLFW_MOUSE_BUTTON_LEFT\)/, cur: /glfwGetCursorPos\(window/, call: /^\s{7,}positions\[picked\]\s*=\s*DragTheObject/, loop: /for \(int i = 0; i < 3; i\+\+\)/, model: /glm::mat4 model = glm::translate/, rot: /model = glm::rotate\(model, glm::radians\(30/, scl: /model = glm::scale/, mvp: /glm::mat4 mvp = projection \* view \* model/, draw: /glDrawArrays\(GL_TRIANGLES, 0, 36\)/, cross: /glm::mat4 atMouse/},

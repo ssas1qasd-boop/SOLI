@@ -3125,7 +3125,7 @@ const PSIMDEFS = (() => {
   // ===================== d19_c2: drag.cpp — drag a cube with the mouse
   D['drag.cpp'] = {
     test: /DragTheObject/, title: '🖱️ محاكي سحب المكعب', mode: 'drag',
-    intro: 'اسحب بصباعك على الشباك = الماوس الشمال متداس. البرنامج بيحرك المكعب اللي رقمه <code>picked</code> لحد ما يبقى تحت الماوس.',
+    intro: 'اسحب بصباعك على الشباك = الماوس الشمال متداس. البرنامج بيحرك المكعب اللي رقمه <code>picked</code> لحد ما يبقى تحت الماوس. المؤشرات تحت = تعديل السطور 159 و 161 وتشغيل البرنامج من الأول، فالمكعب يرجع للمكان اللي الأرقام دي بتقول عليه.',
     lines: {fn: /glm::vec3 DragTheObject/, ndcx: /float ndcX\s*=/, ndcy: /float ndcY\s*=/, focal: /float focalLength\s*=/, ray: /glm::vec3 ray\(/, hit: /glm::vec3 hit\s*=/, back: /return glm::vec3\(glm::inverse\(view\)/,
       proj: /glm::mat4 projection\s*=/, view: /glm::mat4 view\s*=/, pos: /glm::vec3 positions\[3\]/, picked: /int picked\s*=/, vz: /float objectViewZ\s*=/, m0: /double mouseX\s*=/, first: /^\s{0,6}positions\[picked\]\s*=\s*DragTheObject/, loopw: /while \(!glfwWindowShouldClose/, print: /std::cout << "cube "/,
       press: /glfwGetMouseButton\(window, GLFW_MOUSE_BUTTON_LEFT\)/, cur: /glfwGetCursorPos\(window/, call: /^\s{7,}positions\[picked\]\s*=\s*DragTheObject/, loop: /for \(int i = 0; i < 3; i\+\+\)/, model: /glm::mat4 model = glm::translate/, rot: /model = glm::rotate\(model, glm::radians\(30/, scl: /model = glm::scale/, mvp: /glm::mat4 mvp = projection \* view \* model/, draw: /glDrawArrays\(GL_TRIANGLES, 0, 36\)/, cross: /glm::mat4 atMouse/},
@@ -3599,13 +3599,15 @@ const PSIM = (() => {
       const lns = (p.lines || [p.line]).map(k => cfg.L[k]).filter(Boolean).map(l => l.ln);
       box.innerHTML = `<label>${p.label}${lns.length ? ` <span class="ln" style="color:#7fb6ff">(سطر ${lns.join('، ')})</span>` : ''}</label>`;
       const row = document.createElement('div'); row.className = 'psr' + (p.type ? ' psv' : '');
-      if (p.type){ const n = p.type === 'vec2' ? 2 : 3; for (let i = 0; i < n; i++){ const t = document.createElement('input'); t.type = 'number'; t.step = p.step || 1; t.value = V[p.k][i]; t.oninput = () => { const x = parseFloat(t.value); if (!isNaN(x)){ V[p.k][i] = x; upd(); } }; row.appendChild(t); } }
+      if (p.type){ const n = p.type === 'vec2' ? 2 : 3; for (let i = 0; i < n; i++){ const t = document.createElement('input'); t.type = 'number'; t.step = p.step || 1; t.value = V[p.k][i]; t.oninput = () => { const x = parseFloat(t.value); if (!isNaN(x)){ V[p.k][i] = x; changed(); } }; row.appendChild(t); } }
       else { const r = document.createElement('input'); r.type = 'range'; r.min = p.min; r.max = p.max; r.step = p.step; r.value = V[p.k]; const t = document.createElement('input'); t.type = 'number'; t.step = p.step; t.value = V[p.k];
-        r.oninput = () => { V[p.k] = +r.value; t.value = r.value; upd(); }; t.oninput = () => { let x = parseFloat(t.value); if (!isNaN(x)){ x = Math.max(+p.min, Math.min(+p.max, x)); V[p.k] = x; r.value = x; upd(); } }; t.onchange = () => { t.value = V[p.k]; }; row.append(r, t); }
+        r.oninput = () => { V[p.k] = +r.value; t.value = r.value; changed(); }; t.oninput = () => { let x = parseFloat(t.value); if (!isNaN(x)){ x = Math.max(+p.min, Math.min(+p.max, x)); V[p.k] = x; r.value = x; changed(); } }; t.onchange = () => { t.value = V[p.k]; }; row.append(r, t); }
       box.appendChild(row); inn.appendChild(box); });
     const syncInputs = () => inn.querySelectorAll('.psp').forEach(b => { const p = d.params.find(q => q.k === b.dataset.k), ins = b.querySelectorAll('input');
       if (p.type) ins.forEach((t, i) => t.value = V[p.k][i]); else ins.forEach(t => t.value = V[p.k]); });
     let last = null;
+    // editing a source line = running the program again from the start, so a drag done before is gone (like the real program)
+    function changed(){ if (isDrag) Object.assign(st, {down: false, mx: null, my: null}); upd(); }
     function upd(){
       const r = d.run(V, cfg.S, isDrag ? st : null); last = r;
       // edited lines
