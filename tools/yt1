@@ -1,0 +1,99 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# yt1 <youtube link> [folder name]
+#   -> the usual Arabic HTML summary for ONE YouTube video, written by Claude Code (your subscription),
+#      saved in Downloads/yom_html/single/  (or Downloads/yom_html/<folder name>/ if you give one).
+# The transcript is cached in ~/.yom/subs (shared with yom/yomhtml), so running it again is fast.
+U="$1"; D="${2:-single}"
+[ -z "$U" ] && { echo "اكتب:  yt1 <رابط يوتيوب>"; exit 1; }
+python -c "import yt_dlp" 2>/dev/null || pip install yt-dlp
+exec python - "$U" "$D" <<'PY'
+import sys, os, re, glob, time, shutil, tempfile, subprocess, html
+U, D = sys.argv[1], sys.argv[2]
+m = re.search(r'(?:v=|youtu\.be/|shorts/|live/|embed/)([A-Za-z0-9_-]{11})', U)
+if not m: sys.exit('X ده مش رابط فيديو يوتيوب')
+v = m.group(1); U = 'https://www.youtube.com/watch?v=' + v
+H = os.path.expanduser('~/.yom'); C = os.path.join(H, 'subs'); os.makedirs(C, exist_ok=True)
+import yt_dlp
+
+def vtt_text(path):
+    out, last = [], ''
+    for line in open(path, encoding='utf-8', errors='replace'):
+        line = line.strip()
+        if not line or line.startswith(('WEBVTT', 'Kind:', 'Language:', 'NOTE')) or '-->' in line or re.fullmatch(r'\d+', line): continue
+        line = re.sub(r'<[^>]+>', '', line).strip()
+        if line and line != last: out.append(line); last = line
+    return ' '.join(out)
+
+cf = os.path.join(C, v + '.txt')
+if os.path.exists(cf):
+    block = open(cf, encoding='utf-8').read(); print('transcript: cached', flush=True)
+else:
+    tmp = tempfile.mkdtemp(); err = ''; block = None
+    opts = {'skip_download': True, 'writesubtitles': True, 'writeautomaticsub': True, 'subtitleslangs': ['en', 'en-orig', 'en-US', 'en-GB'],
+            'subtitlesformat': 'vtt', 'outtmpl': os.path.join(tmp, '%(id)s.%(ext)s'), 'quiet': True, 'no_warnings': True}
+    for attempt in range(3):
+        try:
+            with yt_dlp.YoutubeDL(opts) as y: info = y.extract_info(U, download=True)
+            L = ['TITLE: ' + str(info.get('title')), 'CHANNEL: ' + str(info.get('channel') or info.get('uploader')),
+                 'DURATION: ' + str(info.get('duration_string') or info.get('duration'))]
+            subs = sorted(glob.glob(os.path.join(tmp, info['id'] + '*.vtt')), key=lambda p: ('orig' in p, len(p)))
+            if subs: t = vtt_text(subs[0]); L += ['TRANSCRIPT (' + str(len(t.split())) + ' words):', t]
+            else: L.append('TRANSCRIPT: none (no English captions)')
+            block = '\n'.join(L); open(cf, 'w', encoding='utf-8').write(block); break
+        except Exception as e:
+            err = str(e)[:300]
+            if any(k in err.lower() for k in ('unavailable', 'not available', 'private', 'removed', 'terminated')): break
+            time.sleep(90 if '429' in err or 'Too Many' in err else 3 * (attempt + 1))
+    if block is None: sys.exit('X مقدرتش أجيب الفيديو: ' + err)
+    print('transcript: ok', flush=True)
+if 'TRANSCRIPT: none' in block: sys.exit('X الفيديو ده مفيهوش ترجمة إنجليزي، مينفعش يتعمله شرح')
+
+title = (re.search(r'^TITLE: (.*)$', block, re.M) or [None, v])[1]
+chan = (re.search(r'^CHANNEL: (.*)$', block, re.M) or [None, ''])[1]
+def safe(t): return re.sub(r'[^\w؀-ۿ -]+', '', t).strip().replace(' ', '_')[:60] or 'video'
+dl = os.path.expanduser('~/storage/downloads')
+out_dir = os.path.join(dl if os.path.isdir(dl) else os.path.expanduser('~'), 'yom_html', D); os.makedirs(out_dir, exist_ok=True)
+path = os.path.join(out_dir, safe(title) + '.html')
+if os.path.exists(path): sys.exit('OK (موجود من قبل) -> ' + path)
+
+def claude_cmd():
+    if shutil.which('claude'): return ['claude']
+    find = ('export PATH="$HOME/.local/bin:$HOME/.claude/local:$HOME/.npm-global/bin:/usr/local/bin:$PATH"; '
+            'C=$(command -v claude || ls $HOME/.local/bin/claude $HOME/.claude/local/claude 2>/dev/null | head -1); '
+            'if [ -z "$C" ]; then echo "Claude Code is not installed in Ubuntu" >&2; exit 127; fi; cd /root && exec "$C" "$@"')
+    return ['proot-distro', 'login', 'ubuntu', '--', 'bash', '-lc', find, 'yt1']
+
+CSS = """* { box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: #1a1a2e; color: #eee; line-height: 1.8; padding: 20px; max-width: 800px; margin: 0 auto; }
+h1, h2, h3 { color: #00d9ff; } a { color: #ff6b6b; }
+pre, code { direction: ltr; text-align: left; background: #0d0d1a; border-radius: 8px; font-family: 'Fira Code', 'Consolas', monospace; }
+pre { padding: 15px; overflow-x: auto; border: 1px solid #333; } code { padding: 2px 6px; color: #7bed9f; } pre code { padding: 0; }
+.meta { color: #888; margin-bottom: 20px; } ul, ol { padding-right: 20px; }
+.highlight { color: #ffd700; font-weight: bold; } .warning { color: #ff6b6b; } .success { color: #7bed9f; }
+.note { background: #2a2a4e; padding: 15px; border-radius: 8px; margin: 15px 0; border-right: 4px solid #00d9ff; }"""
+
+RULES = """اكتب شرح عربي بالعامية المصرية لفيديو يوتيوب تعليمي، من النص (Transcript) اللي تحت بس.
+- اكتب جسم صفحة HTML بس (من غير <html> ولا <head> ولا <style>)، وابدأ بـ <h1>.
+- بعد العنوان: <p class="meta"> فيه <strong>القناة:</strong> و <strong>المدة:</strong> و <strong>الرابط:</strong> (لينك).
+- بعد كده أقسام <h2> و <h3>: الفكرة، والأمثلة اللي في الفيديو بالترتيب، والكود اللي اتكتب في الفيديو في <pre><code> (زي ما اتقال بالظبط، ولو مش واضح قول كده).
+- استخدم <div class="note"> للملاحظات المهمة، و <span class="highlight"> للمصطلحات، وفي الآخر <h2>الخلاصة</h2>.
+- المصطلحات التقنية بالإنجليزي، وعرّف كل مصطلح أول مرة.
+- ماتألّفش حاجة مش في النص. لو حاجة مش واضحة من النص قول إنها مش واضحة.
+- آخر سطر: <p style="color: #666; font-size: 0.9em;">تم إنشاء هذا الشرح من فيديو CHANNEL على YouTube</p>
+ردّك يكون HTML بس، من غير أي كلام قبله أو بعده."""
+
+WORK = os.path.join(H, 'claude_empty'); os.makedirs(WORK, exist_ok=True)
+prompt = RULES.replace('CHANNEL', chan) + f'\n\nالرابط: {U}\n\n' + block
+print('Claude بيكتب الشرح...', flush=True); t0 = time.time()
+try:
+    r = subprocess.run(claude_cmd() + ['-p', '--output-format', 'text', '--max-turns', '1'], input=prompt, capture_output=True, text=True, timeout=600, cwd=WORK)
+except subprocess.TimeoutExpired:
+    sys.exit('X Claude أخد أكتر من 10 دقايق')
+m = re.search(r'<h1[\s\S]*', r.stdout.strip())
+if not m: sys.exit('X ' + (r.stderr.strip()[-200:] or 'مفيش HTML في الرد'))
+body = re.sub(r'</body>[\s\S]*$', '', m.group(0)).strip().rstrip('`').strip()
+page = (f'<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+        f'  <title>{html.escape(title)}</title>\n  <style>\n{CSS}\n  </style>\n</head>\n<body>\n{body}\n</body>\n</html>\n')
+open(path, 'w', encoding='utf-8').write(page)
+print(f'OK ({int(time.time() - t0)} s) -> {path}')
+PY
