@@ -2770,7 +2770,7 @@ function showBytes(on){ const sh = $('bytesSheet'); if (!sh) return; if (on && $
 if ($('bytBtn')){ $('bytBtn').onclick = () => showBytes($('bytesSheet').hidden); $('bytX').onclick = () => showBytes(false);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('bytesSheet').hidden) showBytes(false); }); }
 // ------------------------------------------------------------------ program picker
-{ const pk = $('picker'); const DAYN = {1:'اليوم 1', 2:'اليوم 2', 3:'اليوم 3', 4:'اليوم 4', 5:'اليوم 5', 6:'اليوم 6', 7:'اليوم 7', 8:'الأسبوع 3 · اليوم 1', 9:'الأسبوع 3 · اليوم 2', 15:'الأسبوع 4 · اليوم 1', 16:'الأسبوع 4 · اليوم 2', 17:'الأسبوع 4 · اليوم 3', 18:'الأسبوع 4 · اليوم 4', 19:'الأسبوع 4 · اليوم 5', 20:'الأسبوع 4 · اليوم 6'};
+{ const pk = $('picker'); const DAYN = {1:'اليوم 1', 2:'اليوم 2', 3:'اليوم 3', 4:'اليوم 4', 5:'اليوم 5', 6:'اليوم 6', 7:'اليوم 7', 8:'الأسبوع 3 · اليوم 1', 9:'الأسبوع 3 · اليوم 2', 15:'الأسبوع 4 · اليوم 1', 16:'الأسبوع 4 · اليوم 2', 17:'الأسبوع 4 · اليوم 3', 18:'الأسبوع 4 · اليوم 4', 19:'الأسبوع 4 · اليوم 5', 20:'الأسبوع 4 · اليوم 6', 22:'الأسبوع 5 · اليوم 1'};
   const days = [...new Set(PROGS.map(p => p.day))]; const multi = days.length > 1;
   days.forEach(d => { const ps = PROGS.filter(p => p.day === d);
     const row = document.createElement(multi ? 'details' : 'div'); row.className = 'pk-day'; row.dataset.day = d;
@@ -4737,7 +4737,7 @@ syncPause();
 requestAnimationFrame(frame);
 };
 
-(async () => { const st = document.getElementById('bootMsg'); const names = ["data_day1.json", "data_day2.json", "data_day3.json", "data_day4.json", "data_day5.json", "data_day6.json", "data_day7.json", "data_day8.json", "data_day9.json", "data_day10.json", "data_day11.json", "data_day12.json", "data_day13.json", "data_day14.json", "data_day15.json", "data_day16.json", "data_day17.json", "data_day18.json", "data_day19.json", "data_day20.json"];
+(async () => { const st = document.getElementById('bootMsg'); const names = ["data_day1.json", "data_day2.json", "data_day3.json", "data_day4.json", "data_day5.json", "data_day6.json", "data_day7.json", "data_day8.json", "data_day9.json", "data_day10.json", "data_day11.json", "data_day12.json", "data_day13.json", "data_day14.json", "data_day15.json", "data_day16.json", "data_day17.json", "data_day18.json", "data_day19.json", "data_day20.json", "data_day22.json"];
   try { const parts = await Promise.all(names.map(n => fetch(n).then(r => { if (!r.ok) throw new Error(n); return r.json(); })));
     window.__BENCH_DATA = {programs: parts.flatMap(p => p.programs)}; if (st) st.remove(); window.__benchBoot(); }
   catch (e){ if (st) st.textContent = 'مقدرتش أحمّل داتا البنش. افتح الصفحة تاني.'; } })();
@@ -4771,7 +4771,7 @@ body{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
   const cache = {}; let shownDay = null;
   const progs = () => { try { return (window.__bench && window.__bench.progs()) || []; } catch (e) { return []; } };
   const cur = () => { const ps = progs(); const id = location.hash.slice(1); return ps.find(p => p.id === id) || ps[0] || null; };
-  const dname = d => d >= 15 ? 'الأسبوع 4 · اليوم ' + (d - 14) : d >= 8 ? 'الأسبوع 3 · اليوم ' + (d - 7) : 'الأسبوع 2 · اليوم ' + d;
+  const dname = d => d >= 22 ? 'الأسبوع 5 · اليوم ' + (d - 21) : d >= 15 ? 'الأسبوع 4 · اليوم ' + (d - 14) : d >= 8 ? 'الأسبوع 3 · اليوم ' + (d - 7) : 'الأسبوع 2 · اليوم ' + d;
   const label = () => { const p = cur(); dayEl.textContent = p ? dname(shownDay && !pane.hidden ? shownDay : p.day) : ''; };
   setInterval(label, 1000);
   function openProg(p){
