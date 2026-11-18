@@ -639,7 +639,7 @@ details.lgd>summary .n{font:600 11px var(--mono);background:var(--ink);color:#ff
   <nav class="picker" id="picker" aria-label="اختار البرنامج"></nav>
 
   <header class="mast">
-    <p class="kicker cap">الأسابيع 2 و 3 و 4 · محاضرات الرسم والـ CAD والـ Templates · كل الأيام</p>
+    <p class="kicker cap">الأسابيع 2 و 3 و 4 و 5 · محاضرات الرسم والـ CAD والـ Templates والـ Smart pointers · كل الأيام</p>
     <h1 class="title"><span class="title-make" id="ptitle">—</span><span class="title-type">GL<b id="pday">1</b></span></h1>
     <p class="deck" id="pdeck">—</p>
     <p class="lede" id="pdesc"></p>
@@ -2778,10 +2778,10 @@ if ($('bytBtn')){ $('bytBtn').onclick = () => showBytes($('bytesSheet').hidden);
     const list = row.querySelector('.pk-list');
     ps.forEach(p => { const b = document.createElement('button'); b.type = 'button'; b.dataset.id = p.id; b.setAttribute('aria-pressed', 'false');
       b.innerHTML = `<i class="${p.kind === 'CAD' ? 'cad' : p.kind === 'رسم' ? '' : 'cli'}">${esc(p.kind)}</i>${esc(p.title)}`; b.onclick = () => loadProgram(p.id); list.appendChild(b); });
-    if (multi){ const wk = d >= 15 ? 4 : d >= 8 ? 3 : 2; let w = pk.querySelector(`details.pk-week[data-week="${wk}"]`);
+    if (multi){ const wk = d >= 22 ? 5 : d >= 15 ? 4 : d >= 8 ? 3 : 2; let w = pk.querySelector(`details.pk-week[data-week="${wk}"]`);
       if (!w){ w = document.createElement('details'); w.className = 'pk-week'; w.dataset.week = wk;
         w.innerHTML = `<summary><span>الأسبوع ${wk}</span><small></small></summary><div class="pk-days"></div>`; pk.appendChild(w); }
-      if (wk >= 3) row.querySelector('summary span').textContent = 'اليوم ' + (d - (wk === 4 ? 14 : 7));
+      if (wk >= 3) row.querySelector('summary span').textContent = 'اليوم ' + (d - (wk === 5 ? 21 : wk === 4 ? 14 : 7));
       w.querySelector('.pk-days').appendChild(row);
       const n = w.querySelectorAll('.pk-day').length, np = w.querySelectorAll('.pk-list button').length;
       w.querySelector('summary small').textContent = `عدد ${n} أيام · عدد ${np} برنامج`;
